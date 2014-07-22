@@ -1,0 +1,18 @@
+
+function main(){
+	for( $i = 0 ; $i < 100 ; $i++ ){
+		$value = $i + 1;
+		if( $value % 3 == 0 && $value % 5 == 0 ){
+			Log( "FizzBuzz" );
+		}
+		else if( $value % 3 == 0 ){
+			Log( "Fizz" );
+		}
+		else if( $value % 5 == 0 ){
+			Log( "Buzz" );
+		}
+		else{
+			Log( string( $value ) );
+		}
+	}
+}
