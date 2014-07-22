@@ -1,0 +1,122 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{320FA112-0E14-434C-B247-30572839C6C9}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>ScriptEngine</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="lib\util\util_binary.cpp" />
+    <ClCompile Include="lib\util\util_stream.cpp" />
+    <ClCompile Include="lib\vm\assembly\vmassemble_reader.cpp" />
+    <ClCompile Include="lib\vm\assembly\vmassembly_info.cpp" />
+    <ClCompile Include="lib\vm\assembly\vm_mnemonic_define.cpp" />
+    <ClCompile Include="lib\vm\lexer\vmlexer.cpp" />
+    <ClCompile Include="lib\vm\parser\error\vmerror.cpp" />
+    <ClCompile Include="lib\vm\parser\vmparser.cpp" />
+    <ClCompile Include="lib\vm\parser\vmparser_expression.cpp" />
+    <ClCompile Include="lib\vm\parser\vmparser_for.cpp" />
+    <ClCompile Include="lib\vm\parser\vmparser_if.cpp" />
+    <ClCompile Include="lib\vm\parser\vmparser_switch.cpp" />
+    <ClCompile Include="lib\vm\parser\vmparser_while.cpp" />
+    <ClCompile Include="lib\vm\parser\vmscope.cpp" />
+    <ClCompile Include="lib\vm\sencha_vm.cpp" />
+    <ClCompile Include="lib\vm\symbol\vmsymbol.cpp" />
+    <ClCompile Include="lib\vm\vmassembler.cpp" />
+    <ClCompile Include="lib\vm\vmmemory.cpp" />
+    <ClCompile Include="lib\vm\vmregister.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="vmplugin\VMFileSystem.cpp" />
+    <ClCompile Include="vmplugin\VMSystem.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="lib\util\util_binary.h" />
+    <ClInclude Include="lib\util\util_stream.h" />
+    <ClInclude Include="lib\vm\assembly\vmassemble_reader.h" />
+    <ClInclude Include="lib\vm\assembly\vmassembly_info.h" />
+    <ClInclude Include="lib\vm\assembly\vm_mnemonic_define.h" />
+    <ClInclude Include="lib\vm\lexer\vmlexer.h" />
+    <ClInclude Include="lib\vm\parser\error\vmerror.h" />
+    <ClInclude Include="lib\vm\parser\vmparser.h" />
+    <ClInclude Include="lib\vm\parser\vmscope.h" />
+    <ClInclude Include="lib\vm\sencha_vm.h" />
+    <ClInclude Include="lib\vm\symbol\vmsymbol.h" />
+    <ClInclude Include="lib\vm\vmassembler.h" />
+    <ClInclude Include="lib\vm\vmdefine.h" />
+    <ClInclude Include="lib\vm\vmmemory.h" />
+    <ClInclude Include="lib\vm\vmregister.h" />
+    <ClInclude Include="vmplugin\VMFileSystem.h" />
+    <ClInclude Include="vmplugin\VMSystem.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
