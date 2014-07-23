@@ -86,6 +86,70 @@ void Parser::_execute(){
 	}
 }
 
+/*
+ * 変数解析
+ */
+Parser::variable::variable( Parser* parser ) : Parser::interpreter( parser ){
+	bool isReference = this->TokenIf( TokenType::RefSymbol );
+	if( this->NextTokenIf( TokenType::Letter ) ){
+		this->Next();
+		SymbolInfo* symbol = this->getSymbol();
+		symbol->IsReference( isReference );
+		if( this->NextTokenIf( TokenType::As ) ){
+			this->Next();
+			as a( parser , symbol );
+		}
+		expression expr( parser , symbol );
+	}
+}
+
+/*
+ * asによるデータ型付け
+ */
+Parser::as::as( Parser* parser , SymbolInfo* symbol ) : Parser::interpreter( parser ){
+	if( this->NextTokenIf( TokenType::Array ) ){
+		this->Next();
+		parse_array ary( parser , symbol );
+	}
+	else if( this->NextTokenIf( TokenType::Letter ) ){
+		this->Next();
+		SymbolInfo* dataSymbol = this->getSymbol();
+		symbol->setClass( dataSymbol );
+		symbol->copyAndAddChildrenOfSymbol( dataSymbol );
+		symbol->setupChildrenAddresToParentAddresOffset();
+		this->Next();
+	}
+	else{
+	}
+}
+
+/*
+ * 配列型である場合評価
+ */
+Parser::parse_array::parse_array( Parser* parser , SymbolInfo* symbol ) : Parser::interpreter( parser ){
+	assert( this->NextTokenIf( TokenType::Lparen ) );
+	this->Next();
+	if( this->NextTokenIf( TokenType::Letter ) ){
+		this->Next();
+		as a( parser , symbol );
+	}
+	if( this->NextTokenIf( TokenType::Digit ) ){
+		this->Next();
+		int arrayLength = this->getTokenInt();
+		this->Next();
+		assert( this->TokenIf( TokenType::Rparen ) );
+		this->Next();
+		assert( this->TokenIf( TokenType::Semicolon ) );
+		this->Next();
+		symbol->ArrayLength( arrayLength );
+	}
+}
+
+/*
+ * 式評価
+ */
+Parser::expression::expression( Parser* parser , SymbolInfo* symbol ) : Parser::interpreter( parser ){
+}
 
 // 解析処理
 // 各ステートメントの処理を行う

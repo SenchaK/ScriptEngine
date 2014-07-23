@@ -1,4 +1,5 @@
 #pragma once
+#include "vmscope.h"
 #include "..\lexer\vmlexer.h"
 #include "..\symbol\vmsymbol.h"
 #include "..\assembly\vmassembly_info.h"
@@ -59,6 +60,63 @@ public :
 // 構文解析器
 // ************************************************
 class Parser {
+	friend class interpreter;
+private :
+	class interpreter {
+	protected :
+		Parser* m_parser;
+	public :
+		interpreter( Parser* parser ){
+			m_parser = parser;
+		}
+		bool NextTokenIf( TOKEN_TYPE tokenType ){
+			return m_parser->getToken(1).type == tokenType;
+		}
+		bool TokenIf( TOKEN_TYPE tokenType ){
+			return m_parser->getToken(0).type == tokenType;
+		}
+		void Next(){
+			m_parser->nextToken();
+		}
+		int getTokenInt(){
+			return atoi( m_parser->getToken().text.c_str() );
+		}
+
+		/*
+		 * 現在のトークンからシンボルを取得する。
+		 * 存在しない場合は登録する
+		 */
+		SymbolInfo* getSymbol(){
+			const string& symbolName = m_parser->getToken().text;
+			SymbolInfo* symbol = m_parser->m_currentScope->getSymbol( symbolName );
+			if( !symbol ){
+				symbol = m_parser->m_currentScope->addSymbol( symbolName );
+			}
+			return symbol;
+		}
+	};
+
+	class variable : public interpreter {
+	public :
+		variable( Parser* parser );
+	};
+
+	class as : public interpreter {
+	public :
+		as( Parser* parser , SymbolInfo* symbol );
+	};
+
+	class expression : public interpreter {
+	private :
+		stack<OperationStack> m_operationStack;
+	public :
+		expression( Parser* parser , SymbolInfo* symbol );
+	};
+
+	class parse_array : public interpreter {
+	public :
+		parse_array( Parser* parser , SymbolInfo* symbol );
+	};
 private :
 	// ジャンプ命令情報
 	// continue文/break文を使用するときにどこでその命令を見つけたのか、
