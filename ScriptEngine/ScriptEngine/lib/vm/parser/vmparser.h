@@ -56,6 +56,58 @@ public :
 	}
 };
 
+
+class EXP_DATA {
+public :
+	enum Type{
+		Symbol        , 
+		LiteralValue  , 
+		LiteralString ,
+	};
+private :
+	Type m_typeId;
+	SymbolInfo* m_symbol;
+	string m_literal_string;
+	double m_literal_value;
+public :
+	const Type& GetType(){
+		return this->m_typeId;
+	}
+	double ToDouble(){
+		return this->m_literal_value;
+	}
+	EXP_DATA( SymbolInfo* symbol ){
+		this->m_typeId = Symbol;
+		this->m_symbol = symbol;
+		this->m_literal_string = "";
+		this->m_literal_value = 0;
+	}
+	EXP_DATA( double literal_value ){
+		this->m_typeId = LiteralValue;
+		this->m_symbol = NULL;
+		this->m_literal_string = "";
+		this->m_literal_value = literal_value;
+	}
+	EXP_DATA( string literal_string ){
+		this->m_typeId = LiteralString;
+		this->m_symbol = NULL;
+		this->m_literal_string = literal_string;
+		this->m_literal_value = 0;
+	}
+	operator Type(){
+		return this->m_typeId;
+	}
+	operator SymbolInfo*(){
+		return this->m_symbol;
+	}
+	operator double(){
+		return this->m_literal_value;
+	}
+	operator string(){
+		return this->m_literal_string;
+	}
+};
+
 // ************************************************
 // 構文解析器
 // ************************************************
@@ -78,9 +130,19 @@ private :
 		void Next(){
 			m_parser->nextToken();
 		}
+		TOKEN_TYPE getTokenType(){
+			return m_parser->getToken().type;
+		}
 		int getTokenInt(){
 			return atoi( m_parser->getToken().text.c_str() );
 		}
+		const char* getTokenString(){
+			return m_parser->getToken().text.c_str();
+		}
+		double getTokenDouble(){
+			return atof( m_parser->getToken().text.c_str() );
+		}
+
 
 		/*
 		 * 現在のトークンからシンボルを取得する。
@@ -108,10 +170,89 @@ private :
 
 	class expression : public interpreter {
 	private :
-		stack<OperationStack> m_operationStack;
+		expression* prev;
+		stack<EXP_DATA> m_operationStack;
+		int R;
 	public :
+		void ExprPushData( const double& literal_value ){
+			m_operationStack.push( EXP_DATA( literal_value ) );
+		}
+		void ExprPushData( const string& literal_string ){
+			m_operationStack.push( EXP_DATA( literal_string ) );
+		}
+		void ExprPushData( SymbolInfo* const symbolInfo ){
+			m_operationStack.push( EXP_DATA( symbolInfo ) );
+		}
+		void Assign( EXP_DATA& src1 ){
+			this->WriteData( src1 );
+			this->WritePopR();
+		}
+		void WriteData( EXP_DATA& src ){
+			switch( (EXP_DATA::Type)src ){
+			case EXP_DATA::LiteralValue :
+				this->m_parser->m_writer->write( EMnemonic::LIT_VALUE );
+				this->m_parser->m_writer->writeDouble( (double)src );
+				break;
+			case EXP_DATA::LiteralString : 
+				this->m_parser->m_writer->write( EMnemonic::LIT_STRING );
+				this->m_parser->m_writer->writeString( (string)src );
+				break;
+			}
+		}
+		void MovR( EXP_DATA& src ){
+			this->m_parser->m_writer->write( EMnemonic::Mov );
+			this->WritePushR();
+			this->WriteData( src );
+		}
+		void WritePushR(){
+			this->WriteR();
+			this->R++;
+		}
+		void WritePopR(){
+			this->R--;
+			this->WriteR();
+		}
+		void WriteR(){
+			this->m_parser->m_writer->write( EMnemonic::REG );
+			this->m_parser->m_writer->write( R );
+		}
+		void WriteMovR( EXP_DATA& src ){
+			this->MovR( src );
+		}
 		expression( Parser* parser , SymbolInfo* symbol );
+		expression( expression* prev , Parser* parser , SymbolInfo* symbol );
 	};
+
+
+	class expression_base : public interpreter {
+	private :
+		expression* m_exp;
+	public :
+		expression_base( expression* exp , Parser* parser ) : interpreter( parser ){
+			m_exp = exp;
+		}
+		void ExprPushData( const double& literal_value ){ m_exp->ExprPushData( literal_value ); }
+		void ExprPushData( const string& literal_string ){ m_exp->ExprPushData( literal_string ); }
+		void ExprPushData( SymbolInfo* const symbolInfo ){ m_exp->ExprPushData( symbolInfo ); }
+	};
+
+	class expression0 : public expression_base {
+	public :
+		expression0( expression* exp , Parser* parser , SymbolInfo* symbol );
+	};
+	class expression1 : public expression_base {
+	public :
+		expression1( expression* exp , Parser* parser , SymbolInfo* symbol );
+	};
+	class expression2 : public expression_base {
+	public :
+		expression2( expression* exp , Parser* parser , SymbolInfo* symbol );
+	};
+	class expression3 : public expression_base {
+	public :
+		expression3( expression* exp , Parser* parser , SymbolInfo* symbol );
+	};
+
 
 	class parse_array : public interpreter {
 	public :

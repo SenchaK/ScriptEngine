@@ -149,7 +149,86 @@ Parser::parse_array::parse_array( Parser* parser , SymbolInfo* symbol ) : Parser
  * 式評価
  */
 Parser::expression::expression( Parser* parser , SymbolInfo* symbol ) : Parser::interpreter( parser ){
+	R = 0;
+	expression0 expr( this , parser , symbol );
 }
+
+Parser::expression::expression( expression* prev , Parser* parser , SymbolInfo* symbol ) : Parser::interpreter( parser ){
+	if( prev ){
+		R = prev->R;
+	}
+	expression0 expr( this , parser , symbol );
+}
+
+
+/*
+ * =
+ * +=
+ * -=
+ * *=
+ * /=
+ * %=
+ */
+Parser::expression0::expression0( expression* exp , Parser* parser , SymbolInfo* symbol ) : Parser::expression_base( exp , parser ) {
+	bool isAssignExpression = false;
+	if( this->NextTokenIf( TokenType::Assign ) )    isAssignExpression = true;
+	if( this->NextTokenIf( TokenType::AddAssign ) ) isAssignExpression = true;
+	if( this->NextTokenIf( TokenType::SubAssign ) ) isAssignExpression = true;
+	if( this->NextTokenIf( TokenType::MulAssign ) ) isAssignExpression = true;
+	if( this->NextTokenIf( TokenType::RemAssign ) ) isAssignExpression = true;
+	if( isAssignExpression ){
+		this->Next();
+		const TOKEN_TYPE& opetype = this->getTokenType();
+		expression1 expr( exp , parser , symbol );
+	}
+}
+
+/*
+ * +
+ * -
+ */
+Parser::expression1::expression1( expression* exp , Parser* parser , SymbolInfo* symbol ) : Parser::expression_base( exp , parser ) {
+	expression2 expr( exp , parser , symbol );
+}
+
+/*
+ * *
+ * /
+ * %
+ */
+Parser::expression2::expression2( expression* exp , Parser* parser , SymbolInfo* symbol ) : Parser::expression_base( exp , parser ) {
+	expression3 expr( exp , parser , symbol );
+}
+
+/*
+ * TOKEN
+ */
+Parser::expression3::expression3( expression* exp , Parser* parser , SymbolInfo* symbol ) : Parser::expression_base( exp , parser ) {
+	if( this->NextTokenIf( TokenType::VariableSymbol ) ){
+		this->Next();
+	}
+	else if( this->NextTokenIf( TokenType::RefSymbol ) ){
+		this->Next();
+	}
+	else if( this->NextTokenIf( TokenType::Digit ) ){
+		this->Next();
+		this->ExprPushData( this->getTokenDouble() );
+	}
+	else if( this->NextTokenIf( TokenType::String ) ){
+		this->Next();
+		this->ExprPushData( this->getTokenString() );
+	}
+	else if( this->NextTokenIf( TokenType::Letter ) ){
+		this->Next();
+	}
+	else if( this->NextTokenIf( TokenType::AsString ) ){
+		this->Next();
+	}
+	else if( this->NextTokenIf( TokenType::AsInteger ) ){
+		this->Next();
+	}
+}
+
 
 // 解析処理
 // 各ステートメントの処理を行う
@@ -166,7 +245,8 @@ void Parser::_parse( ParseParameter* param ){
 // **************************************************************
 	case TokenType::VariableSymbol :
 	case TokenType::RefSymbol :
-		_parse_variable( param );
+		variable( this );
+		//_parse_variable( param );
 		break;
 	case TokenType::Inc :
 	case TokenType::Dec :
