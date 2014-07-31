@@ -153,8 +153,42 @@ private :
 			SymbolInfo* symbol = m_parser->m_currentScope->getSymbol( symbolName );
 			if( !symbol ){
 				symbol = m_parser->m_currentScope->addSymbol( symbolName );
+				std::cout << "シンボル:" << symbolName << "登録" << std::endl;
 			}
 			return symbol;
+		}
+
+		/*
+		 * スコープかシンボルの子階層に存在するシンボルのどちらかを取得
+		 * 先に親シンボルを探す
+		 */
+		SymbolInfo* getSymbolInScopeOrParentSymbol( SymbolInfo* parentSymbol , const string& symbolName ){
+			if( parentSymbol ){
+				return parentSymbol->getSymbol( symbolName );
+			}
+			return m_parser->m_currentScope->getSymbol( symbolName );
+		}
+
+		/*
+		 * 現在のトークンからシンボル存在するか確認
+		 */
+		bool ExistSymbol(){
+			const string& symbolName = m_parser->getToken().text;
+			SymbolInfo* symbol = m_parser->m_currentScope->getSymbol( symbolName );
+			if( symbol ) return true;
+			return false;
+		}
+
+		/*
+		 * あるシンボルの子階層にそのシンボルが存在するか
+		 * 存在する場合、メンバーとして扱う
+		 */
+		bool ExistSymbolMember( string& inst , string& member ){
+			SymbolInfo* instSymbol = m_parser->m_currentScope->getSymbol( inst );
+			assert( instSymbol );
+			SymbolInfo* memberSymbol = instSymbol->getSymbol( member );
+			if( memberSymbol ) return true;
+			return false;
 		}
 	};
 
@@ -163,30 +197,66 @@ private :
 		variable( Parser* parser );
 	};
 
+	class left_expression : public interpreter {
+	public :
+		left_expression( Parser* parser );
+	};
+
 	class as : public interpreter {
 	public :
 		as( Parser* parser , SymbolInfo* symbol );
 	};
 
 	class expression : public interpreter {
-	private :
-		expression* prev;
-		stack<EXP_DATA> m_operationStack;
-		int R;
 	public :
+		int R;
 		void ExprPushData( const double& literal_value ){
-			m_operationStack.push( EXP_DATA( literal_value ) );
+			EXP_DATA exp_data( literal_value );
+			MovR( exp_data );
 		}
 		void ExprPushData( const string& literal_string ){
-			m_operationStack.push( EXP_DATA( literal_string ) );
+			EXP_DATA exp_data( literal_string );
+			MovR( exp_data );
 		}
 		void ExprPushData( SymbolInfo* const symbolInfo ){
-			m_operationStack.push( EXP_DATA( symbolInfo ) );
+			EXP_DATA exp_data( symbolInfo );
+			MovR( exp_data );
 		}
-		void Assign( EXP_DATA& src1 ){
-			this->WriteData( src1 );
+		void Assign( EXP_DATA& src ){
+			this->WriteData( src );
 			this->WritePopR();
+			switch( (EXP_DATA::Type)src ){
+			case EXP_DATA::LiteralValue : printf( "mov %0.2f , R[%d]\n" , (double)src , R ); break;
+			case EXP_DATA::LiteralString : printf( "mov %s , R[%d]\n" , ((string)src).c_str() , R ); break;
+			case EXP_DATA::Symbol : printf( "mov %s[%d] , R[%d]\n" , ((SymbolInfo*)src)->Name().c_str() , ((SymbolInfo*)src)->Addr() , R ); break;
+			}
 		}
+
+		void CalcStack( int opetype ){
+			switch( opetype ){
+			case TokenType::Add : this->m_parser->m_writer->write( EMnemonic::Add ); break;
+			case TokenType::Sub : this->m_parser->m_writer->write( EMnemonic::Sub ); break;
+			case TokenType::Mul : this->m_parser->m_writer->write( EMnemonic::Mul ); break;
+			case TokenType::Div : this->m_parser->m_writer->write( EMnemonic::Div ); break;
+			case TokenType::Rem : this->m_parser->m_writer->write( EMnemonic::Rem ); break;
+			}
+			switch( opetype ){
+			case TokenType::Add : printf( "add R[%d] , R[%d]\n" , R - 2 , R - 1 ); break;
+			case TokenType::Sub : printf( "sub R[%d] , R[%d]\n" , R - 2 , R - 1 ); break;
+			case TokenType::Mul : printf( "mul R[%d] , R[%d]\n" , R - 2 , R - 1 ); break;
+			case TokenType::Div : printf( "div R[%d] , R[%d]\n" , R - 2 , R - 1 ); break;
+			case TokenType::Rem : printf( "rem R[%d] , R[%d]\n" , R - 2 , R - 1 ); break;
+			}
+			this->WriteR( -2 );
+			this->WriteR( -1 );
+			R -= 1;
+		}
+
+		void ArrayIndex(){
+			R -= 1;
+			printf( "mov INDEX , R[%d]\n" , R );
+		}
+
 		void WriteData( EXP_DATA& src ){
 			switch( (EXP_DATA::Type)src ){
 			case EXP_DATA::LiteralValue :
@@ -197,9 +267,26 @@ private :
 				this->m_parser->m_writer->write( EMnemonic::LIT_STRING );
 				this->m_parser->m_writer->writeString( (string)src );
 				break;
+			case EXP_DATA::Symbol :	
+				this->m_parser->m_writer->write( ((SymbolInfo*)src)->toAssembleCode() );
+				this->m_parser->m_writer->write( ((SymbolInfo*)src)->isArray() );
+				this->m_parser->m_writer->write( ((SymbolInfo*)src)->isReferenceMember() );
+				this->m_parser->m_writer->write( ((SymbolInfo*)src)->IsReference() );
+				if( ((SymbolInfo*)src)->isReferenceMember() ){
+					this->m_parser->m_writer->writeInt32( ((SymbolInfo*)src)->TopSymbolAddr() );
+				}
+				this->m_parser->m_writer->writeInt32( ((SymbolInfo*)src)->Addr() );
+				this->m_parser->m_writer->writeString( ((SymbolInfo*)src)->Name() );
+				break;
 			}
 		}
 		void MovR( EXP_DATA& src ){
+			switch( (EXP_DATA::Type)src ){
+			case EXP_DATA::LiteralValue : printf( "mov R[%d] , %0.2f\n" , R , (double)src ); break;
+			case EXP_DATA::LiteralString : printf( "mov R[%d] , %s\n" , R , ((string)src).c_str() ); break;
+			case EXP_DATA::Symbol : printf( "mov R[%d] , %s[%d]\n" , R , ((SymbolInfo*)src)->Name().c_str() , ((SymbolInfo*)src)->Addr() ); break;
+			}
+
 			this->m_parser->m_writer->write( EMnemonic::Mov );
 			this->WritePushR();
 			this->WriteData( src );
@@ -216,11 +303,14 @@ private :
 			this->m_parser->m_writer->write( EMnemonic::REG );
 			this->m_parser->m_writer->write( R );
 		}
+		void WriteR( int ofs ){
+			this->m_parser->m_writer->write( EMnemonic::REG );
+			this->m_parser->m_writer->write( R + ofs );
+		}
 		void WriteMovR( EXP_DATA& src ){
 			this->MovR( src );
 		}
 		expression( Parser* parser , SymbolInfo* symbol );
-		expression( expression* prev , Parser* parser , SymbolInfo* symbol );
 	};
 
 
@@ -251,6 +341,25 @@ private :
 	class expression3 : public expression_base {
 	public :
 		expression3( expression* exp , Parser* parser , SymbolInfo* symbol );
+	};
+	class expression_variable : public expression_base {
+	private :
+		expression* expr;
+		SymbolInfo* symbol;
+		SymbolInfo* parentSymbol;
+	public :
+		expression_variable( expression* exp , Parser* parser , SymbolInfo* symbol );
+		expression_variable( expression* exp , Parser* parser , SymbolInfo* symbol , SymbolInfo* instSymbol );
+	private :
+		void exp();
+		void bracket( const string& symbolName );
+		void dot( const string& symbolName );
+		void pushData( const string& symbolName );
+		void memberFunc( const string& symbolName );
+		bool isExistSymbolInParent( const string& symbolName ){
+			assert( this->parentSymbol );
+			return this->parentSymbol->getSymbol( symbolName ) ? true : false;
+		}
 	};
 
 

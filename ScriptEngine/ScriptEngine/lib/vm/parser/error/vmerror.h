@@ -18,6 +18,10 @@ enum ERR_ID {
 	ERROR_2002 , // '('に対応する記号')'が見つからない
 	ERROR_2003 , // '{'に対応する記号'}'が見つからない
 
+	ERROR_C2065 , // "symbolName" : 定義されていない識別子です。
+	ERROR_C2143 , // 構文エラー : ']' が ';' の前にありません。
+
+
 	// 3000番
 	// 宣言エラー
 	ERROR_3001 , // 構造体内部で関数宣言された
@@ -51,6 +55,20 @@ public :
 		this->errId = errid;
 	}
 	virtual ~VMErrorParameter(){
+	}
+};
+
+class ERROR_INFO_C2065 : public VMErrorParameter {
+public :
+	string symbolName;
+	ERROR_INFO_C2065( const string& symbolName ) : VMErrorParameter( ERROR_C2065 ){
+		this->symbolName = symbolName;
+	}
+};
+
+class ERROR_INFO_C2143 : public VMErrorParameter {
+public :
+	ERROR_INFO_C2143() : VMErrorParameter( ERROR_C2143 ){
 	}
 };
 

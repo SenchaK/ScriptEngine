@@ -1,4 +1,6 @@
-
 function main(){
-	$value = 100;
+	$a;
+	$b;
+	$c;
+	$a = $b = $c = 100;
 }

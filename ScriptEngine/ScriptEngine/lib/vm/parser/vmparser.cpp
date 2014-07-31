@@ -47,8 +47,9 @@ const TOKEN& Parser::getToken(){
 }
 // 現在の位置からオフセット値を計算した場所にあるトークンを取得
 const TOKEN& Parser::getToken(int ofs){
-	if( ( ofs + m_pos ) >= ( ofs + m_tokens.size() ) ) return EndToken;
-	return m_tokens[ofs+m_pos];
+	size_t pos = m_pos + ofs;
+	if( pos >= m_tokens.size() ) return EndToken;
+	return m_tokens[pos];
 }
 // 次のトークンある？
 bool Parser::hasNext(){
@@ -97,11 +98,15 @@ Parser::variable::variable( Parser* parser ) : Parser::interpreter( parser ){
 		symbol->IsReference( isReference );
 		if( this->NextTokenIf( TokenType::As ) ){
 			this->Next();
-			as a( parser , symbol );
+			as( parser , symbol );
 		}
-		expression expr( parser , symbol );
+		expression( parser , symbol );
+		if( this->TokenIf( TokenType::Semicolon ) ){
+			this->Next();
+		}
 	}
 }
+
 
 /*
  * asによるデータ型付け
@@ -151,13 +156,10 @@ Parser::parse_array::parse_array( Parser* parser , SymbolInfo* symbol ) : Parser
 Parser::expression::expression( Parser* parser , SymbolInfo* symbol ) : Parser::interpreter( parser ){
 	R = 0;
 	expression0 expr( this , parser , symbol );
-}
-
-Parser::expression::expression( expression* prev , Parser* parser , SymbolInfo* symbol ) : Parser::interpreter( parser ){
-	if( prev ){
-		R = prev->R;
+	if( this->NextTokenIf( TokenType::Semicolon ) ){
+		this->Next();
+		this->Next();
 	}
-	expression0 expr( this , parser , symbol );
 }
 
 
@@ -170,16 +172,18 @@ Parser::expression::expression( expression* prev , Parser* parser , SymbolInfo* 
  * %=
  */
 Parser::expression0::expression0( expression* exp , Parser* parser , SymbolInfo* symbol ) : Parser::expression_base( exp , parser ) {
-	bool isAssignExpression = false;
-	if( this->NextTokenIf( TokenType::Assign ) )    isAssignExpression = true;
-	if( this->NextTokenIf( TokenType::AddAssign ) ) isAssignExpression = true;
-	if( this->NextTokenIf( TokenType::SubAssign ) ) isAssignExpression = true;
-	if( this->NextTokenIf( TokenType::MulAssign ) ) isAssignExpression = true;
-	if( this->NextTokenIf( TokenType::RemAssign ) ) isAssignExpression = true;
-	if( isAssignExpression ){
+	bool isExpression = false;
+	if( this->NextTokenIf( TokenType::Assign ) )    isExpression = true;
+	if( this->NextTokenIf( TokenType::AddAssign ) ) isExpression = true;
+	if( this->NextTokenIf( TokenType::SubAssign ) ) isExpression = true;
+	if( this->NextTokenIf( TokenType::MulAssign ) ) isExpression = true;
+	if( this->NextTokenIf( TokenType::RemAssign ) ) isExpression = true;
+	if( isExpression ){
 		this->Next();
 		const TOKEN_TYPE& opetype = this->getTokenType();
-		expression1 expr( exp , parser , symbol );
+		expression1( exp , parser , symbol );
+		EXP_DATA src( symbol );
+		exp->Assign( src );
 	}
 }
 
@@ -189,6 +193,13 @@ Parser::expression0::expression0( expression* exp , Parser* parser , SymbolInfo*
  */
 Parser::expression1::expression1( expression* exp , Parser* parser , SymbolInfo* symbol ) : Parser::expression_base( exp , parser ) {
 	expression2 expr( exp , parser , symbol );
+
+	while( this->NextTokenIf( TokenType::Add ) || this->NextTokenIf( TokenType::Sub ) ){
+		this->Next();
+		const TOKEN_TYPE& opetype = this->getTokenType();
+		expression2( exp , parser , symbol );
+		exp->CalcStack( opetype );
+	}
 }
 
 /*
@@ -198,6 +209,13 @@ Parser::expression1::expression1( expression* exp , Parser* parser , SymbolInfo*
  */
 Parser::expression2::expression2( expression* exp , Parser* parser , SymbolInfo* symbol ) : Parser::expression_base( exp , parser ) {
 	expression3 expr( exp , parser , symbol );
+
+	while( this->NextTokenIf( TokenType::Mul ) || this->NextTokenIf( TokenType::Div ) || this->NextTokenIf( TokenType::Rem ) ){
+		this->Next();
+		const TOKEN_TYPE& opetype = this->getTokenType();
+		expression3( exp , parser , symbol );
+		exp->CalcStack( opetype );
+	} 
 }
 
 /*
@@ -206,6 +224,7 @@ Parser::expression2::expression2( expression* exp , Parser* parser , SymbolInfo*
 Parser::expression3::expression3( expression* exp , Parser* parser , SymbolInfo* symbol ) : Parser::expression_base( exp , parser ) {
 	if( this->NextTokenIf( TokenType::VariableSymbol ) ){
 		this->Next();
+		expression_variable( exp , parser , symbol );
 	}
 	else if( this->NextTokenIf( TokenType::RefSymbol ) ){
 		this->Next();
@@ -227,14 +246,97 @@ Parser::expression3::expression3( expression* exp , Parser* parser , SymbolInfo*
 	else if( this->NextTokenIf( TokenType::AsInteger ) ){
 		this->Next();
 	}
+	else if( this->NextTokenIf( TokenType::Lparen ) ){
+		this->Next();
+		expression1( exp , parser , symbol );
+		if( this->NextTokenIf( TokenType::Rparen ) ){
+			this->Next();
+		}
+	}
 }
 
+/* 
+ * 変数シンボル
+ */
+Parser::expression_variable::expression_variable( expression* exp , Parser* parser , SymbolInfo* symbol ) : Parser::expression_base( exp , parser ) {
+	this->symbol = symbol;
+	this->expr = exp;
+	this->parentSymbol = NULL;
+	this->exp();
+}
+
+Parser::expression_variable::expression_variable( expression* exp , Parser* parser , SymbolInfo* symbol , SymbolInfo* instSymbol ) : Parser::expression_base( exp , parser ) {
+	this->symbol = symbol;
+	this->expr = exp;
+	this->parentSymbol = instSymbol;
+	this->exp();
+}
+
+void Parser::expression_variable::exp(){
+	if( this->NextTokenIf( TokenType::Letter ) ){
+		this->Next();
+		string symbolName = this->getTokenString();
+
+		if( this->NextTokenIf( TokenType::Dot ) ){
+			this->Next();
+			this->dot( symbolName );
+		}
+		else if( this->NextTokenIf( TokenType::Lbracket ) ){
+			this->Next();
+			this->bracket( symbolName );
+		}
+		else if( this->NextTokenIf( TokenType::Lparen ) ){
+			this->Next();
+			this->memberFunc( symbolName );
+		}
+		else {
+			this->pushData( symbolName );
+		}
+	}
+}
+
+void Parser::expression_variable::dot( const string& symbolName ){
+	SymbolInfo* instSymbol = this->getSymbolInScopeOrParentSymbol( this->parentSymbol , symbolName );
+	if( !instSymbol ){
+		throw VMError( new ERROR_INFO_C2065( symbolName ) );
+	}
+	expression_variable( expr , m_parser , symbol , instSymbol );
+}
+
+void Parser::expression_variable::bracket( const string& symbolName ){
+	expression1( this->expr , this->m_parser , this->symbol );
+	this->expr->ArrayIndex();
+	if( !this->NextTokenIf( TokenType::Rbracket ) ){
+		throw VMError( new ERROR_INFO_C2143() );
+	}
+
+	this->Next();
+	if( this->NextTokenIf( TokenType::Dot ) ){
+		this->Next();
+		SymbolInfo* instSymbol = this->getSymbolInScopeOrParentSymbol( this->parentSymbol , symbolName );
+		expression_variable( this->expr , this->m_parser , this->symbol , instSymbol );
+	}
+	else{
+		this->pushData( symbolName );
+	}
+}
+
+void Parser::expression_variable::memberFunc( const string& symbolName ){
+	if( !this->isExistSymbolInParent( symbolName ) ){ throw VMError( new ERROR_INFO_C2065( symbolName ) ); }
+	//processArgs();
+}
+
+void Parser::expression_variable::pushData( const string& symbolName ){
+	SymbolInfo* var = this->getSymbolInScopeOrParentSymbol( this->parentSymbol , symbolName );
+	if( !var ){ throw VMError( new ERROR_INFO_C2065( symbolName ) ); }
+	expression0( expr , m_parser , var );
+	this->ExprPushData( var );
+}
 
 // 解析処理
 // 各ステートメントの処理を行う
 void Parser::_parse( ParseParameter* param ){
 	const TOKEN& token = getToken();
-
 	switch( token.type ){
 	case TokenType::Function :
 		_parse_function( param );

@@ -17,6 +17,8 @@ string ERR_ID_EX::toString( ERR_ID value ){
 	case ERROR_3001 : return "ERROR_3001";
 	case ERROR_3002 : return "ERROR_3002";
 	case ERROR_4001 : return "ERROR_4001";
+	case ERROR_C2065 : return "ERROR_C2065";
+	case ERROR_C2143 : return "ERROR_C2143";
 	}
 	return "OTHER_ERROR";
 }
@@ -46,6 +48,18 @@ VMError::VMError( VMErrorParameter* param ){
 		{
 			ERROR_INFO_4001* errinfo = reinterpret_cast<ERROR_INFO_4001*>( param );
 			o << "不明なシンボルタイプ" << "[symbolName " << errinfo->symbolName << "][symbolType " << errinfo->symbolType << "]";
+		}
+		break;
+	case ERROR_C2065 :
+		{
+			ERROR_INFO_C2065* errinfo = reinterpret_cast<ERROR_INFO_C2065*>( param );
+			o << "\"" << errinfo->symbolName << "\":" << "定義されていない識別子です。";
+		}
+		break;
+	case ERROR_C2143 :
+		{
+			ERROR_INFO_C2143* errinfo = reinterpret_cast<ERROR_INFO_C2143*>( param );
+			o << "構文エラー : ']' が ';' の前にありません。";
 		}
 		break;
 	}
