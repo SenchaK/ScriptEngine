@@ -1,6 +1,10 @@
+struct VEC2{
+	$x;
+	$y;
+}
+
 function main(){
-	$a;
-	$b;
-	$c;
-	$a = $b = $c = 100;
+	$pos as VEC2;
+	$pos = 0;
+
 }

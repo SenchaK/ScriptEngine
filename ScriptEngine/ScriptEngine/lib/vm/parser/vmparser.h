@@ -60,6 +60,7 @@ public :
 class EXP_DATA {
 public :
 	enum Type{
+		None          ,
 		Symbol        , 
 		LiteralValue  , 
 		LiteralString ,
@@ -69,31 +70,47 @@ private :
 	SymbolInfo* m_symbol;
 	string m_literal_string;
 	double m_literal_value;
+	int m_arrayIndex;
+	bool m_isArray;
+	
 public :
+	std::stack<int> m_Addres;
 	const Type& GetType(){
 		return this->m_typeId;
 	}
 	double ToDouble(){
 		return this->m_literal_value;
 	}
+	EXP_DATA(){
+		this->Set( None , NULL , 0 , 0 , "" , false );
+	}
 	EXP_DATA( SymbolInfo* symbol ){
-		this->m_typeId = Symbol;
-		this->m_symbol = symbol;
-		this->m_literal_string = "";
-		this->m_literal_value = 0;
+		this->Set( symbol );
+	}
+	EXP_DATA( SymbolInfo* symbol , int index ){
+		this->Set( Symbol , symbol , index , 0 , "" , true );
 	}
 	EXP_DATA( double literal_value ){
-		this->m_typeId = LiteralValue;
-		this->m_symbol = NULL;
-		this->m_literal_string = "";
-		this->m_literal_value = literal_value;
+		this->Set( LiteralValue , NULL , 0 , literal_value , "" , false );
 	}
 	EXP_DATA( string literal_string ){
-		this->m_typeId = LiteralString;
-		this->m_symbol = NULL;
-		this->m_literal_string = literal_string;
-		this->m_literal_value = 0;
+		this->Set( LiteralString , NULL , 0 , 0 , literal_string , false );
 	}
+	void CopyAddresStack( const EXP_DATA& src ){
+		m_Addres = src.m_Addres;
+	}
+	void Set( SymbolInfo* symbol ){
+		this->Set( Symbol , symbol , 0 , 0 , "" , false );
+	}
+	void Set( Type typeId , SymbolInfo* symbol , int index , double literal_value , string literal_string , bool isArray ){
+		this->m_typeId = typeId;
+		this->m_symbol = symbol;
+		this->m_literal_string = literal_string;
+		this->m_literal_value = literal_value;
+		this->m_arrayIndex = index;
+		this->m_isArray = isArray;
+	}
+
 	operator Type(){
 		return this->m_typeId;
 	}
@@ -105,6 +122,24 @@ public :
 	}
 	operator string(){
 		return this->m_literal_string;
+	}
+	void PushAddres( int addres ){
+		m_Addres.push( addres );
+	}
+	int PopAddres(){
+		int result = m_Addres.top();
+		m_Addres.pop();
+		return result;
+	}
+	int Index(){
+		return this->m_arrayIndex;
+	}
+	void Index( int index ){
+		this->m_arrayIndex = index;
+		this->m_isArray = true;
+	}
+	bool IsArray(){
+		return this->m_isArray;
 	}
 };
 
@@ -146,16 +181,15 @@ private :
 
 		/*
 		 * Œ»Ý‚Ìƒg[ƒNƒ“‚©‚çƒVƒ“ƒ{ƒ‹‚ðŽæ“¾‚·‚éB
-		 * ‘¶Ý‚µ‚È‚¢ê‡‚Í“o˜^‚·‚é
 		 */
 		SymbolInfo* getSymbol(){
 			const string& symbolName = m_parser->getToken().text;
-			SymbolInfo* symbol = m_parser->m_currentScope->getSymbol( symbolName );
-			if( !symbol ){
-				symbol = m_parser->m_currentScope->addSymbol( symbolName );
-				std::cout << "ƒVƒ“ƒ{ƒ‹:" << symbolName << "“o˜^" << std::endl;
-			}
-			return symbol;
+			return m_parser->m_currentScope->getSymbol( symbolName );	
+		}
+
+		SymbolInfo* addSymbol( string& symbolName ){
+			std::cout << "ƒVƒ“ƒ{ƒ‹:" << symbolName << "“o˜^" << std::endl;
+			return m_parser->m_currentScope->addSymbol( symbolName );
 		}
 
 		/*
@@ -204,7 +238,7 @@ private :
 
 	class as : public interpreter {
 	public :
-		as( Parser* parser , SymbolInfo* symbol );
+		as( Parser* parser , EXP_DATA& var );
 	};
 
 	class expression : public interpreter {
@@ -222,13 +256,30 @@ private :
 			EXP_DATA exp_data( symbolInfo );
 			MovR( exp_data );
 		}
+		void ExprPushData( SymbolInfo* const symbolInfo , int index ){
+			EXP_DATA exp_data( symbolInfo , index );
+			MovR( exp_data );
+		}
+		void ExprPushData( EXP_DATA& exp_data ){
+			MovR( exp_data );
+		}
 		void Assign( EXP_DATA& src ){
 			this->WriteData( src );
 			this->WritePopR();
 			switch( (EXP_DATA::Type)src ){
-			case EXP_DATA::LiteralValue : printf( "mov %0.2f , R[%d]\n" , (double)src , R ); break;
-			case EXP_DATA::LiteralString : printf( "mov %s , R[%d]\n" , ((string)src).c_str() , R ); break;
-			case EXP_DATA::Symbol : printf( "mov %s[%d] , R[%d]\n" , ((SymbolInfo*)src)->Name().c_str() , ((SymbolInfo*)src)->Addr() , R ); break;
+			case EXP_DATA::LiteralValue : printf( "mov %0.2f,R[%d]\n" , (double)src , R ); break;
+			case EXP_DATA::LiteralString : printf( "mov %s,R[%d]\n" , ((string)src).c_str() , R ); break;
+			case EXP_DATA::Symbol : 
+				printf( "mov " );
+				printf( "%s[%d]" , ((SymbolInfo*)src)->Name().c_str() , ((SymbolInfo*)src)->Addr() );
+				while( src.m_Addres.size() > 0 ){
+					printf( "+%d" , src.PopAddres() );
+				}
+				if( src.IsArray() ){
+					printf( "+R%d" , src.Index() );
+				}
+				printf( ",R[%d]\n" , R );
+				break;
 			}
 		}
 
@@ -250,11 +301,6 @@ private :
 			this->WriteR( -2 );
 			this->WriteR( -1 );
 			R -= 1;
-		}
-
-		void ArrayIndex(){
-			R -= 1;
-			printf( "mov INDEX , R[%d]\n" , R );
 		}
 
 		void WriteData( EXP_DATA& src ){
@@ -282,9 +328,17 @@ private :
 		}
 		void MovR( EXP_DATA& src ){
 			switch( (EXP_DATA::Type)src ){
-			case EXP_DATA::LiteralValue : printf( "mov R[%d] , %0.2f\n" , R , (double)src ); break;
-			case EXP_DATA::LiteralString : printf( "mov R[%d] , %s\n" , R , ((string)src).c_str() ); break;
-			case EXP_DATA::Symbol : printf( "mov R[%d] , %s[%d]\n" , R , ((SymbolInfo*)src)->Name().c_str() , ((SymbolInfo*)src)->Addr() ); break;
+			case EXP_DATA::LiteralValue : printf( "mov R[%d],%0.2f\n" , R , (double)src ); break;
+			case EXP_DATA::LiteralString : printf( "mov R[%d],%s\n" , R , ((string)src).c_str() ); break;
+			case EXP_DATA::Symbol : 
+				printf( "mov " );
+				printf( "R[%d]," , R );
+				printf( "%s[%d]" , ((SymbolInfo*)src)->Name().c_str() , ((SymbolInfo*)src)->Addr() );
+				if( src.IsArray() ){
+					printf( "+R%d" , src.Index() );
+				}
+				printf( "\n");
+				break;
 			}
 
 			this->m_parser->m_writer->write( EMnemonic::Mov );
@@ -310,7 +364,7 @@ private :
 		void WriteMovR( EXP_DATA& src ){
 			this->MovR( src );
 		}
-		expression( Parser* parser , SymbolInfo* symbol );
+		expression( Parser* parser , EXP_DATA& v );
 	};
 
 
@@ -324,42 +378,47 @@ private :
 		void ExprPushData( const double& literal_value ){ m_exp->ExprPushData( literal_value ); }
 		void ExprPushData( const string& literal_string ){ m_exp->ExprPushData( literal_string ); }
 		void ExprPushData( SymbolInfo* const symbolInfo ){ m_exp->ExprPushData( symbolInfo ); }
+		void ExprPushData( SymbolInfo* const symbolInfo , int index ){ m_exp->ExprPushData( symbolInfo , index ); }
 	};
 
 	class expression0 : public expression_base {
 	public :
-		expression0( expression* exp , Parser* parser , SymbolInfo* symbol );
+		expression0( expression* exp , Parser* parser , EXP_DATA& v );
 	};
 	class expression1 : public expression_base {
 	public :
-		expression1( expression* exp , Parser* parser , SymbolInfo* symbol );
+		expression1( expression* exp , Parser* parser , EXP_DATA& v );
 	};
 	class expression2 : public expression_base {
 	public :
-		expression2( expression* exp , Parser* parser , SymbolInfo* symbol );
+		expression2( expression* exp , Parser* parser , EXP_DATA& v );
 	};
 	class expression3 : public expression_base {
 	public :
-		expression3( expression* exp , Parser* parser , SymbolInfo* symbol );
+		expression3( expression* exp , Parser* parser , EXP_DATA& v );
 	};
 	class expression_variable : public expression_base {
 	private :
 		expression* expr;
-		SymbolInfo* symbol;
+		EXP_DATA var;
 		SymbolInfo* parentSymbol;
 	public :
-		expression_variable( expression* exp , Parser* parser , SymbolInfo* symbol );
-		expression_variable( expression* exp , Parser* parser , SymbolInfo* symbol , SymbolInfo* instSymbol );
+		expression_variable( expression* exp , Parser* parser , EXP_DATA& var );
+		expression_variable( expression* exp , Parser* parser , EXP_DATA& var , SymbolInfo* instSymbol );
 	private :
 		void exp();
 		void bracket( const string& symbolName );
 		void dot( const string& symbolName );
-		void pushData( const string& symbolName );
 		void memberFunc( const string& symbolName );
 		bool isExistSymbolInParent( const string& symbolName ){
 			assert( this->parentSymbol );
 			return this->parentSymbol->getSymbol( symbolName ) ? true : false;
 		}
+	};
+
+	class expression_bracket : public expression_base {
+	public :
+		expression_bracket( expression* exp , Parser* parser , SymbolInfo* parent , EXP_DATA& v );
 	};
 
 

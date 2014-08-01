@@ -16,11 +16,13 @@ SymbolInfo::SymbolInfo( string name , size_t arrayLength , ESymbolType symbolTyp
 	m_isStruct = isStruct;
 	m_scopeLevel = scopeLevel;
 	m_dataTypeId = 0;
+	m_arrayIndexR = 0;
 	if( m_scopeLevel == SCOPE_LEVEL_GLOBAL ){
 		m_symbolType = VariableGlobal;
 	}
 	m_parent = NULL;
 	m_classSymbol = NULL;
+	m_isArray = false;
 }
 
 
@@ -43,6 +45,8 @@ SymbolInfo::SymbolInfo( SymbolInfo* src , SymbolInfo* parent ){
 	this->m_dataTypeId   = src->m_dataTypeId;
 	this->m_parent       = parent;
 	this->m_classSymbol  = src->m_classSymbol;
+	this->m_arrayIndexR  = 0;
+	this->m_isArray      = false;
 }
 
 /*
@@ -67,24 +71,6 @@ size_t SymbolInfo::TopSymbolAddr(){
 		return m_parent->TopSymbolAddr();
 	}
 	return m_addr;
-}
-
-/*
- * 自身が子を持つ場合は配列。
- * 親がいる場合は構造体メンバであり、
- * その親が配列なら配列としてあつかう
- */
-int SymbolInfo::isArray(){
-	SymbolInfo* parent = this->m_parent;
-	while( parent ){
-		if( parent->m_arrayLength > 1 ){
-			return 1;
-		}
-		parent = parent->m_parent;
-	}
-
-	if( this->m_arrayLength > 1 ){ return 1; }
-	return 0;
 }
 
 /*

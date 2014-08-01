@@ -19,6 +19,8 @@ private :
 	size_t m_addr;
 	size_t m_arrayLength;
 	int    m_scopeLevel;
+	int    m_arrayIndexR;
+	bool   m_isArray;
 	ESymbolType m_symbolType;
 	bool m_isReference;
 	bool m_isStruct;
@@ -75,6 +77,11 @@ public :
 		}  
 		return "unknown";
 	}
+
+	bool isArray(){ return m_isArray; }
+	void isArray( bool isArray ){ m_isArray = isArray; }
+	void setArrayIndexR( int RNo ){ this->m_arrayIndexR = RNo; }
+	int getArrayIndexR(){ return this->m_arrayIndexR; }
 	void setClass( SymbolInfo* classsymbol ){ m_classSymbol = classsymbol; }
 	SymbolInfo* const getClass(){ return m_classSymbol; }
 	SymbolInfo* const getSymbol( string name );
@@ -82,7 +89,6 @@ public :
 	// このシンボルのスコープは静的な領域に存在しているのかどうか
 	bool isGlobal(){ return m_scopeLevel == SCOPE_LEVEL_GLOBAL; }
 	int toAssembleCode();
-	int isArray();
 	int isReferenceMember();
 	void copyAndAddChildrenOfSymbol( SymbolInfo* symbol );
 	void copyAndAddChildrenOfSymbol( const vector<SymbolInfo*>& symbolList );
