@@ -151,16 +151,16 @@ SymbolInfo* const Scope::_addSymbol( string symbolName ){
 	switch( m_scopeType ){
 	case Global   :
 		topAddr = this->getAllSymbolCount( VariableGlobal );
-//		printf( "VariableGlobal %s[%d]\n" , symbolName.c_str() , topAddr );
+		//printf( "VariableGlobal %s[%d]\n" , symbolName.c_str() , topAddr );
 		break;
 	case Function :
 	case StructMethod :
 		topAddr = this->getAllSymbolCount( VariableLocal );
-//		printf( "VariableLocal %s[%d]\n" , symbolName.c_str() , topAddr );
+		//printf( "VariableLocal %s[%d]\n" , symbolName.c_str() , topAddr );
 		break;
 	case Struct :
 		topAddr = this->getAllSymbolCount( VariableField );
-//		printf( "VariableField %s[%d]\n" , symbolName.c_str() , topAddr );
+		//printf( "VariableField %s[%d]\n" , symbolName.c_str() , topAddr );
 		break;
 	}
 	m_symtable->entrySymbol( new SymbolInfo( symbolName , 1 , (ESymbolType)getSearchSymbolType() , false , false , this->m_scopeLevel ) );

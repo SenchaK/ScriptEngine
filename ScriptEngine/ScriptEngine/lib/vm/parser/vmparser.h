@@ -4,6 +4,7 @@
 #include "..\symbol\vmsymbol.h"
 #include "..\assembly\vmassembly_info.h"
 #include <stack>
+#include <queue>
 
 namespace SenchaVM {
 namespace Assembly {
@@ -57,7 +58,7 @@ public :
 };
 
 
-class EXP_DATA {
+class varinfo {
 public :
 	enum Type{
 		None          ,
@@ -72,35 +73,31 @@ private :
 	double m_literal_value;
 	int m_arrayIndex;
 	bool m_isArray;
-	
+	bool m_ref;
 public :
-	std::stack<int> m_Addres;
 	const Type& GetType(){
 		return this->m_typeId;
 	}
 	double ToDouble(){
 		return this->m_literal_value;
 	}
-	EXP_DATA(){
+	varinfo(){
 		this->Set( None , NULL , 0 , 0 , "" , false );
 	}
-	EXP_DATA( SymbolInfo* symbol ){
+	varinfo( SymbolInfo* symbol ){
 		this->Set( symbol );
 	}
-	EXP_DATA( SymbolInfo* symbol , int index ){
-		this->Set( Symbol , symbol , index , 0 , "" , true );
-	}
-	EXP_DATA( double literal_value ){
+	varinfo( double literal_value ){
 		this->Set( LiteralValue , NULL , 0 , literal_value , "" , false );
 	}
-	EXP_DATA( string literal_string ){
+	varinfo( string literal_string ){
 		this->Set( LiteralString , NULL , 0 , 0 , literal_string , false );
-	}
-	void CopyAddresStack( const EXP_DATA& src ){
-		m_Addres = src.m_Addres;
 	}
 	void Set( SymbolInfo* symbol ){
 		this->Set( Symbol , symbol , 0 , 0 , "" , false );
+		if( symbol->IsReference() ){
+			this->Ref();
+		}
 	}
 	void Set( Type typeId , SymbolInfo* symbol , int index , double literal_value , string literal_string , bool isArray ){
 		this->m_typeId = typeId;
@@ -109,6 +106,7 @@ public :
 		this->m_literal_value = literal_value;
 		this->m_arrayIndex = index;
 		this->m_isArray = isArray;
+		this->m_ref = false;
 	}
 
 	operator Type(){
@@ -123,14 +121,6 @@ public :
 	operator string(){
 		return this->m_literal_string;
 	}
-	void PushAddres( int addres ){
-		m_Addres.push( addres );
-	}
-	int PopAddres(){
-		int result = m_Addres.top();
-		m_Addres.pop();
-		return result;
-	}
 	int Index(){
 		return this->m_arrayIndex;
 	}
@@ -140,6 +130,41 @@ public :
 	}
 	bool IsArray(){
 		return this->m_isArray;
+	}
+	void Ref(){
+		this->m_ref = true;
+	}
+	bool IsRef(){
+		return this->m_ref;
+	}
+};
+
+class var_chain {
+private :
+	vector<varinfo> var_list;
+public :
+	size_t size(){
+		return var_list.size();
+	}
+	varinfo& operator[]( size_t index ){
+		assert( index >= 0 && index < size() );
+		return var_list[index];
+	}
+	void push( varinfo& v ){
+		var_list.push_back( v );
+	}
+	varinfo& peek(){
+		assert( size() > 0 );
+		return var_list[size()-1];
+	}
+	int array_count(){
+		int count = 0;
+		for( size_t i = 0 ; i < size() ; i++ ){ if( var_list[i].IsArray() ){ count++; } }
+		return count;
+	}
+	bool contains_array(){
+		for( size_t i = 0 ; i < size() ; i++ ){ if( var_list[i].IsArray() ){ return true; } }
+		return false;
 	}
 };
 
@@ -226,61 +251,59 @@ private :
 		}
 	};
 
-	class variable : public interpreter {
+	class parse_variable : public interpreter {
 	public :
-		variable( Parser* parser );
+		parse_variable( Parser* parser );
 	};
 
-	class left_expression : public interpreter {
+	class parse_as : public interpreter {
 	public :
-		left_expression( Parser* parser );
-	};
-
-	class as : public interpreter {
-	public :
-		as( Parser* parser , EXP_DATA& var );
+		parse_as( Parser* parser , varinfo& var );
 	};
 
 	class expression : public interpreter {
 	public :
 		int R;
 		void ExprPushData( const double& literal_value ){
-			EXP_DATA exp_data( literal_value );
+			varinfo exp_data( literal_value );
 			MovR( exp_data );
 		}
 		void ExprPushData( const string& literal_string ){
-			EXP_DATA exp_data( literal_string );
+			varinfo exp_data( literal_string );
 			MovR( exp_data );
 		}
-		void ExprPushData( SymbolInfo* const symbolInfo ){
-			EXP_DATA exp_data( symbolInfo );
-			MovR( exp_data );
-		}
-		void ExprPushData( SymbolInfo* const symbolInfo , int index ){
-			EXP_DATA exp_data( symbolInfo , index );
-			MovR( exp_data );
-		}
-		void ExprPushData( EXP_DATA& exp_data ){
-			MovR( exp_data );
-		}
-		void Assign( EXP_DATA& src ){
-			this->WriteData( src );
-			this->WritePopR();
-			switch( (EXP_DATA::Type)src ){
-			case EXP_DATA::LiteralValue : printf( "mov %0.2f,R[%d]\n" , (double)src , R ); break;
-			case EXP_DATA::LiteralString : printf( "mov %s,R[%d]\n" , ((string)src).c_str() , R ); break;
-			case EXP_DATA::Symbol : 
-				printf( "mov " );
-				printf( "%s[%d]" , ((SymbolInfo*)src)->Name().c_str() , ((SymbolInfo*)src)->Addr() );
-				while( src.m_Addres.size() > 0 ){
-					printf( "+%d" , src.PopAddres() );
-				}
-				if( src.IsArray() ){
-					printf( "+R%d" , src.Index() );
-				}
-				printf( ",R[%d]\n" , R );
-				break;
+		void ExprPushData( var_chain& var ){
+			if( var.contains_array() ){
+				R -= var.array_count();
 			}
+			MovR( var );
+		}
+		void PushThis( varinfo _this ){
+			_this.Ref();
+			this->MovR( _this );
+			this->Push();
+		}
+
+		void Assign( var_chain& src ){
+		//	this->WriteData( src );
+			this->WritePopR();
+			printf( "mov " );
+			for( size_t i = 0 ; i < src.size() ; i++ ){
+				if( src[i].IsArray() ){
+					printf( "*(" );
+				}
+				if( src[i].IsRef() ){
+					printf( "&" );
+				}
+				printf( "%s[%d]" , ((SymbolInfo*)src[i])->Name().c_str() , ((SymbolInfo*)src[i])->Addr() );
+				if( src[i].IsArray() ){
+					printf( "+(sizeof(%s)*R%d))" ,  ((SymbolInfo*)src[i])->DataTypeName().c_str() , src[i].Index() );
+				}
+				if( i + 1 < src.size() ){
+					printf( "+" );
+				}
+			}
+			printf( ",R%d\n" , R );
 		}
 
 		void CalcStack( int opetype ){
@@ -292,28 +315,41 @@ private :
 			case TokenType::Rem : this->m_parser->m_writer->write( EMnemonic::Rem ); break;
 			}
 			switch( opetype ){
-			case TokenType::Add : printf( "add R[%d] , R[%d]\n" , R - 2 , R - 1 ); break;
-			case TokenType::Sub : printf( "sub R[%d] , R[%d]\n" , R - 2 , R - 1 ); break;
-			case TokenType::Mul : printf( "mul R[%d] , R[%d]\n" , R - 2 , R - 1 ); break;
-			case TokenType::Div : printf( "div R[%d] , R[%d]\n" , R - 2 , R - 1 ); break;
-			case TokenType::Rem : printf( "rem R[%d] , R[%d]\n" , R - 2 , R - 1 ); break;
+			case TokenType::Add : printf( "add R%d , R%d\n" , R - 2 , R - 1 ); break;
+			case TokenType::Sub : printf( "sub R%d , R%d\n" , R - 2 , R - 1 ); break;
+			case TokenType::Mul : printf( "mul R%d , R%d\n" , R - 2 , R - 1 ); break;
+			case TokenType::Div : printf( "div R%d , R%d\n" , R - 2 , R - 1 ); break;
+			case TokenType::Rem : printf( "rem R%d , R%d\n" , R - 2 , R - 1 ); break;
 			}
 			this->WriteR( -2 );
 			this->WriteR( -1 );
 			R -= 1;
 		}
 
-		void WriteData( EXP_DATA& src ){
-			switch( (EXP_DATA::Type)src ){
-			case EXP_DATA::LiteralValue :
+		void Push(){
+			printf( "push R%d\n" , R-1 );
+			R--;
+		}
+
+		void CallFunction( const string& funcName ){
+			printf( "st  %d\n" , R );
+			printf( "cal %s\n" , funcName.c_str() );
+			printf( "mov R%d , R%d\n" , R , 0 );
+			printf( "ld  %d\n" , R );
+			R++;
+		}
+
+		void WriteData( varinfo& src ){
+			switch( (varinfo::Type)src ){
+			case varinfo::LiteralValue :
 				this->m_parser->m_writer->write( EMnemonic::LIT_VALUE );
 				this->m_parser->m_writer->writeDouble( (double)src );
 				break;
-			case EXP_DATA::LiteralString : 
+			case varinfo::LiteralString : 
 				this->m_parser->m_writer->write( EMnemonic::LIT_STRING );
 				this->m_parser->m_writer->writeString( (string)src );
 				break;
-			case EXP_DATA::Symbol :	
+			case varinfo::Symbol :	
 				this->m_parser->m_writer->write( ((SymbolInfo*)src)->toAssembleCode() );
 				this->m_parser->m_writer->write( ((SymbolInfo*)src)->isArray() );
 				this->m_parser->m_writer->write( ((SymbolInfo*)src)->isReferenceMember() );
@@ -326,16 +362,26 @@ private :
 				break;
 			}
 		}
-		void MovR( EXP_DATA& src ){
-			switch( (EXP_DATA::Type)src ){
-			case EXP_DATA::LiteralValue : printf( "mov R[%d],%0.2f\n" , R , (double)src ); break;
-			case EXP_DATA::LiteralString : printf( "mov R[%d],%s\n" , R , ((string)src).c_str() ); break;
-			case EXP_DATA::Symbol : 
+		void MovR( varinfo& src ){
+			switch( (varinfo::Type)src ){
+			case varinfo::LiteralValue : 
+				printf( "mov R%d,%0.2f\n" , R , (double)src ); 
+				break;
+			case varinfo::LiteralString : 
+				printf( "mov R%d,%s\n" , R , ((string)src).c_str() ); 
+				break;
+			case varinfo::Symbol : 
 				printf( "mov " );
-				printf( "R[%d]," , R );
+				printf( "R%d," , R );
+				if( src.IsArray() ){
+					printf( "*(" );
+				}
+				if( src.IsRef() ){
+					printf( "&" );
+				}
 				printf( "%s[%d]" , ((SymbolInfo*)src)->Name().c_str() , ((SymbolInfo*)src)->Addr() );
 				if( src.IsArray() ){
-					printf( "+R%d" , src.Index() );
+					printf( "+(sizeof(%s)*R%d))" ,  ((SymbolInfo*)src)->DataTypeName().c_str() , src.Index() );
 				}
 				printf( "\n");
 				break;
@@ -344,6 +390,31 @@ private :
 			this->m_parser->m_writer->write( EMnemonic::Mov );
 			this->WritePushR();
 			this->WriteData( src );
+		}
+
+		void MovR( var_chain& src ){
+			printf( "mov " );
+			printf( "R%d," , R );
+			for( size_t i = 0 ; i < src.size() ; i++ ){
+				if( src[i].IsArray() ){
+					printf( "*(" );
+				}
+				if( src[i].IsRef() ){
+					printf( "&" );
+				}
+				printf( "%s[%d]" , ((SymbolInfo*)src[i])->Name().c_str() , ((SymbolInfo*)src[i])->Addr() );
+				if( src[i].IsArray() ){
+					printf( "+(sizeof(%s)*R%d))" ,  ((SymbolInfo*)src[i])->DataTypeName().c_str() , src[i].Index() );
+				}
+				if( i + 1 < src.size() ){
+					printf( "+" );
+				}
+			}
+			printf( "\n");
+
+			this->m_parser->m_writer->write( EMnemonic::Mov );
+			this->WritePushR();
+			//this->WriteData( src );
 		}
 		void WritePushR(){
 			this->WriteR();
@@ -361,10 +432,10 @@ private :
 			this->m_parser->m_writer->write( EMnemonic::REG );
 			this->m_parser->m_writer->write( R + ofs );
 		}
-		void WriteMovR( EXP_DATA& src ){
+		void WriteMovR( varinfo& src ){
 			this->MovR( src );
 		}
-		expression( Parser* parser , EXP_DATA& v );
+		expression( Parser* parser );
 	};
 
 
@@ -377,34 +448,32 @@ private :
 		}
 		void ExprPushData( const double& literal_value ){ m_exp->ExprPushData( literal_value ); }
 		void ExprPushData( const string& literal_string ){ m_exp->ExprPushData( literal_string ); }
-		void ExprPushData( SymbolInfo* const symbolInfo ){ m_exp->ExprPushData( symbolInfo ); }
-		void ExprPushData( SymbolInfo* const symbolInfo , int index ){ m_exp->ExprPushData( symbolInfo , index ); }
 	};
 
 	class expression0 : public expression_base {
 	public :
-		expression0( expression* exp , Parser* parser , EXP_DATA& v );
+		expression0( expression* exp , Parser* parser , var_chain& v );
 	};
 	class expression1 : public expression_base {
 	public :
-		expression1( expression* exp , Parser* parser , EXP_DATA& v );
+		expression1( expression* exp , Parser* parser );
 	};
 	class expression2 : public expression_base {
 	public :
-		expression2( expression* exp , Parser* parser , EXP_DATA& v );
+		expression2( expression* exp , Parser* parser );
 	};
 	class expression3 : public expression_base {
 	public :
-		expression3( expression* exp , Parser* parser , EXP_DATA& v );
+		expression3( expression* exp , Parser* parser );
 	};
 	class expression_variable : public expression_base {
 	private :
 		expression* expr;
-		EXP_DATA var;
+		var_chain var;
 		SymbolInfo* parentSymbol;
 	public :
-		expression_variable( expression* exp , Parser* parser , EXP_DATA& var );
-		expression_variable( expression* exp , Parser* parser , EXP_DATA& var , SymbolInfo* instSymbol );
+		expression_variable( expression* exp , Parser* parser );
+		expression_variable( expression* exp , Parser* parser , var_chain& var , SymbolInfo* instSymbol );
 	private :
 		void exp();
 		void bracket( const string& symbolName );
@@ -418,9 +487,13 @@ private :
 
 	class expression_bracket : public expression_base {
 	public :
-		expression_bracket( expression* exp , Parser* parser , SymbolInfo* parent , EXP_DATA& v );
+		expression_bracket( expression* exp , Parser* parser , SymbolInfo* parent , var_chain& v );
 	};
 
+	class expression_func : public expression_base {
+	public :
+		expression_func( expression* exp , Parser* parser );
+	};
 
 	class parse_array : public interpreter {
 	public :

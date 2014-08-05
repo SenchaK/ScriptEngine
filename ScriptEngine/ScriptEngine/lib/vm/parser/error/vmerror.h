@@ -19,6 +19,7 @@ enum ERR_ID {
 	ERROR_2003 , // '{'に対応する記号'}'が見つからない
 
 	ERROR_C2065 , // "symbolName" : 定義されていない識別子です。
+	ERROR_C2059 , // 構文エラー : 's'
 	ERROR_C2143 , // 構文エラー : ']' が ';' の前にありません。
 
 
@@ -30,6 +31,7 @@ enum ERR_ID {
 	// 4000番
 	// シンボルエラー
 	ERROR_4001 , // 不明なシンボルタイプ
+
 };
 
 /*
@@ -94,6 +96,14 @@ public :
 	ERROR_INFO_4001( string symbolName , ESymbolType symbolType ) : VMErrorParameter( ERROR_4001 ){
 		this->symbolName = symbolName;
 		this->symbolType = symbolType;
+	}
+};
+
+class ERROR_INFO_C2059 : public VMErrorParameter {
+public :
+	string s;
+	ERROR_INFO_C2059( string s ) : VMErrorParameter( ERROR_C2059 ){
+		this->s = s;
 	}
 };
 

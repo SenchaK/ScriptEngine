@@ -62,6 +62,12 @@ VMError::VMError( VMErrorParameter* param ){
 			o << "構文エラー : ']' が ';' の前にありません。";
 		}
 		break;
+	case ERROR_C2059 :
+		{
+			ERROR_INFO_C2059* errinfo = reinterpret_cast<ERROR_INFO_C2059*>( param );
+			o << "構文エラー : \"" << errinfo->s << "\"";
+		}
+		break;
 	}
 
 	this->m_message = ERR_ID_EX::toString( param->errId ) + ":" + o.str();

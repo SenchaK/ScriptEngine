@@ -84,6 +84,9 @@ public :
 	int getAllSymbolCount( ESymbolType symbolType );
 
 	const vector<SymbolInfo*>& getChildren();
+	const vector<Scope*>& getScopeChildren(){
+		return m_child;
+	}
 	bool hasContainSymbol( string name );
 	Scope( string scopeName , int scopeLevel );
 	~Scope();

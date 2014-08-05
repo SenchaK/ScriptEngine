@@ -34,7 +34,11 @@ public :
 	SymbolInfo* const getChild( int index ){ return m_child[index]; }
 	SymbolInfo( string name , size_t arrayLength , ESymbolType symbolType , bool isReference , bool isStruct , int scopeLevel );
 	~SymbolInfo();
-	string Name(){
+	string DataTypeName(){
+		if( !m_classSymbol ) return "var";
+		return m_classSymbol->Name();
+	}
+	string& Name(){
 		return m_name;
 	}
 	size_t Addr(){

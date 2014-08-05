@@ -90,16 +90,15 @@ void Parser::_execute(){
 /*
  * 変数解析
  */
-Parser::variable::variable( Parser* parser ) : Parser::interpreter( parser ){
-	EXP_DATA var((double)0);
-	expression( parser , var );
+Parser::parse_variable::parse_variable( Parser* parser ) : Parser::interpreter( parser ){
+	expression e( parser );
 }
 
 
 /*
  * asによるデータ型付け
  */
-Parser::as::as( Parser* parser , EXP_DATA& var ) : Parser::interpreter( parser ){
+Parser::parse_as::parse_as( Parser* parser , varinfo& var ) : Parser::interpreter( parser ){
 	if( this->NextTokenIf( TokenType::Letter ) ){
 		this->Next();
 		SymbolInfo* dataSymbol = this->getSymbol();
@@ -133,9 +132,9 @@ Parser::parse_array::parse_array( Parser* parser , SymbolInfo* symbol ) : Parser
 /*
  * 式評価
  */
-Parser::expression::expression( Parser* parser , EXP_DATA& var ) : Parser::interpreter( parser ){
+Parser::expression::expression( Parser* parser ) : Parser::interpreter( parser ){
 	R = 0;
-	expression3( this , parser , var );
+	expression3( this , parser );
 }
 
 
@@ -147,7 +146,7 @@ Parser::expression::expression( Parser* parser , EXP_DATA& var ) : Parser::inter
  * /=
  * %=
  */
-Parser::expression0::expression0( expression* exp , Parser* parser , EXP_DATA& var ) : Parser::expression_base( exp , parser ) {
+Parser::expression0::expression0( expression* exp , Parser* parser , var_chain& var ) : Parser::expression_base( exp , parser ) {
 	bool isExpression = false;
 	if( this->NextTokenIf( TokenType::Assign ) )    isExpression = true;
 	if( this->NextTokenIf( TokenType::AddAssign ) ) isExpression = true;
@@ -157,7 +156,7 @@ Parser::expression0::expression0( expression* exp , Parser* parser , EXP_DATA& v
 	if( isExpression ){
 		this->Next();
 		const TOKEN_TYPE& opetype = this->getTokenType();
-		expression1( exp , parser , var );
+		expression1( exp , parser );
 		exp->Assign( var );
 	}
 }
@@ -166,13 +165,13 @@ Parser::expression0::expression0( expression* exp , Parser* parser , EXP_DATA& v
  * +
  * -
  */
-Parser::expression1::expression1( expression* exp , Parser* parser , EXP_DATA& var ) : Parser::expression_base( exp , parser ) {
-	expression2 expr( exp , parser , var );
+Parser::expression1::expression1( expression* exp , Parser* parser ) : Parser::expression_base( exp , parser ) {
+	expression2 expr( exp , parser );
 
 	while( this->NextTokenIf( TokenType::Add ) || this->NextTokenIf( TokenType::Sub ) ){
 		this->Next();
 		const TOKEN_TYPE& opetype = this->getTokenType();
-		expression2( exp , parser , var );
+		expression2( exp , parser );
 		exp->CalcStack( opetype );
 	}
 }
@@ -182,27 +181,28 @@ Parser::expression1::expression1( expression* exp , Parser* parser , EXP_DATA& v
  * /
  * %
  */
-Parser::expression2::expression2( expression* exp , Parser* parser , EXP_DATA& var ) : Parser::expression_base( exp , parser ) {
-	expression3 expr( exp , parser , var );
+Parser::expression2::expression2( expression* exp , Parser* parser ) : Parser::expression_base( exp , parser ) {
+	expression3 expr( exp , parser );
 
 	while( this->NextTokenIf( TokenType::Mul ) || this->NextTokenIf( TokenType::Div ) || this->NextTokenIf( TokenType::Rem ) ){
 		this->Next();
 		const TOKEN_TYPE& opetype = this->getTokenType();
-		expression3( exp , parser , var );
+		expression3( exp , parser );
 		exp->CalcStack( opetype );
-	} 
+	}
 }
 
 /*
  * TOKEN
  */
-Parser::expression3::expression3( expression* exp , Parser* parser , EXP_DATA& var ) : Parser::expression_base( exp , parser ) {
+Parser::expression3::expression3( expression* exp , Parser* parser ) : Parser::expression_base( exp , parser ) {
 	if( this->NextTokenIf( TokenType::VariableSymbol ) ){
 		this->Next();
-		expression_variable( exp , parser , var );
+		expression_variable( exp , parser );
 	}
 	else if( this->NextTokenIf( TokenType::RefSymbol ) ){
 		this->Next();
+		expression_variable( exp , parser );
 	}
 	else if( this->NextTokenIf( TokenType::Digit ) ){
 		this->Next();
@@ -214,10 +214,10 @@ Parser::expression3::expression3( expression* exp , Parser* parser , EXP_DATA& v
 	}
 	else if( this->NextTokenIf( TokenType::Letter ) ){
 		this->Next();
+		expression_func( exp , parser );
 	}
 	else if( this->NextTokenIf( TokenType::Lbracket ) ){
 		this->Next();
-		expression_bracket( exp , parser , NULL , var );
 	}
 	else if( this->NextTokenIf( TokenType::AsString ) ){
 		this->Next();
@@ -227,7 +227,7 @@ Parser::expression3::expression3( expression* exp , Parser* parser , EXP_DATA& v
 	}
 	else if( this->NextTokenIf( TokenType::Lparen ) ){
 		this->Next();
-		expression1( exp , parser , var );
+		expression1( exp , parser );
 		if( this->NextTokenIf( TokenType::Rparen ) ){
 			this->Next();
 		}
@@ -237,15 +237,14 @@ Parser::expression3::expression3( expression* exp , Parser* parser , EXP_DATA& v
 /* 
  * 変数シンボル
  */
-Parser::expression_variable::expression_variable( expression* exp , Parser* parser , EXP_DATA& v ) : Parser::expression_base( exp , parser ) {
-	this->var.CopyAddresStack( v );
+Parser::expression_variable::expression_variable( expression* exp , Parser* parser ) : Parser::expression_base( exp , parser ) {
 	this->expr = exp;
 	this->parentSymbol = NULL;
 	this->exp();
 }
 
-Parser::expression_variable::expression_variable( expression* exp , Parser* parser , EXP_DATA& v , SymbolInfo* instSymbol ) : Parser::expression_base( exp , parser ) {
-	this->var.CopyAddresStack( v );
+Parser::expression_variable::expression_variable( expression* exp , Parser* parser , var_chain& v , SymbolInfo* instSymbol ) : Parser::expression_base( exp , parser ) {
+	this->var = v;
 	this->expr = exp;
 	this->parentSymbol = instSymbol;
 	this->exp();
@@ -263,7 +262,8 @@ void Parser::expression_variable::exp(){
 			symbol = this->addSymbol( symbolName );
 			printf( "シンボル生成 : %s [addr %d]\n" , symbol->Name().c_str() , symbol->Addr() );
 		}
-		this->var.Set( symbol );
+		varinfo current( symbol );
+		this->var.push( current );
 		if( this->NextTokenIf( TokenType::Dot ) ){
 			this->Next();
 			this->dot( symbolName );
@@ -278,7 +278,7 @@ void Parser::expression_variable::exp(){
 		}
 		else if( this->NextTokenIf( TokenType::As ) ){
 			this->Next();
-			as( m_parser , var );
+			parse_as( this->m_parser , current );
 		}
 		else {
 			expression0( this->expr , this->m_parser , this->var );
@@ -294,7 +294,6 @@ void Parser::expression_variable::dot( const string& symbolName ){
 	if( !instSymbol ){
 		throw VMError( new ERROR_INFO_C2065( symbolName ) );
 	}
-	this->var.PushAddres( ((SymbolInfo*)var)->Addr() );
 	expression_variable( expr , m_parser , this->var , instSymbol );
 }
 
@@ -304,32 +303,59 @@ void Parser::expression_variable::bracket( const string& symbolName ){
 
 void Parser::expression_variable::memberFunc( const string& symbolName ){
 	if( !this->isExistSymbolInParent( symbolName ) ){ throw VMError( new ERROR_INFO_C2065( symbolName ) ); }
-	//processArgs();
+	varinfo inst( this->parentSymbol );
+	this->expr->PushThis( inst );
+	while( !this->NextTokenIf( TokenType::Rparen ) ){
+		expression1( this->expr , m_parser );
+		if( this->NextTokenIf( TokenType::Comma ) ){
+			this->Next();
+		}
+		this->expr->Push();
+	}
+	this->Next();
+	this->expr->CallFunction( symbolName );
 }
 
 
 
 
-Parser::expression_bracket::expression_bracket( expression* exp , Parser* parser , SymbolInfo* parent , EXP_DATA& var ) : Parser::expression_base( exp , parser ) {
-	expression1( exp , this->m_parser , var );
+Parser::expression_bracket::expression_bracket( expression* exp , Parser* parser , SymbolInfo* parent , var_chain& var ) : Parser::expression_base( exp , parser ) {
+	expression1( exp , this->m_parser );
 	if( !this->NextTokenIf( TokenType::Rbracket ) ){
 		throw VMError( new ERROR_INFO_C2143() );
 	}
-
-	var.Index( exp->R-1 );
+	varinfo& current = var.peek();
+	current.Index( exp->R-1 );
 	this->Next();
 	if( this->NextTokenIf( TokenType::Dot ) ){
 		this->Next();
-		SymbolInfo* instSymbol = this->getSymbolInScopeOrParentSymbol( parent , ((SymbolInfo*)var)->Name() );
+		SymbolInfo* instSymbol = this->getSymbolInScopeOrParentSymbol( parent , ((SymbolInfo*)current)->Name() );
 		expression_variable( exp , this->m_parser , var , instSymbol );
 	}
 	else {
 		expression0( exp , m_parser , var );
-		exp->R--;
 		exp->ExprPushData( var );
 	}
 }
 
+Parser::expression_func::expression_func( expression* exp , Parser* parser ) : Parser::expression_base( exp , parser ){
+	string funcName = this->getTokenString();
+	if( !this->NextTokenIf( TokenType::Lparen ) ){
+		this->Next();
+		throw VMError( new ERROR_INFO_C2059( this->getTokenString() ) );
+	}
+
+	this->Next();
+	while( !this->NextTokenIf( TokenType::Rparen ) ){
+		expression1( exp , parser );
+		if( this->NextTokenIf( TokenType::Comma ) ){
+			this->Next();
+		}
+		exp->Push();
+	}
+	this->Next();
+	exp->CallFunction( funcName );
+}
 
 // 解析処理
 // 各ステートメントの処理を行う
@@ -346,7 +372,7 @@ void Parser::_parse( ParseParameter* param ){
 	case TokenType::VariableSymbol :
 	case TokenType::RefSymbol :
 		this->backToken();
-		variable( this );
+		parse_variable( this );
 		//_parse_variable( param );
 		break;
 	case TokenType::Inc :
@@ -630,14 +656,14 @@ void Parser::_parse_letter( ParseParameter* param ){
 //	構造体解析
 //	--------------------------------------------------------
 void Parser::_parse_struct( ParseParameter* param ){
-//#define CLASS_PRINT(...)
-#define CLASS_PRINT VM_PRINT
-//#define CLASS_PRINT printf
-	CLASS_PRINT( "構造体 解析開始\n" );
+//#define STRUCT_PRINT(...)
+#define STRUCT_PRINT VM_PRINT
+//#define STRUCT_PRINT printf
+	STRUCT_PRINT( "構造体 解析開始\n" );
 	TOKEN className = nextToken();
 	PARSER_ASSERT( className.type == TokenType::Letter );
 	PARSER_ASSERT( className.text.size() > 0 );
-	CLASS_PRINT( "構造体名 : %s \n" , className.text.c_str() );
+	STRUCT_PRINT( "構造体名 : %s \n" , className.text.c_str() );
 	TOKEN beginChunk = nextToken();
 	PARSER_ASSERT( beginChunk.type == TokenType::BeginChunk );
 	nextToken();
@@ -646,7 +672,7 @@ void Parser::_parse_struct( ParseParameter* param ){
 	SymbolInfo* symbol = m_currentScope->getSymbol( className.text );
 	assert( !symbol );
 	symbol = m_currentScope->addSymbol( className.text );
-	CLASS_PRINT( "構造体シンボル生成 : %s [addr %d]\n" , symbol->Name().c_str() , symbol->Addr() );
+	STRUCT_PRINT( "構造体シンボル生成 : %s [addr %d]\n" , symbol->Name().c_str() , symbol->Addr() );
 
 
 	ParseParameter classParam;
@@ -656,7 +682,6 @@ void Parser::_parse_struct( ParseParameter* param ){
 	while( hasNext() ){
 		_parse( &classParam );
 		if( getToken().type == TokenType::EndChunk ){
-			nextToken();
 			break;
 		}
 	}
@@ -665,8 +690,7 @@ void Parser::_parse_struct( ParseParameter* param ){
 	symbol->copyAndAddChildrenOfSymbol( structFields );
 	//dumpSYMBOL( symbol , 1 );
 	m_currentScope = m_currentScope->backToChildScope();
-
-#undef CLASS_PRINT
+#undef STRUCT_PRINT
 }
 
 
@@ -709,10 +733,10 @@ static void _set_thisPointer( Scope* parentScope , Scope* currentScope ){
 	if( !parentScope ){
 		return;
 	}
-	if( parentScope->isStructScope() ){
-		throw VMError( new ERROR_INFO_3001( currentScope->ScopeName() ) );
-	}
-/*
+	//if( parentScope->isStructScope() ){
+	//	throw VMError( new ERROR_INFO_3001( currentScope->ScopeName() ) );
+	//}
+
 	// 親スコープが構造体スコープである場合、構造体メソッドであることになるので通知
 	// "this"という名前のシンボルを暗黙的に生成する
 	// クラスの持つ同名のシンボルを取得し、クラスに設定する
@@ -727,7 +751,6 @@ static void _set_thisPointer( Scope* parentScope , Scope* currentScope ){
 		thisSymbol->copyAndAddChildrenOfSymbol( parentScope->getChildren() );
 		thisSymbol->setupChildrenAddresToParentAddresOffset();
 	}
-*/
 }
 
 
@@ -774,7 +797,6 @@ void Parser::_parse_function( ParseParameter* param ){
 		_parse( &funcParam );
 		if( getToken().type == TokenType::EndChunk ){
 			m_writer->write( EMnemonic::EndFunc );
-			nextToken();
 			break;
 		}
 	}
@@ -782,7 +804,6 @@ void Parser::_parse_function( ParseParameter* param ){
 	_entryFunction( scopeName , args );
 	FUNC_PRINT( "\n" );	
 	m_writer = prev;
-
 	m_currentScope = m_currentScope->backToChildScope();
 #undef FUNC_PRINT
 }

@@ -113,6 +113,7 @@
     <ClInclude Include="lib\vm\vmdefine.h" />
     <ClInclude Include="lib\vm\vmmemory.h" />
     <ClInclude Include="lib\vm\vmregister.h" />
+    <ClInclude Include="memory_pool.h" />
     <ClInclude Include="vmplugin\VMFileSystem.h" />
     <ClInclude Include="vmplugin\VMSystem.h" />
   </ItemGroup>

@@ -1,10 +1,19 @@
 struct VEC2{
 	$x;
 	$y;
+
+	function init(){
+		%this.x = 320;
+		%this.y = 240;
+	}
+	function getX(){
+		%this.x = 0;
+	}
+	function getY(){
+		%this.y = 0;
+	}
 }
 
-function main(){
-	$pos as VEC2;
-	$pos = 0;
 
+function main(){
 }

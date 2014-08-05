@@ -64,5 +64,30 @@ struct VMAssembleCollection {
 	}
 };
 
+
+class Type;
+class MethodInfo;
+class FieldInfo;
+
+class Type {
+private :
+	vector<FieldInfo*> mField;
+	vector<MethodInfo*> mMethod;
+};
+
+class MethodInfo {
+public :
+	Type* mType;
+	void Invoke();
+};
+
+class FieldInfo {
+private :
+	Type* mType;
+
+};
+
+
+
 } // namespace Assembly
 } // namespace SenchaVM
