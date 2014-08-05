@@ -174,6 +174,8 @@ public :
 class Parser {
 	friend class interpreter;
 private :
+	// パーサー解析基底
+	// パーサーのコントロール全般を取り扱う機能を継承先に提供する
 	class interpreter {
 	protected :
 		Parser* m_parser;
@@ -202,8 +204,6 @@ private :
 		double getTokenDouble(){
 			return atof( m_parser->getToken().text.c_str() );
 		}
-
-
 		/*
 		 * 現在のトークンからシンボルを取得する。
 		 */
@@ -211,12 +211,10 @@ private :
 			const string& symbolName = m_parser->getToken().text;
 			return m_parser->m_currentScope->getSymbol( symbolName );	
 		}
-
 		SymbolInfo* addSymbol( string& symbolName ){
 			std::cout << "シンボル:" << symbolName << "登録" << std::endl;
 			return m_parser->m_currentScope->addSymbol( symbolName );
 		}
-
 		/*
 		 * スコープかシンボルの子階層に存在するシンボルのどちらかを取得
 		 * 先に親シンボルを探す
@@ -227,7 +225,6 @@ private :
 			}
 			return m_parser->m_currentScope->getSymbol( symbolName );
 		}
-
 		/*
 		 * 現在のトークンからシンボル存在するか確認
 		 */
@@ -237,7 +234,6 @@ private :
 			if( symbol ) return true;
 			return false;
 		}
-
 		/*
 		 * あるシンボルの子階層にそのシンボルが存在するか
 		 * 存在する場合、メンバーとして扱う
@@ -251,16 +247,37 @@ private :
 		}
 	};
 
+	// 変数シンボル解析
 	class parse_variable : public interpreter {
 	public :
 		parse_variable( Parser* parser );
 	};
-
+	// 構造体解析
+	class parse_struct : public interpreter {
+	public : 
+		parse_struct( Parser* parser );
+	};
+	// 関数解析
+	class parse_function : public interpreter {
+	public : 
+		parse_function( Parser* parser );
+	};
+	// as演算子解析
 	class parse_as : public interpreter {
 	public :
 		parse_as( Parser* parser , varinfo& var );
 	};
-
+	// 配列解析
+	class parse_array : public interpreter {
+	public :
+		parse_array( Parser* parser , SymbolInfo* symbol );
+	};
+	// チャンク解析
+	class parse_chunk : public interpreter {
+	public :
+		parse_chunk( Parser* parser , SymbolInfo* symbol );
+	};
+	// 式評価基底
 	class expression : public interpreter {
 	public :
 		int R;
@@ -437,8 +454,7 @@ private :
 		}
 		expression( Parser* parser );
 	};
-
-
+	// 式評価処理基底
 	class expression_base : public interpreter {
 	private :
 		expression* m_exp;
@@ -449,7 +465,7 @@ private :
 		void ExprPushData( const double& literal_value ){ m_exp->ExprPushData( literal_value ); }
 		void ExprPushData( const string& literal_string ){ m_exp->ExprPushData( literal_string ); }
 	};
-
+	// 評価0 
 	class expression0 : public expression_base {
 	public :
 		expression0( expression* exp , Parser* parser , var_chain& v );
@@ -484,20 +500,13 @@ private :
 			return this->parentSymbol->getSymbol( symbolName ) ? true : false;
 		}
 	};
-
 	class expression_bracket : public expression_base {
 	public :
 		expression_bracket( expression* exp , Parser* parser , SymbolInfo* parent , var_chain& v );
 	};
-
 	class expression_func : public expression_base {
 	public :
 		expression_func( expression* exp , Parser* parser );
-	};
-
-	class parse_array : public interpreter {
-	public :
-		parse_array( Parser* parser , SymbolInfo* symbol );
 	};
 private :
 	// ジャンプ命令情報
