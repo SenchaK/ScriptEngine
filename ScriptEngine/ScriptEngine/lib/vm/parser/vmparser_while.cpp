@@ -26,7 +26,7 @@ namespace Assembly {
 // そうでない場合はジャンプしない
 // チャンク終了地点に終了地点までのジャンプを入れる
 // **************************************************************************
-void Parser::_parse_while( ParseParameter* param ){
+void Parser::_parse_while( Context* param ){
 	WHILE_LOG( ">>while Log\n" );
 	WHILE_ASSERT( getToken().type == TokenType::While );  nextToken();
 	WHILE_ASSERT( getToken().type == TokenType::Lparen ); nextToken();
@@ -34,7 +34,7 @@ void Parser::_parse_while( ParseParameter* param ){
 
 	// ループ終了条件
 	int whileContinuePos = m_writer->count();
-	_expression( param );
+//	_expression( param );
 
 	WHILE_ASSERT( getToken().type == TokenType::Rparen );
 	WHILE_LOG( ">>while Log 終了\n" );
@@ -45,7 +45,7 @@ void Parser::_parse_while( ParseParameter* param ){
 	m_writer->writeInt32( 0 );
 
 	nextToken();
-	ParseParameter whileParam;
+	Context whileParam;
 
 	WHILE_LOG( ">>while Log 内部処理解析へ...\n" );
 	_parse( &whileParam );

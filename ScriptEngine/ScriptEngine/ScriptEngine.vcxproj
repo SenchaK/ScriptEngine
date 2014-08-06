@@ -82,7 +82,6 @@
     <ClCompile Include="lib\vm\lexer\vmlexer.cpp" />
     <ClCompile Include="lib\vm\parser\error\vmerror.cpp" />
     <ClCompile Include="lib\vm\parser\vmparser.cpp" />
-    <ClCompile Include="lib\vm\parser\vmparser_expression.cpp" />
     <ClCompile Include="lib\vm\parser\vmparser_for.cpp" />
     <ClCompile Include="lib\vm\parser\vmparser_if.cpp" />
     <ClCompile Include="lib\vm\parser\vmparser_switch.cpp" />

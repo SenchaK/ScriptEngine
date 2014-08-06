@@ -1,5 +1,6 @@
 #include "../../vm/parser/error/vmerror.h"
 #include "vmsymbol.h"
+#include "../parser/vmscope.h"
 
 
 namespace SenchaVM{
@@ -21,10 +22,21 @@ SymbolInfo::SymbolInfo( string name , size_t arrayLength , ESymbolType symbolTyp
 		m_symbolType = VariableGlobal;
 	}
 	m_parent = NULL;
-	m_classSymbol = NULL;
+	m_type = NULL;
 	m_isArray = false;
 }
 
+string SymbolInfo::DataTypeName(){
+	if( !m_type ) return "var";
+	return m_type->ScopeName();
+}
+
+int SymbolInfo::SizeOf(){
+	if( !this->m_type ){
+		return 1 * this->m_arrayLength;
+	}
+	return this->m_type->SizeOf() * this->m_arrayLength;
+}
 
 /*
  * private 
@@ -44,7 +56,7 @@ SymbolInfo::SymbolInfo( SymbolInfo* src , SymbolInfo* parent ){
 	this->m_isStruct     = src->m_isStruct;
 	this->m_dataTypeId   = src->m_dataTypeId;
 	this->m_parent       = parent;
-	this->m_classSymbol  = src->m_classSymbol;
+	this->m_type         = src->m_type;
 	this->m_arrayIndexR  = 0;
 	this->m_isArray      = false;
 }
@@ -171,14 +183,7 @@ int SymbolInfo::getSymbolCount(){
 	if( m_isReference ){
 		return 1;
 	}
-	if( m_child.size() > 0 ){
-		int childCount = 0;
-		for( unsigned int i = 0 ; i < m_child.size() ; i++ ){
-			childCount += m_child[i]->getSymbolCount();
-		}
-		return childCount * m_arrayLength;
-	}
-	return m_arrayLength;
+	return this->SizeOf();
 }
 
 /*
@@ -262,6 +267,15 @@ int Symtable::getSymbolCount( int symbolMask ){
 		}
 	}
 	return result;
+}
+
+// 管理してるシンボルの全サイズ取得
+int Symtable::sizeOf(){
+	int size = 0;
+	for( unsigned int i = 0 ; i < m_symbolList.size() ; i++ ){
+		size += m_symbolList[i]->SizeOf();
+	}
+	return size;
 }
 
 Symtable::~Symtable(){

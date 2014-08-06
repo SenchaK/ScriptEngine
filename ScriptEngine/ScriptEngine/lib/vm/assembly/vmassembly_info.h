@@ -1,4 +1,5 @@
 #pragma once
+#include "../../util/util_stream.h"
 #include "../lexer/vmlexer.h"
 
 namespace SenchaVM{
@@ -12,18 +13,23 @@ private :
 	size_t m_stackFrame;
 	size_t m_addr;
 	size_t m_args;
-	vector<vmbyte> m_assembleCommandList;
+	vector<vmbyte> m_code;
 public :
 	void clearBytes(){
-		m_assembleCommandList.clear();
+		m_code.clear();
 	}
 	void pushByte( vmbyte byteData ){
-		m_assembleCommandList.push_back( byteData );
+		m_code.push_back( byteData );
+	}
+	void setBytes( CStream stream ){
+		while( stream->hasNext() ){
+			m_code.push_back( stream->getByte() );
+		}
 	}
 	void setArgs( size_t args ){
 		m_args = args;
 	}
-	void setName( string name ){
+	void setName( const string& name ){
 		m_name = name;
 	}
 	string name(){
@@ -63,30 +69,6 @@ struct VMAssembleCollection {
 		assemblyInfo.clear();
 	}
 };
-
-
-class Type;
-class MethodInfo;
-class FieldInfo;
-
-class Type {
-private :
-	vector<FieldInfo*> mField;
-	vector<MethodInfo*> mMethod;
-};
-
-class MethodInfo {
-public :
-	Type* mType;
-	void Invoke();
-};
-
-class FieldInfo {
-private :
-	Type* mType;
-
-};
-
 
 
 } // namespace Assembly

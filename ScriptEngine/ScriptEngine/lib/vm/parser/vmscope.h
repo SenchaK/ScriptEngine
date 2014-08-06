@@ -14,10 +14,12 @@ typedef shared_ptr<Symtable> CSymtable;
 typedef shared_ptr<Scope>    CScope;
 
 
+class MethodInfo;
+class Type;
 
 // スコープ管理クラス
 class Scope{
-private :
+protected :
 	enum EScopeType {
 		Global         ,
 		Function       , 
@@ -45,13 +47,17 @@ public :
 	Scope* const getParentScope(){ return m_parent; }
 	Scope* const backToChildScope();
 	Scope* const goToChildScope( string name );
-	Scope* const goToStructScope( string name );
-	Scope* const goToFunctionScope( string name );
+	Type* const goToStructScope( string name );
+	MethodInfo* const goToFunctionScope( string name );
 	Scope* const findScope( string scopeName );
 	SymbolInfo* const addSymbol( string symbolName );
 	SymbolInfo* const getSymbol( string name );
 	SymbolInfo* const getSymbol( int index );
 
+	// このスコープが管理するシンボルリストを返す
+	const vector<SymbolInfo*>& getSymbols(){
+		return m_symtable->getSymbols();
+	}
 	Scope* findScopeFromTop( string scopeName );
 
 	// 現在のスコープが持つ子スコープの数を取得する
@@ -90,6 +96,25 @@ public :
 	bool hasContainSymbol( string name );
 	Scope( string scopeName , int scopeLevel );
 	~Scope();
+};
+
+// 構造体などの型情報の場合
+class Type : public Scope {
+public :
+	Type( string scopeName , int scopeLevel ) : Scope( scopeName , scopeLevel ){
+	}
+	string Name(){
+		return this->ScopeName();
+	}
+	int SizeOf();
+};
+
+
+// 関数スコープ
+class MethodInfo : public Scope {
+public :
+	MethodInfo( string scopeName , int scopeLevel ) : Scope( scopeName , scopeLevel ){
+	}
 };
 
 

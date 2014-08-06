@@ -48,9 +48,6 @@
     <ClCompile Include="lib\vm\parser\vmparser.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="lib\vm\parser\vmparser_expression.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="lib\vm\parser\vmparser_for.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>

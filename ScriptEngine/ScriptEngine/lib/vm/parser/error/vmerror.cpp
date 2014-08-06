@@ -59,7 +59,7 @@ VMError::VMError( VMErrorParameter* param ){
 	case ERROR_C2143 :
 		{
 			ERROR_INFO_C2143* errinfo = reinterpret_cast<ERROR_INFO_C2143*>( param );
-			o << "構文エラー : ']' が ';' の前にありません。";
+			o << "構文エラー : " << errinfo->tokenType << "ありません。";
 		}
 		break;
 	case ERROR_C2059 :

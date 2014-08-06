@@ -19,7 +19,7 @@ namespace Assembly {
 // **************************************************************************
 // switchï∂âêÕ
 // **************************************************************************
-void Parser::_parse_switch( ParseParameter* param ){
+void Parser::_parse_switch( Context* param ){
 	SWITCH_LOG( "**switchï∂\n" );
 	SWITCH_ASSERT( getToken().type == TokenType::Switch ); nextToken();
 	SWITCH_ASSERT( getToken().type == TokenType::Lparen ); nextToken();

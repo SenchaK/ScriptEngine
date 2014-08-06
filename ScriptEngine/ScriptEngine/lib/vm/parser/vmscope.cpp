@@ -98,18 +98,18 @@ Scope* const Scope::goToChildScope( string name ){
 	return m_child[pos];
 }
 
-Scope* const Scope::goToStructScope( string name ){
-	Scope* newScope = new Scope( name , m_scopeLevel + 1 );
+Type* const Scope::goToStructScope( string name ){
+	Type* newScope = new Type( name , m_scopeLevel + 1 );
 	newScope->m_parent = this;
 	newScope->m_scopeType = Struct;
 	m_child.push_back( newScope );
 	size_t pos = m_child.size() - 1;
 	//printf( ">> goToStructScope %p , %p\n" , newScope , m_child[m_pos] );
-	return m_child[pos];
+	return newScope;
 }
 
-Scope* const Scope::goToFunctionScope( string name ){
-	Scope* newScope = new Scope( name , m_scopeLevel + 1 );
+MethodInfo* const Scope::goToFunctionScope( string name ){
+	MethodInfo* newScope = new MethodInfo( name , m_scopeLevel + 1 );
 	newScope->m_parent = this;
 	newScope->m_scopeType = Function;
 	if( this->m_scopeType == Struct ){
@@ -118,7 +118,7 @@ Scope* const Scope::goToFunctionScope( string name ){
 	m_child.push_back( newScope );
 	size_t pos = m_child.size() - 1;
 	//printf( ">> goToFunctionScope %s\n" , name.c_str() );
-	return m_child[pos];
+	return newScope;
 }
 
 Scope* const Scope::backToChildScope(){
@@ -236,6 +236,11 @@ const vector<SymbolInfo*>& Scope::getChildren(){
 	return m_symtable->getSymbols();
 }
 
+
+
+int Type::SizeOf(){
+	return this->m_symtable->sizeOf();
+}
 
 } // namespace Assembly
 } // namespace SenchaVM

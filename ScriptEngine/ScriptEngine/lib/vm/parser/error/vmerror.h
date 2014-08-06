@@ -70,7 +70,9 @@ public :
 
 class ERROR_INFO_C2143 : public VMErrorParameter {
 public :
-	ERROR_INFO_C2143() : VMErrorParameter( ERROR_C2143 ){
+	int tokenType;
+	ERROR_INFO_C2143( int tokenType ) : VMErrorParameter( ERROR_C2143 ){
+		this->tokenType = tokenType;
 	}
 };
 

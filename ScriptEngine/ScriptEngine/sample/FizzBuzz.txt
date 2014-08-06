@@ -1,7 +1,6 @@
 struct VEC2{
 	$x;
 	$y;
-
 	function init(){
 		%this.x = 320;
 		%this.y = 240;
@@ -14,6 +13,20 @@ struct VEC2{
 	}
 }
 
+struct VEC3{
+	$pos as VEC2;
+	$z;
+
+	function init(){
+		%this.pos.y = 50;
+		%this.z = 100;
+	}
+}
 
 function main(){
+	$pos as VEC3;
+	$pos.pos.x = 320;
+	$pos.pos.y = 480;
+	$pos.z = 240;
 }
+

@@ -7,7 +7,7 @@
 namespace SenchaVM{
 namespace Assembly{
 
-
+class Type;
 class SymbolInfo {
 	friend class Symtable;
 private :
@@ -27,17 +27,16 @@ private :
 	unsigned short m_dataTypeId;
 	vector<SymbolInfo*> m_child;
 	SymbolInfo* m_parent;
-	SymbolInfo* m_classSymbol;
+	Type* m_type;
 	SymbolInfo( SymbolInfo* src , SymbolInfo* parent );
 public :
 	const vector<SymbolInfo*>& getChilds(){ return m_child; }
 	SymbolInfo* const getChild( int index ){ return m_child[index]; }
 	SymbolInfo( string name , size_t arrayLength , ESymbolType symbolType , bool isReference , bool isStruct , int scopeLevel );
 	~SymbolInfo();
-	string DataTypeName(){
-		if( !m_classSymbol ) return "var";
-		return m_classSymbol->Name();
-	}
+	string DataTypeName();
+	int SizeOf();
+
 	string& Name(){
 		return m_name;
 	}
@@ -63,7 +62,7 @@ public :
 	void Addr( size_t value ){
 		m_addr = value;
 	}
-	void SymbolType( ESymbolType type ){
+	void Location( ESymbolType type ){
 		m_symbolType = type;
 	}
 	void ArrayLength( size_t length ){ 
@@ -86,8 +85,9 @@ public :
 	void isArray( bool isArray ){ m_isArray = isArray; }
 	void setArrayIndexR( int RNo ){ this->m_arrayIndexR = RNo; }
 	int getArrayIndexR(){ return this->m_arrayIndexR; }
-	void setClass( SymbolInfo* classsymbol ){ m_classSymbol = classsymbol; }
-	SymbolInfo* const getClass(){ return m_classSymbol; }
+
+	void setType( Type* t ){ m_type = t; }
+	Type* const getType(){ return m_type; }
 	SymbolInfo* const getSymbol( string name );
 	SymbolInfo* const addSymbol( string name );
 	// このシンボルのスコープは静的な領域に存在しているのかどうか
@@ -106,6 +106,7 @@ public  :
 	const vector<SymbolInfo*>& getSymbols(){ return m_symbolList; }
 	int getSymbolCount( int symbolMask );
 	int getSymbolTotal();
+	int sizeOf();
 	SymbolInfo* const findSymbol( string symbolName );
 	SymbolInfo* const findSymbol( int addr );
 	SymbolInfo* const getSymbol( int index );

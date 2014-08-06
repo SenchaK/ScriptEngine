@@ -3,6 +3,7 @@
 #include "..\lexer\vmlexer.h"
 #include "..\symbol\vmsymbol.h"
 #include "..\assembly\vmassembly_info.h"
+#include "error\vmerror.h"
 #include <stack>
 #include <queue>
 
@@ -15,6 +16,10 @@ class SymbolInfo;
 typedef shared_ptr<Symtable> CSymtable;
 typedef shared_ptr<Scope>    CScope;
 
+
+// オブジェクトメタデータ
+class Metadata {
+};
 
 // 計算機スタック
 // 変数、関数などのシンボルはm_symbol  ,
@@ -174,6 +179,26 @@ public :
 class Parser {
 	friend class interpreter;
 private :
+	// ジャンプ命令情報
+	// continue文/break文を使用するときにどこでその命令を見つけたのか、
+	// という内部コードアドレスを記録する
+	struct JumpInfo {
+		int codeAddr;
+	};
+
+	// 解析時パラメータ
+	// _parse関数にポインタで渡す
+	// 基本的にこのインスタンスは自動領域に取る(_parseは再帰するので)
+	struct Context {
+		vector<JumpInfo> continueAddr ; // continue文発見時のバイト位置
+		vector<JumpInfo> breakAddr    ; // break文発見時のバイト位置
+		vector<SymbolInfo*> symbolArgs;
+		size_t args;
+		Context(){
+			args = 0;
+		}
+	};
+
 	// パーサー解析基底
 	// パーサーのコントロール全般を取り扱う機能を継承先に提供する
 	class interpreter {
@@ -204,6 +229,103 @@ private :
 		double getTokenDouble(){
 			return atof( m_parser->getToken().text.c_str() );
 		}
+		void WhiteEndFunc(){
+			this->m_parser->m_writer->write( EMnemonic::EndFunc );
+		}
+		/*
+		 * 現在のトークンに対応した名前の型情報を取得
+		 */
+		Type* getType(){
+			Type* t = (Type*)this->m_parser->m_currentScope->findScopeFromTop( this->getTokenString() );
+			return t;
+		}
+
+		/* 
+		 * アセンブリの登録
+		 * (ポインタ渡しにしたほうがコピーが発生しないので早い？かもしれないのでそのうち直すかも)
+		 */
+		void EntryAssembly( const AssemblyInfo& funcAssembly ){ 
+			this->m_parser->m_assemblyCollection.assemblyInfo.push_back( funcAssembly );
+		}
+		/*
+		 * 現在のスコープから割り当てられる変数の領域を判定する。 
+		 * ローカル領域なのか静的領域なのかを現在のスコープから判定
+		 */
+		ESymbolType GetVariableLocationInCurrentScope(){
+			ESymbolType scopeSymbolType = VariableLocal;
+			if( this->m_parser->m_currentScope->ScopeLevel() == 0 ){
+				scopeSymbolType = VariableGlobal;
+			}
+			return scopeSymbolType;
+		}
+		/*
+		 * 関数解析準備
+		 */
+		MethodInfo* GoToFunction( const string& funcName ){
+			this->m_parser->m_writer = CBinaryWriter( new BinaryWriter() );
+			this->m_parser->m_currentScope = this->m_parser->m_currentScope->goToFunctionScope( funcName );
+			return reinterpret_cast<MethodInfo*>( this->m_parser->m_currentScope );
+		}
+		/*
+		 * 構造体スコープへ移動
+		 */
+		Type* GoToStruct( const string& typeName ){
+			this->m_parser->m_currentScope = this->m_parser->m_currentScope->goToStructScope( typeName );
+			return reinterpret_cast<Type*>( this->m_parser->m_currentScope );
+		}
+		/*
+		 * 一つ上のスコープに戻る
+		 */
+		Scope* GoToBack(){
+			this->m_parser->m_currentScope = this->m_parser->m_currentScope->backToChildScope();
+			return this->m_parser->m_currentScope;
+		}
+		/*
+		 * バイナリライターのストリームを取得
+		 */
+		CStream GetCurrentStream(){
+			return this->m_parser->m_writer->getStream();
+		}
+		/*
+		 * 次のトークンが指定のものでない場合エラーと見なして2059番エラーを投げる。
+		 * 指定のものである場合は次に進める
+		 */
+		void ErrorCheckNextToken( TOKEN_TYPE tokenType ){
+			if( !this->NextTokenIf( tokenType ) ){
+				this->Next();
+				throw VMError( new ERROR_INFO_C2059( this->getTokenString() ) );
+			}
+			this->Next();
+		}
+		/*
+		 * 解析処理
+		 */
+		void Parse( Context* param ){
+			this->m_parser->_parse( param );
+		}
+		/*
+		 * 指定のトークンが見つかるまで解析を進める
+		 * 見つからない場合はエラーを返す
+		 */
+		void ParseWhile( TOKEN_TYPE tokenType , Context* param ){
+			if( this->TokenIf( tokenType ) ){
+				return;
+			}
+			while( this->m_parser->hasNext() ){
+				this->Parse( param );
+				if( this->TokenIf( tokenType ) ){
+					return;
+				}
+			}
+			throw VMError( new ERROR_INFO_C2143( tokenType ) );
+		}
+		/*
+		 * 指定のトークンが見つかるまで解析を進める
+		 */
+		void ParseWhile( TOKEN_TYPE tokenType ){
+			this->ParseWhile( tokenType , NULL );
+		}
+
 		/*
 		 * 現在のトークンからシンボルを取得する。
 		 */
@@ -211,17 +333,18 @@ private :
 			const string& symbolName = m_parser->getToken().text;
 			return m_parser->m_currentScope->getSymbol( symbolName );	
 		}
+		/*
+		 * シンボル登録
+		 */
 		SymbolInfo* addSymbol( string& symbolName ){
-			std::cout << "シンボル:" << symbolName << "登録" << std::endl;
 			return m_parser->m_currentScope->addSymbol( symbolName );
 		}
 		/*
-		 * スコープかシンボルの子階層に存在するシンボルのどちらかを取得
-		 * 先に親シンボルを探す
+		 * データタイプかスコープかのどちらかからシンボル取得
 		 */
-		SymbolInfo* getSymbolInScopeOrParentSymbol( SymbolInfo* parentSymbol , const string& symbolName ){
-			if( parentSymbol ){
-				return parentSymbol->getSymbol( symbolName );
+		SymbolInfo* getSymbolInScopeOrType( Type* t , const string& symbolName ){
+			if( t ){
+				return t->getSymbol( symbolName );
 			}
 			return m_parser->m_currentScope->getSymbol( symbolName );
 		}
@@ -259,8 +382,32 @@ private :
 	};
 	// 関数解析
 	class parse_function : public interpreter {
+	private :
+		string funcName;
+		vector<SymbolInfo*> args;
 	public : 
+		vector<SymbolInfo*> GetArgs(){
+			return this->m_parser->m_currentScope->getSymbols();
+		}
+		int GetStackFrame(){
+			return this->m_parser->m_currentScope->getSymbolCountMaxInAllScope( this->GetVariableLocationInCurrentScope() );
+		}
+		// 構造体スコープであるかどうか
+		// 親スコープを見て判断する
+		bool isStructScope(){
+			Scope* parent = this->m_parser->m_currentScope->getParentScope();
+			if( !parent ){
+				return false;
+			}
+			return parent->isStructScope();
+		}
+		// 現在のスコープが構造体メンバ関数スコープであることを通知する
+		void NotifyStructMethodScope(){
+			this->m_parser->m_currentScope->notifyStructMethodScope();
+		}
 		parse_function( Parser* parser );
+		void EntryFunction();
+		void This();
 	};
 	// as演算子解析
 	class parse_as : public interpreter {
@@ -486,48 +633,34 @@ private :
 	private :
 		expression* expr;
 		var_chain var;
-		SymbolInfo* parentSymbol;
+		Type* type;
 	public :
 		expression_variable( expression* exp , Parser* parser );
-		expression_variable( expression* exp , Parser* parser , var_chain& var , SymbolInfo* instSymbol );
+		expression_variable( expression* exp , Parser* parser , var_chain& var , Type* t );
 	private :
 		void exp();
 		void bracket( const string& symbolName );
 		void dot( const string& symbolName );
 		void memberFunc( const string& symbolName );
-		bool isExistSymbolInParent( const string& symbolName ){
-			assert( this->parentSymbol );
-			return this->parentSymbol->getSymbol( symbolName ) ? true : false;
+		bool isExistSymbolInType( const string& symbolName ){
+			assert( this->type );
+			return this->type->getSymbol( symbolName ) ? true : false;
+		}
+		SymbolInfo* getThis(){
+			assert( this->type );
+			string name = this->type->Name();
+			return this->type->getSymbol( name );
 		}
 	};
 	class expression_bracket : public expression_base {
 	public :
-		expression_bracket( expression* exp , Parser* parser , SymbolInfo* parent , var_chain& v );
+		expression_bracket( expression* exp , Parser* parser , Type* type , var_chain& v );
 	};
 	class expression_func : public expression_base {
 	public :
 		expression_func( expression* exp , Parser* parser );
 	};
 private :
-	// ジャンプ命令情報
-	// continue文/break文を使用するときにどこでその命令を見つけたのか、
-	// という内部コードアドレスを記録する
-	struct JumpInfo {
-		int codeAddr;
-	};
-
-	// 解析時パラメータ
-	// _parse関数にポインタで渡す
-	// 基本的にこのインスタンスは自動領域に取る(_parseは再帰するので)
-	struct ParseParameter {
-		vector<JumpInfo> continueAddr ; // continue文発見時のバイト位置
-		vector<JumpInfo> breakAddr    ; // break文発見時のバイト位置
-		size_t args;
-		ParseParameter(){
-			args = 0;
-		}
-	};
-
 	// 
 	struct ExpressionParameter {
 		enum SymbolAfterDotSyntax {
@@ -588,73 +721,23 @@ private :
 	bool hasNext();
 	void _consume( int consumeCount );
 private :
-	void _entryFunction( string funcName , size_t args );
-	void _entryClass( string className );
-private :
 	// シンボルを計算スタックに積む
 	void _pushOperation( OperationStack item );
 	OperationStack _popOperation();
 private :
 	// ステートメントなど
-	void _parse( ParseParameter* param );
-	void _parse_variable( ParseParameter* param );
-	void _parse_letter( ParseParameter* param );
-	void _parse_struct( ParseParameter* param );
-	void _parse_function( ParseParameter* param );
-	void _parse_if( ParseParameter* param );
-	void _parse_switch( ParseParameter* param );
-	void _parse_for( ParseParameter* param );
-	void _parse_while( ParseParameter* param );
-	void _parse_chunk( ParseParameter* param );
-	void _parse_continue( ParseParameter* param );
-	void _parse_break( ParseParameter* param );
+	void _parse( Context* param );
+	void _parse_if( Context* param );
+	void _parse_switch( Context* param );
+	void _parse_for( Context* param );
+	void _parse_while( Context* param );
+	void _parse_chunk( Context* param );
+	void _parse_continue( Context* param );
+	void _parse_break( Context* param );
 	void _parse_struct( SymbolInfo* structSymbol );
-	void _parse_as( SymbolInfo* symbol );
-	void _parse_return( ParseParameter* param );
+	void _parse_return( Context* param );
 private :
-	// 計算式系
-	// 以下優先度順になっている
-	void _expression( ParseParameter* param );
-	void _exp( ExpressionParameter* const param );
-	void _assign_expression( ExpressionParameter* const param );      // = += -= *= /= %=
-	void _logical_or_expression( ExpressionParameter* const param );  // ||
-	void _logical_and_expression( ExpressionParameter* const param ); // &&
-	void _equality_expression( ExpressionParameter* const param );    // == !=
-	void _relational_expression( ExpressionParameter* const param );  // >= <= > <
-	void _add_sub_expression( ExpressionParameter* const param );     // +-
-	void _mul_div_expression( ExpressionParameter* const param );     // */%
-	void _token_expression( ExpressionParameter* const param );       // [A-Za-z_][A-Za-z_0-9]*
-
-	void _method_expression( Scope* funcScope , ExpressionParameter* const param );
-	void _func_expression( ExpressionParameter* const param );        // [A-Za-z_][A-Za-z_0-9]*(
-	void _unary_expression( ExpressionParameter* const param );       // !-
-	void _primary_expression( ExpressionParameter* const param );     // []().
-	void _after_inc_expression( ExpressionParameter* const param );   // ++
-private :
-	void _process_letter_expression( ExpressionParameter* const symbolParam , const string& letter );
-	void _process_symbol_expression( ExpressionParameter* const symbolParam , ExpressionParameter* const param , SymbolInfo* symbol );
-private :
-	SymbolInfo* _findOperationSymbol( SymbolInfo* symbol );
-	void _popOperation( const TOKEN& opeType );
-	void _pushLITERAL( const TOKEN& token );
-	void _pushLITERAL_String( const TOKEN& token );
-	void _pushSYMBOL( SymbolInfo* symbol , bool isLeftExpression , bool isReferenceExpression );
-	void _popAssignOperation( const TOKEN& opeType , SymbolInfo* symbol );
-	void _popCompareOperation( const TOKEN& opeType );
-	void _popLogicalOperation( const TOKEN& opeType );
-	void _popControlFlowResult();
-	void _popAfterIncOperation( const TOKEN& opeType );
-	void _popPrevIncOperation( const TOKEN& opeType );
-	void _popArrayIndexOperation( SymbolInfo* arraySymbol , ExpressionParameter* param );
-	void _popSYMBOL();
-private :
-	Scope* _findMethodScope( string& scopeName , ExpressionParameter* const param );
 	void _skipParen();
-	bool _isVariable( const TOKEN& _0 , const TOKEN& _1 ){
-		if( _0.type == TokenType::VariableSymbol && _1.type == TokenType::Letter ) return true;
-		if( _0.type == TokenType::RefSymbol && _1.type == TokenType::Letter )      return true;
-		return false;
-	}
 };
 typedef std::shared_ptr<Parser> CParser;
 

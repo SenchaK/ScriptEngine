@@ -30,7 +30,7 @@ namespace Assembly {
 // そうでない場合はジャンプしない
 // チャンク終了地点に開始地点までのジャンプを入れる
 // **************************************************************************
-void Parser::_parse_for( ParseParameter* param ){
+void Parser::_parse_for( Context* param ){
 	m_currentScope = m_currentScope->goToChildScope( "__for__" );
 
 	FOR_LOG( ">>for Log\n" );
@@ -41,7 +41,7 @@ void Parser::_parse_for( ParseParameter* param ){
 
 	// ループ終了条件
 	int forContinuePos = m_writer->count();
-	_expression( param );
+//	_expression( param );
 	
 	FOR_ASSERT( getToken().type == TokenType::Semicolon );
 	// 比較演算結果が0の場合終了チャンクまでジャンプする命令を設置
@@ -60,7 +60,7 @@ void Parser::_parse_for( ParseParameter* param ){
 	// ')'を飛ばす
 	nextToken();
 	// 次の１命令を解析(チャンクがある場合は終了チャンクまでそのまま解析するようにする)
-	ParseParameter forParam;
+	Context forParam;
 
 	FOR_LOG( ">>for Log 内部処理解析開始\n" );
 	_parse( &forParam );
@@ -71,7 +71,7 @@ void Parser::_parse_for( ParseParameter* param ){
 	// 位置を戻して最後の計算式を評価
 	this->m_pos = lastExpressionPos;
 	int loopEndPos = m_writer->count();
-	_expression( param );
+//	_expression( param );
 
 	// 最後の計算が終わったら元の位置に戻す
 	m_pos = processEndPos;

@@ -22,11 +22,11 @@ namespace Assembly {
 // そうでない場合はジャンプしない
 // チャンク終了地点に終了地点までのジャンプを入れる
 // **************************************************************************
-void Parser::_parse_if( ParseParameter* param ){
+void Parser::_parse_if( Context* param ){
 	IF_LOG( "**if文\n" );
 	IF_ASSERT( getToken().type == TokenType::If );     nextToken();
 	IF_ASSERT( getToken().type == TokenType::Lparen ); nextToken();
-	_expression( param );
+//	_expression( param );
 	IF_ASSERT( getToken().type == TokenType::Rparen );
 	
 	// 比較演算結果が0の場合else発見場所までジャンプする命令を設置
