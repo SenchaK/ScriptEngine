@@ -27,7 +27,6 @@ void Parser::_initialize( vector<TOKEN> tokens ){
 	m_scope = Assembly::CScope( new Assembly::Scope( "global" , SCOPE_LEVEL_GLOBAL ) );
 	m_currentScope = m_scope.get();
 	m_writer = CBinaryWriter( new BinaryWriter() );
-	m_R = 0;
 	//printf( "Global %p\n" , m_currentScope );
 }
 // 一個前のトークンに戻る
@@ -59,17 +58,6 @@ bool Parser::hasNext(){
 // 指定数トークンを進める
 void Parser::_consume( int consumeCount ){
 	m_pos += consumeCount;
-}
-// 計算に使用するシンボル、リテラルなどをスタックに積む
-void Parser::_pushOperation( OperationStack item ){
-	m_operationStack.push( item );
-}
-// シンボル、リテラルを上から戻す
-OperationStack Parser::_popOperation(){
-	PARSER_ASSERT( m_operationStack.size() > 0 );
-	OperationStack result = m_operationStack.top();
-	m_operationStack.pop();
-	return result;
 }
 // 解析開始
 void Parser::_execute(){
@@ -530,7 +518,7 @@ void Parser::_parse_return( Context* param ){
 
 	m_writer->write( EMnemonic::RET );
 	m_writer->write( EMnemonic::REG );
-	m_writer->writeInt32( this->m_R );
+//	m_writer->writeInt32( this->m_R );
 	m_writer->write( EMnemonic::EndFunc );
 
 	PARSER_ASSERT( getToken().type  == TokenType::Semicolon );

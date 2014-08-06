@@ -661,50 +661,12 @@ private :
 		expression_func( expression* exp , Parser* parser );
 	};
 private :
-	// 
-	struct ExpressionParameter {
-		enum SymbolAfterDotSyntax {
-			Variable , 
-			Function ,
-		};
-		bool isReferenceSymbol;    // 左辺のシンボルが参照型である
-		int prog_counter;          // プログラムカウンタ
-		stack<SymbolInfo*> symbol; //
-		int bracketCount;          // '['～']'発見回数
-		int pushCount;             // 関数パラメータ渡しpush回数
-
-		SymbolAfterDotSyntax symbolAfterDotSyntax;
-		ExpressionParameter( int pc ){
-			this->prog_counter = pc;
-			this->isReferenceSymbol = false;
-			this->symbolAfterDotSyntax = Variable;
-			this->bracketCount = 0;
-			this->pushCount = 0;
-		}
-		ExpressionParameter( int pc , ExpressionParameter* param , bool is_reference_symbol ){
-			int bracket_count = 0;
-			int push_count = 0;
-			if( param ){
-				pc += param->prog_counter;
-				bracket_count += param->bracketCount;
-				push_count += param->pushCount;
-			}
-			this->prog_counter = pc;
-			this->isReferenceSymbol = is_reference_symbol;
-			this->symbolAfterDotSyntax = Variable;
-			this->bracketCount = bracket_count;
-			this->pushCount = push_count;
-		}
-	};
-
 	vector<TOKEN> m_tokens;
-	stack<OperationStack> m_operationStack;
 	VMAssembleCollection m_assemblyCollection;
 	CBinaryWriter m_writer;
 	CScope m_scope;
 	Scope* m_currentScope;
 	size_t m_pos;
-	int m_R;
 public :
 	const VMAssembleCollection& getResult(){ return m_assemblyCollection; }
 	Parser( vector<TOKEN> tokens );
@@ -720,10 +682,6 @@ private :
 	const TOKEN& getToken(int ofs);
 	bool hasNext();
 	void _consume( int consumeCount );
-private :
-	// シンボルを計算スタックに積む
-	void _pushOperation( OperationStack item );
-	OperationStack _popOperation();
 private :
 	// ステートメントなど
 	void _parse( Context* param );
