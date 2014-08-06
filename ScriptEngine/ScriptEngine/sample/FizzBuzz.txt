@@ -6,10 +6,10 @@ struct VEC2{
 		%this.y = 240;
 	}
 	function getX(){
-		%this.x = 0;
+		return %this.x;
 	}
 	function getY(){
-		%this.y = 0;
+		return %this.y;
 	}
 }
 

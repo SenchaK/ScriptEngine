@@ -133,7 +133,7 @@ Parser::parse_function::parse_function( Parser* parser ) : Parser::interpreter( 
 	Context param;
 	param.symbolArgs = args;
 	this->ParseWhile( TokenType::EndChunk , &param );
-	this->WhiteEndFunc();
+	this->WriteEndFunc();
 	this->EntryFunction();
 	this->GoToBack();
 }
@@ -182,6 +182,28 @@ Parser::parse_struct::parse_struct( Parser* parser ) : Parser::interpreter( pars
 	this->ParseWhile( TokenType::EndChunk , &param );
 	symbol->setType( t );
 	this->GoToBack();
+}
+
+/*
+ * チャンク構造解析
+ * チャンクの次から解析を始める
+ */
+Parser::parse_chunk::parse_chunk( Parser* parser ) : Parser::interpreter( parser ){
+	this->GoToChunk();
+	this->ParseWhile( TokenType::EndChunk );
+	this->GoToBack();
+}
+
+/*
+ * return文解析
+ * "return"の次から解析開始
+ * returnの次の計算式を評価し、その結果を格納する
+ * 基本的にはR0番にしか戻り値は入らない
+ * return文より下には行ってはいけないので発見したらそこで関数終了
+ */
+Parser::parse_return::parse_return( Parser* parser ) : Parser::interpreter( parser ){
+	expression e( parser );
+	this->WriteReturn( e.R - 1 );
 }
 
 /*
@@ -298,6 +320,9 @@ Parser::expression_variable::expression_variable( expression* exp , Parser* pars
 	this->exp();
 }
 
+/*
+ * 構造体変数の場合
+ */
 Parser::expression_variable::expression_variable( expression* exp , Parser* parser , var_chain& v , Type* t ) : Parser::expression_base( exp , parser ) {
 	this->var = v;
 	this->expr = exp;
@@ -448,7 +473,7 @@ void Parser::_parse( Context* param ){
 	case TokenType::YIELD :
 		break;
 	case TokenType::Return :
-		_parse_return( param );
+		parse_return( this );
 		break;
 	case TokenType::Struct :
 		this->nextToken();
@@ -459,7 +484,8 @@ void Parser::_parse( Context* param ){
 	case TokenType::Letter :
 		break;
 	case TokenType::BeginChunk :
-		_parse_chunk( param );
+		this->nextToken();
+		parse_chunk( this );
 		break;
 	case TokenType::EndChunk : 
 		break;
@@ -504,56 +530,6 @@ void Parser::_parse_break( Context* param ){
 	if( getToken().type == TokenType::Semicolon ){
 		nextToken();
 	}
-}
-
-// return文解析
-// returnの次の計算式を評価し、その結果を格納する
-// 基本的にはR0番にしか戻り値は入らない
-// return文より下には行ってはいけないので発見したらそこで関数終了
-void Parser::_parse_return( Context* param ){
-	PARSER_ASSERT( param );
-	PARSER_ASSERT( getToken().type == TokenType::Return );
-	nextToken();
-//	_expression( param );
-
-	m_writer->write( EMnemonic::RET );
-	m_writer->write( EMnemonic::REG );
-//	m_writer->writeInt32( this->m_R );
-	m_writer->write( EMnemonic::EndFunc );
-
-	PARSER_ASSERT( getToken().type  == TokenType::Semicolon );
-	if( getToken().type  == TokenType::Semicolon ){
-		nextToken();
-	}
-}
-
-
-// チャンク処理
-// 終了チャンクを発見するまでループする
-void Parser::_parse_chunk( Context* param ){
-//#define CHUNK_PRINT printf
-#define CHUNK_PRINT VM_PRINT
-	m_currentScope = m_currentScope->goToChildScope( "__chunk__" );
-
-	CHUNK_PRINT( ">>チャンク 解析開始\n" );
-	PARSER_ASSERT( getToken().type == TokenType::BeginChunk );
-	nextToken();
-	while( hasNext() ){
-		_parse( param );
-		if( getToken().type == TokenType::EndChunk ){
-			nextToken();
-			break;
-		}
-	}
-
-	CHUNK_PRINT( ">>チャンク 解析終了 [現在のトークン:%s][発見シンボル数:%d][%d][%d][%d]\n" , 
-		getToken().text.c_str() , 
-		m_currentScope->getSymbolCountInScopeAttribute() , 
-		m_currentScope->getParentSymbolCount( VariableLocal ) , 
-		m_currentScope->getAllParentSymbolCount( VariableLocal ) ,
-		m_currentScope->getAllSymbolCount( VariableLocal ) );
-	m_currentScope = m_currentScope->backToChildScope();
-#undef CHUNK_PRINT
 }
 
 // '('から対応する')'が見つかるまでスキップ

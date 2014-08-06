@@ -229,9 +229,18 @@ private :
 		double getTokenDouble(){
 			return atof( m_parser->getToken().text.c_str() );
 		}
-		void WhiteEndFunc(){
+		void WriteEndFunc(){
 			this->m_parser->m_writer->write( EMnemonic::EndFunc );
+			printf( "end\n" );
 		}
+		void WriteReturn( int R ){
+			this->m_parser->m_writer->write( EMnemonic::RET );
+			this->m_parser->m_writer->write( EMnemonic::REG );
+			this->m_parser->m_writer->writeInt32( R );
+			printf( "ret R%d\n" , R );
+			this->WriteEndFunc();
+		}
+
 		/*
 		 * 現在のトークンに対応した名前の型情報を取得
 		 */
@@ -273,6 +282,14 @@ private :
 			this->m_parser->m_currentScope = this->m_parser->m_currentScope->goToStructScope( typeName );
 			return reinterpret_cast<Type*>( this->m_parser->m_currentScope );
 		}
+		/*
+		 * チャンクスコープへ移動
+		 */
+		Scope* GoToChunk(){
+			this->m_parser->m_currentScope = this->m_parser->m_currentScope->goToChildScope( "" );
+			return this->m_parser->m_currentScope;
+		}
+
 		/*
 		 * 一つ上のスコープに戻る
 		 */
@@ -422,8 +439,14 @@ private :
 	// チャンク解析
 	class parse_chunk : public interpreter {
 	public :
-		parse_chunk( Parser* parser , SymbolInfo* symbol );
+		parse_chunk( Parser* parser );
 	};
+	// return文
+	class parse_return : public interpreter {
+	public :
+		parse_return( Parser* parser );
+	};
+
 	// 式評価基底
 	class expression : public interpreter {
 	public :
@@ -472,18 +495,18 @@ private :
 
 		void CalcStack( int opetype ){
 			switch( opetype ){
-			case TokenType::Add : this->m_parser->m_writer->write( EMnemonic::Add ); break;
-			case TokenType::Sub : this->m_parser->m_writer->write( EMnemonic::Sub ); break;
-			case TokenType::Mul : this->m_parser->m_writer->write( EMnemonic::Mul ); break;
-			case TokenType::Div : this->m_parser->m_writer->write( EMnemonic::Div ); break;
-			case TokenType::Rem : this->m_parser->m_writer->write( EMnemonic::Rem ); break;
+				case TokenType::Add : this->m_parser->m_writer->write( EMnemonic::Add ); break;
+				case TokenType::Sub : this->m_parser->m_writer->write( EMnemonic::Sub ); break;
+				case TokenType::Mul : this->m_parser->m_writer->write( EMnemonic::Mul ); break;
+				case TokenType::Div : this->m_parser->m_writer->write( EMnemonic::Div ); break;
+				case TokenType::Rem : this->m_parser->m_writer->write( EMnemonic::Rem ); break;
 			}
 			switch( opetype ){
-			case TokenType::Add : printf( "add R%d , R%d\n" , R - 2 , R - 1 ); break;
-			case TokenType::Sub : printf( "sub R%d , R%d\n" , R - 2 , R - 1 ); break;
-			case TokenType::Mul : printf( "mul R%d , R%d\n" , R - 2 , R - 1 ); break;
-			case TokenType::Div : printf( "div R%d , R%d\n" , R - 2 , R - 1 ); break;
-			case TokenType::Rem : printf( "rem R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case TokenType::Add : printf( "add R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case TokenType::Sub : printf( "sub R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case TokenType::Mul : printf( "mul R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case TokenType::Div : printf( "div R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case TokenType::Rem : printf( "rem R%d , R%d\n" , R - 2 , R - 1 ); break;
 			}
 			this->WriteR( -2 );
 			this->WriteR( -1 );
@@ -689,11 +712,8 @@ private :
 	void _parse_switch( Context* param );
 	void _parse_for( Context* param );
 	void _parse_while( Context* param );
-	void _parse_chunk( Context* param );
 	void _parse_continue( Context* param );
 	void _parse_break( Context* param );
-	void _parse_struct( SymbolInfo* structSymbol );
-	void _parse_return( Context* param );
 private :
 	void _skipParen();
 };
