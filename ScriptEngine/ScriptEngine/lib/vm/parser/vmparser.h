@@ -80,10 +80,10 @@ private :
 	bool m_isArray;
 	bool m_ref;
 public :
-	const Type& GetType(){
+	const Type& GetType() const {
 		return this->m_typeId;
 	}
-	double ToDouble(){
+	const double& ToDouble() const {
 		return this->m_literal_value;
 	}
 	varinfo(){
@@ -114,19 +114,19 @@ public :
 		this->m_ref = false;
 	}
 
-	operator Type(){
+	operator Type() const {
 		return this->m_typeId;
 	}
-	operator SymbolInfo*(){
+	operator SymbolInfo*() const {
 		return this->m_symbol;
 	}
-	operator double(){
+	operator double() const {
 		return this->m_literal_value;
 	}
-	operator string(){
+	operator string() const {
 		return this->m_literal_string;
 	}
-	int Index(){
+	const int& Index() const {
 		return this->m_arrayIndex;
 	}
 	void Index( int index ){
@@ -403,7 +403,7 @@ private :
 		string funcName;
 		vector<SymbolInfo*> args;
 	public : 
-		vector<SymbolInfo*> GetArgs(){
+		const vector<SymbolInfo*>& GetArgs() const{
 			return this->m_parser->m_currentScope->getSymbols();
 		}
 		int GetStackFrame(){
