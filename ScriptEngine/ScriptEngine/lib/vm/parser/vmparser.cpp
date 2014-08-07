@@ -130,9 +130,7 @@ Parser::parse_function::parse_function( Parser* parser ) : Parser::interpreter( 
 	this->ErrorCheckNextToken( TokenType::BeginChunk );
 	this->Next();
 	this->args = this->GetArgs();
-	Context param;
-	param.symbolArgs = args;
-	this->ParseWhile( TokenType::EndChunk , &param );
+	this->ParseWhile( TokenType::EndChunk , this );
 	this->WriteEndFunc();
 	this->EntryFunction();
 	this->GoToBack();
@@ -176,10 +174,9 @@ Parser::parse_struct::parse_struct( Parser* parser ) : Parser::interpreter( pars
 	string name = this->getTokenString();
 	this->ErrorCheckNextToken( TokenType::BeginChunk );
 	SymbolInfo* symbol = this->addSymbol( name );
-	Context param;
 	Type* t = this->GoToStruct( name );
 	this->Next();
-	this->ParseWhile( TokenType::EndChunk , &param );
+	this->ParseWhile( TokenType::EndChunk , this );
 	symbol->setType( t );
 	this->GoToBack();
 }
@@ -196,7 +193,7 @@ Parser::parse_chunk::parse_chunk( Parser* parser ) : Parser::interpreter( parser
 
 /*
  * return文解析
- * "return"の次から解析開始
+ * "return"から解析開始
  * returnの次の計算式を評価し、その結果を格納する
  * 基本的にはR0番にしか戻り値は入らない
  * return文より下には行ってはいけないので発見したらそこで関数終了
@@ -205,6 +202,61 @@ Parser::parse_return::parse_return( Parser* parser ) : Parser::interpreter( pars
 	expression e( parser );
 	this->WriteReturn( e.R - 1 );
 }
+
+
+/*
+ * if文解析
+ * 文法チェックを行い計算式評価。
+ * 評価結果が0の場合はelse文発見までジャンプ
+ * そうでない場合はジャンプしない
+ * チャンク終了地点に終了地点までのジャンプを入れる
+ * elseを発見した場合
+ * ・ifを通ってきた場合は終了地点までジャンプ
+ * ・ifで評価されなかった場合はifと同じ評価を行う
+ * （else ifの場合はifで引っかかり、elseの場合はその処理が評価される）
+ */
+Parser::parse_if::parse_if( Parser* parser , interpreter* listener ) : Parser::interpreter( parser ){
+	this->ErrorCheckToken( TokenType::Lparen );
+	expression e( parser );
+	int jmpPos = this->WriteJZ();
+	this->Next();
+	this->Parse( this );
+	this->WriteJmpPos( jmpPos );
+	while( this->TokenIf( TokenType::Else ) ){
+		int ifEndJmpPos = this->WriteJ();
+		this->WriteJmpPos( jmpPos );
+		this->Next();
+		this->Parse( this );
+		this->WriteJmpPos( ifEndJmpPos );
+	}
+}
+
+Parser::parse_switch::parse_switch( Parser* parser , interpreter* listener ) : Parser::interpreter( parser ){
+};
+
+Parser::parse_for::parse_for( Parser* parser , interpreter* listener ) : Parser::interpreter( parser ){
+};
+
+Parser::parse_while::parse_while( Parser* parser , interpreter* listener ) : Parser::interpreter( parser ){
+	this->ErrorCheckToken( TokenType::Lparen );
+	int whileContinuePos = this->GetWritePos();
+	expression e( parser );
+	int whileJmpPos = this->WriteJZ();
+	this->Next();
+	this->Parse( this );
+	this->WriteJ(whileContinuePos);
+	this->WriteJmpPos( whileJmpPos );
+	// continue,break文を見つけたらジャンプアドレスを設定
+	//for( size_t i = 0 ; i < whileParam.breakAddr.size() ; i++ ){ m_writer->writeInt32( m_writer->count() , whileParam.breakAddr[i].codeAddr ); }
+	//for( size_t i = 0 ; i < whileParam.continueAddr.size() ; i++ ){ m_writer->writeInt32( whileContinuePos , whileParam.continueAddr[i].codeAddr ); }
+};
+
+Parser::parse_continue::parse_continue( Parser* parser , interpreter* listener ) : Parser::interpreter( parser ){
+};
+
+Parser::parse_break::parse_break( Parser* parser , interpreter* listener ) : Parser::interpreter( parser ){
+};
+
 
 /*
  * 式評価
@@ -431,7 +483,7 @@ Parser::expression_func::expression_func( expression* exp , Parser* parser ) : P
 
 // 解析処理
 // 各ステートメントの処理を行う
-void Parser::_parse( Context* param ){
+void Parser::_parse( interpreter* listener ){
 	const TOKEN& Next = getToken();
 	switch( Next.type ){
 	case TokenType::Function :
@@ -453,22 +505,22 @@ void Parser::_parse( Context* param ){
 	case TokenType::AsInteger :
 		break;
 	case TokenType::Switch :
-		_parse_switch( param );
+		//_parse_switch( param );
 		break;
 	case TokenType::For :
-		_parse_for( param );
+		//_parse_for( param );
 		break;
 	case TokenType::While :
-		_parse_while( param );
+		//_parse_while( param );
 		break;
 	case TokenType::If :
-		_parse_if( param );
+		//_parse_if( param );
 		break;
 	case TokenType::Continue :
-		_parse_continue( param );
+		//_parse_continue( param );
 		break;
 	case TokenType::Break :
-		_parse_break( param );
+		//_parse_break( param );
 		break;
 	case TokenType::YIELD :
 		break;
@@ -499,18 +551,18 @@ void Parser::_parse( Context* param ){
 // 文内でしか使用できない文であるため、必ずパラメータがやってくる（来ない場合は処理上おかしい）
 // そのため、まず最初にparamの有効チェックを行う。
 // パラメータがある場合、そのポインタに現在の書き込み位置をプッシュする
-void Parser::_parse_continue( Context* param ){
-	PARSER_ASSERT( param );
-	JumpInfo jumpInfo;
-	m_writer->write( EMnemonic::Jmp );
-	jumpInfo.codeAddr = m_writer->count();
-	param->continueAddr.push_back( jumpInfo );
-	m_writer->writeInt32( 0 );	
-	nextToken();
-	if( getToken().type == TokenType::Semicolon ){
-		nextToken();
-	}
-}
+//void Parser::_parse_continue( interpreter* listener ){
+//	PARSER_ASSERT( param );
+//	JumpInfo jumpInfo;
+//	m_writer->write( EMnemonic::Jmp );
+//	jumpInfo.codeAddr = m_writer->count();
+//	param->continueAddr.push_back( jumpInfo );
+//	m_writer->writeInt32( 0 );	
+//	nextToken();
+//	if( getToken().type == TokenType::Semicolon ){
+//		nextToken();
+//	}
+//}
 
 // breakは
 // ・for
@@ -519,18 +571,18 @@ void Parser::_parse_continue( Context* param ){
 // 文内でしか使用できない文であるため、必ずパラメータがやってくる（来ない場合は処理上おかしい）
 // そのため、まず最初にparamの有効チェックを行う。
 // パラメータがある場合、そのポインタに現在の書き込み位置をプッシュする
-void Parser::_parse_break( Context* param ){
-	PARSER_ASSERT( param );
-	JumpInfo jumpInfo;
-	m_writer->write( EMnemonic::Jmp );
-	jumpInfo.codeAddr = m_writer->count();
-	param->breakAddr.push_back( jumpInfo );
-	m_writer->writeInt32( 0 );
-	nextToken();
-	if( getToken().type == TokenType::Semicolon ){
-		nextToken();
-	}
-}
+//void Parser::_parse_break( Context* param ){
+//	PARSER_ASSERT( param );
+//	JumpInfo jumpInfo;
+//	m_writer->write( EMnemonic::Jmp );
+//	jumpInfo.codeAddr = m_writer->count();
+//	param->breakAddr.push_back( jumpInfo );
+//	m_writer->writeInt32( 0 );
+//	nextToken();
+//	if( getToken().type == TokenType::Semicolon ){
+//		nextToken();
+//	}
+//}
 
 // '('から対応する')'が見つかるまでスキップ
 void Parser::_skipParen(){

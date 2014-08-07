@@ -19,11 +19,11 @@ namespace Assembly {
 // **************************************************************************
 // switchï∂âêÕ
 // **************************************************************************
-void Parser::_parse_switch( Context* param ){
-	SWITCH_LOG( "**switchï∂\n" );
-	SWITCH_ASSERT( getToken().type == TokenType::Switch ); nextToken();
-	SWITCH_ASSERT( getToken().type == TokenType::Lparen ); nextToken();
-}
+//void Parser::_parse_switch( Context* param ){
+//	SWITCH_LOG( "**switchï∂\n" );
+//	SWITCH_ASSERT( getToken().type == TokenType::Switch ); nextToken();
+//	SWITCH_ASSERT( getToken().type == TokenType::Lparen ); nextToken();
+//}
 
 } // namespace Assembly
 } // namespace SenchaVM

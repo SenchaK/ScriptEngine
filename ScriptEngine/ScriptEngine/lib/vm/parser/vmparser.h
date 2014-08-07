@@ -179,25 +179,25 @@ public :
 class Parser {
 	friend class interpreter;
 private :
-	// ジャンプ命令情報
-	// continue文/break文を使用するときにどこでその命令を見つけたのか、
-	// という内部コードアドレスを記録する
-	struct JumpInfo {
-		int codeAddr;
-	};
+	//// ジャンプ命令情報
+	//// continue文/break文を使用するときにどこでその命令を見つけたのか、
+	//// という内部コードアドレスを記録する
+	//struct JumpInfo {
+	//	int codeAddr;
+	//};
 
-	// 解析時パラメータ
-	// _parse関数にポインタで渡す
-	// 基本的にこのインスタンスは自動領域に取る(_parseは再帰するので)
-	struct Context {
-		vector<JumpInfo> continueAddr ; // continue文発見時のバイト位置
-		vector<JumpInfo> breakAddr    ; // break文発見時のバイト位置
-		vector<SymbolInfo*> symbolArgs;
-		size_t args;
-		Context(){
-			args = 0;
-		}
-	};
+	//// 解析時パラメータ
+	//// _parse関数にポインタで渡す
+	//// 基本的にこのインスタンスは自動領域に取る(_parseは再帰するので)
+	//struct Context {
+	//	vector<JumpInfo> continueAddr ; // continue文発見時のバイト位置
+	//	vector<JumpInfo> breakAddr    ; // break文発見時のバイト位置
+	//	vector<SymbolInfo*> symbolArgs;
+	//	size_t args;
+	//	Context(){
+	//		args = 0;
+	//	}
+	//};
 
 	// パーサー解析基底
 	// パーサーのコントロール全般を取り扱う機能を継承先に提供する
@@ -239,6 +239,43 @@ private :
 			this->m_parser->m_writer->writeInt32( R );
 			printf( "ret R%d\n" , R );
 			this->WriteEndFunc();
+		}
+		/*
+		 * ジャンプ先アドレスにWriterの現在位置を設定
+		 * @param pos ... ジャンプ命令の移動先アドレス設定地点(s32型)
+		 */
+		void WriteJmpPos( int pos ){
+			this->m_parser->m_writer->writeInt32( this->m_parser->m_writer->count() , pos );
+		}
+		/*
+		 * jz命令を設置する
+		 * ジャンプ先は設置段階では不明なので0を指定しておき、あとでWriteJmpPosに指定する。
+		 * @return ... ジャンプ命令書き込み地点を返す
+		 */
+		int WriteJZ(){
+			this->m_parser->m_writer->write( EMnemonic::JumpZero );
+			int pos = this->m_parser->m_writer->count();
+			this->m_parser->m_writer->writeInt32( 0 );
+			return pos;
+		}
+		/*
+		 * jmp命令を設置する
+		 * ジャンプ先は設置段階では不明なので0を指定しておき、あとでWriteJmpPosに指定する。
+		 * @return ... ジャンプ命令書き込み地点を返す
+		 */
+		int WriteJ( int jmp ){
+			this->m_parser->m_writer->write( EMnemonic::Jmp );
+			int pos = this->m_parser->m_writer->count();
+			this->m_parser->m_writer->writeInt32( jmp );
+			return pos;
+		}
+
+		int WriteJ(){
+			this->WriteJ(0);
+		}
+
+		int GetWritePos(){
+			return this->m_parser->m_writer->count();
 		}
 
 		/*
@@ -315,21 +352,30 @@ private :
 			this->Next();
 		}
 		/*
+		 * 現在のトークンが指定のものでない場合エラーと見なして2059番エラーを投げる。
+		 */
+		void ErrorCheckToken( TOKEN_TYPE tokenType ){
+			if( !this->TokenIf( tokenType ) ){
+				throw VMError( new ERROR_INFO_C2059( this->getTokenString() ) );
+			}
+		}
+
+		/*
 		 * 解析処理
 		 */
-		void Parse( Context* param ){
-			this->m_parser->_parse( param );
+		void Parse( interpreter* listener ){
+			this->m_parser->_parse( listener );
 		}
 		/*
 		 * 指定のトークンが見つかるまで解析を進める
 		 * 見つからない場合はエラーを返す
 		 */
-		void ParseWhile( TOKEN_TYPE tokenType , Context* param ){
+		void ParseWhile( TOKEN_TYPE tokenType , interpreter* listener ){
 			if( this->TokenIf( tokenType ) ){
 				return;
 			}
 			while( this->m_parser->hasNext() ){
-				this->Parse( param );
+				this->Parse( listener );
 				if( this->TokenIf( tokenType ) ){
 					return;
 				}
@@ -446,6 +492,24 @@ private :
 	public :
 		parse_return( Parser* parser );
 	};
+	class parse_if : public interpreter {
+		parse_if( Parser* parser , interpreter* listener );
+	};
+	class parse_switch : public interpreter {
+		parse_switch( Parser* parser , interpreter* listener );
+	};
+	class parse_for : public interpreter {
+		parse_for( Parser* parser , interpreter* listener );
+	};
+	class parse_while : public interpreter {
+		parse_while( Parser* parser , interpreter* listener );
+	};
+	class parse_continue : public interpreter {
+		parse_continue( Parser* parser , interpreter* listener );
+	};
+	class parse_break : public interpreter {
+		parse_break( Parser* parser , interpreter* listener );
+	};
 
 	// 式評価基底
 	class expression : public interpreter {
@@ -549,6 +613,7 @@ private :
 				break;
 			}
 		}
+
 		void MovR( varinfo& src ){
 			switch( (varinfo::Type)src ){
 			case varinfo::LiteralValue : 
@@ -707,13 +772,13 @@ private :
 	void _consume( int consumeCount );
 private :
 	// ステートメントなど
-	void _parse( Context* param );
-	void _parse_if( Context* param );
-	void _parse_switch( Context* param );
-	void _parse_for( Context* param );
-	void _parse_while( Context* param );
-	void _parse_continue( Context* param );
-	void _parse_break( Context* param );
+	void _parse( interpreter* listener );
+	//void _parse_if( Context* param );
+	//void _parse_switch( Context* param );
+	//void _parse_for( Context* param );
+	//void _parse_while( Context* param );
+	//void _parse_continue( Context* param );
+	//void _parse_break( Context* param );
 private :
 	void _skipParen();
 };
