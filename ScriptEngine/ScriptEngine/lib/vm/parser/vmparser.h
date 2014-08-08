@@ -262,33 +262,31 @@ private :
 		void WriteJmpPos( int pos ){
 			this->m_parser->m_writer->writeInt32( this->m_parser->m_writer->count() , pos );
 		}
-		/*
-		 * jz命令を設置する
-		 * ジャンプ先は設置段階では不明なので0を指定しておき、あとでWriteJmpPosに指定する。
-		 * @return ... ジャンプ命令書き込み地点を返す
-		 */
-		int WriteJZ(){
-			this->m_parser->m_writer->write( EMnemonic::JumpZero );
-			int pos = this->m_parser->m_writer->count();
-			this->m_parser->m_writer->writeInt32( 0 );
-			return pos;
-		}
-		/*
-		 * jmp命令を設置する
-		 * ジャンプ先は設置段階では不明なので0を指定しておき、あとでWriteJmpPosに指定する。
-		 * @return ... ジャンプ命令書き込み地点を返す
-		 */
-		int WriteJ( int jmp ){
-			this->m_parser->m_writer->write( EMnemonic::Jmp );
+
+		int WriteJmpCommand( int cmd , int jmp ){
+			this->m_parser->m_writer->write( cmd );
 			int pos = this->m_parser->m_writer->count();
 			this->m_parser->m_writer->writeInt32( jmp );
 			return pos;
 		}
-
+		int WriteJZ( int pos ){
+			return this->WriteJmpCommand( EMnemonic::JumpZero , pos );
+		}
+		int WriteJZ(){
+			return this->WriteJZ(0);
+		}
+		int WriteJNZ( int pos ){
+			return this->WriteJmpCommand( EMnemonic::JumpNotZero , pos );
+		}
+		int WriteJNZ(){
+			return this->WriteJNZ(0);
+		}
+		int WriteJ( int pos ){
+			return this->WriteJmpCommand( EMnemonic::JumpNotZero , pos );
+		}
 		int WriteJ(){
 			return this->WriteJ(0);
 		}
-
 		int GetWritePos(){
 			return this->m_parser->m_writer->count();
 		}
@@ -611,18 +609,34 @@ private :
 
 		void CalcStack( int opetype ){
 			switch( opetype ){
-				case TokenType::Add : this->m_parser->m_writer->write( EMnemonic::Add ); break;
-				case TokenType::Sub : this->m_parser->m_writer->write( EMnemonic::Sub ); break;
-				case TokenType::Mul : this->m_parser->m_writer->write( EMnemonic::Mul ); break;
-				case TokenType::Div : this->m_parser->m_writer->write( EMnemonic::Div ); break;
-				case TokenType::Rem : this->m_parser->m_writer->write( EMnemonic::Rem ); break;
+				case TokenType::Add        : this->m_parser->m_writer->write( EMnemonic::Add );    break;
+				case TokenType::Sub        : this->m_parser->m_writer->write( EMnemonic::Sub );    break;
+				case TokenType::Mul        : this->m_parser->m_writer->write( EMnemonic::Mul );    break;
+				case TokenType::Div        : this->m_parser->m_writer->write( EMnemonic::Div );    break;
+				case TokenType::Rem        : this->m_parser->m_writer->write( EMnemonic::Rem );    break;
+				case TokenType::Equal      : this->m_parser->m_writer->write( EMnemonic::CmpEq );  break;
+				case TokenType::NotEqual   : this->m_parser->m_writer->write( EMnemonic::CmpNEq ); break;
+				case TokenType::GEq        : this->m_parser->m_writer->write( EMnemonic::CmpGeq ); break;
+				case TokenType::Greater    : this->m_parser->m_writer->write( EMnemonic::CmpG );   break;
+				case TokenType::LEq        : this->m_parser->m_writer->write( EMnemonic::CmpLeq ); break;
+				case TokenType::Lesser     : this->m_parser->m_writer->write( EMnemonic::CmpL );   break;
+				case TokenType::LogicalAnd : this->m_parser->m_writer->write( EMnemonic::LogAnd ); break;
+				case TokenType::LogicalOr  : this->m_parser->m_writer->write( EMnemonic::LogOr );  break;
 			}
 			switch( opetype ){
-				case TokenType::Add : printf( "add R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case TokenType::Sub : printf( "sub R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case TokenType::Mul : printf( "mul R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case TokenType::Div : printf( "div R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case TokenType::Rem : printf( "rem R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case TokenType::Add        : printf( "add R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case TokenType::Sub        : printf( "sub R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case TokenType::Mul        : printf( "mul R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case TokenType::Div        : printf( "div R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case TokenType::Rem        : printf( "rem R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case TokenType::Equal      : printf( "eq  R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case TokenType::NotEqual   : printf( "neq R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case TokenType::GEq        : printf( "geq R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case TokenType::Greater    : printf( "g   R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case TokenType::LEq        : printf( "leq R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case TokenType::Lesser     : printf( "l   R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case TokenType::LogicalAnd : printf( "and R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case TokenType::LogicalOr  : printf( "or  R%d , R%d\n" , R - 2 , R - 1 ); break;
 			}
 			this->WriteR( -2 );
 			this->WriteR( -1 );
@@ -753,22 +767,62 @@ private :
 		void ExprPushData( const string& literal_string ){ m_exp->ExprPushData( literal_string ); }
 	};
 	// 評価0 
+	// =
+	// +=
+	// -=
+	// *=
+	// /=
+	// %=
 	class expression0 : public expression_base {
 	public :
 		expression0( expression* exp , Parser* parser , var_chain& v );
 	};
+
+	// 評価1
+	// ||
+	// &&
 	class expression1 : public expression_base {
 	public :
 		expression1( expression* exp , Parser* parser );
 	};
+
+	// 評価2
+	// !=
+	// ==
+	// >=
+	// <=
+	// >
+	// <
 	class expression2 : public expression_base {
 	public :
 		expression2( expression* exp , Parser* parser );
 	};
+
+	// 評価3
+	// +
+	// -
 	class expression3 : public expression_base {
 	public :
 		expression3( expression* exp , Parser* parser );
 	};
+
+	// 評価4
+	// *
+	// /
+	// %
+	class expression4 : public expression_base {
+	public :
+		expression4( expression* exp , Parser* parser );
+	};
+
+	// 評価5
+	// symbol
+	class expression5 : public expression_base {
+	public :
+		expression5( expression* exp , Parser* parser );
+	};
+
+	// 変数評価
 	class expression_variable : public expression_base {
 	private :
 		expression* expr;
@@ -792,10 +846,14 @@ private :
 			return this->type->getSymbol( name );
 		}
 	};
+
+	// []評価
 	class expression_bracket : public expression_base {
 	public :
 		expression_bracket( expression* exp , Parser* parser , Type* type , var_chain& v );
 	};
+
+	// 関数評価
 	class expression_func : public expression_base {
 	public :
 		expression_func( expression* exp , Parser* parser );

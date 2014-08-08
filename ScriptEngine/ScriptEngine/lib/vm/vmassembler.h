@@ -65,10 +65,10 @@ class VMStack;
 class VMDriver;
 class VMMainRoutineDriver;
 class VMCoroutineDriver;
-typedef shared_ptr<VMStack>             CVMStack;
-typedef shared_ptr<VMDriver>            CVMDriver;
+typedef shared_ptr<VMStack> CVMStack;
+typedef shared_ptr<VMDriver> CVMDriver;
 typedef shared_ptr<VMMainRoutineDriver> CVMMainRoutineDriver;
-typedef shared_ptr<VMCoroutineDriver>   CVMCoroutineDriver;
+typedef shared_ptr<VMCoroutineDriver> CVMCoroutineDriver;
 
 class VMDriverInterface {
 private :

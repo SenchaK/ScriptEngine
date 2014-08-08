@@ -18,9 +18,9 @@ private :
 	string m_name;
 	size_t m_addr;
 	size_t m_arrayLength;
-	int    m_scopeLevel;
-	int    m_arrayIndexR;
-	bool   m_isArray;
+	int m_scopeLevel;
+	int m_arrayIndexR;
+	bool m_isArray;
 	ESymbolType m_symbolType;
 	bool m_isReference;
 	bool m_isStruct;
@@ -90,6 +90,7 @@ public :
 	Type* const getType(){ return m_type; }
 	SymbolInfo* const getSymbol( string name );
 	SymbolInfo* const addSymbol( string name );
+
 	// このシンボルのスコープは静的な領域に存在しているのかどうか
 	bool isGlobal(){ return m_scopeLevel == SCOPE_LEVEL_GLOBAL; }
 	int toAssembleCode();

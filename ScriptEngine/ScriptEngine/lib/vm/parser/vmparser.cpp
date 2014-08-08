@@ -219,10 +219,8 @@ Parser::parse_return::parse_return( Parser* parser ) : Parser::interpreter( pars
  */
 Parser::parse_if::parse_if( Parser* parser ) : Parser::interpreter( parser ){
 	this->ErrorCheckToken( TokenType::Lparen );
-	this->Next();
 	expression e( parser );
 	int IF_JumpPos = this->WriteJZ();
-
 	printf( "jz @IF\n" );
 	this->ErrorCheckNextToken( TokenType::Rparen );
 	this->Next();
@@ -250,15 +248,17 @@ Parser::parse_switch::parse_switch( Parser* parser ) : Parser::interpreter( pars
 Parser::parse_for::parse_for( Parser* parser ) : Parser::interpreter( parser ){
 	this->GoToChunk();
 	this->ErrorCheckToken( TokenType::Lparen );
+	printf( "--for first \n");
 	expression first_expr( parser );
 	this->ErrorCheckNextToken( TokenType::Semicolon );
 	printf( ":CONTINUE\n" );
+	printf( "--for loop end \n");
 	expression loop_end_expr( parser );
 	this->ErrorCheckNextToken( TokenType::Semicolon );
 	int forJmpPos = this->WriteJZ();
 	printf( "jz @FOR\n" );
 	CBinaryWriter old = this->CreateNewWriter();
-	printf( "--last \n");
+	printf( "--for last \n");
 	expression last_expr( parser );
 	printf( "--\n");
 
@@ -334,7 +334,7 @@ Parser::parse_break::parse_break( Parser* parser , Args* args ) : Parser::interp
  */
 Parser::expression::expression( Parser* parser ) : Parser::interpreter( parser ){
 	R = 0;
-	expression3( this , parser );
+	expression1( this , parser );
 }
 
 
@@ -361,17 +361,55 @@ Parser::expression0::expression0( expression* exp , Parser* parser , var_chain& 
 	}
 }
 
+// •]‰¿1
+// ||
+// &&
+Parser::expression1::expression1( expression* exp , Parser* parser ) : expression_base( exp , parser ) {
+	expression2( exp , parser );
+	if( this->NextTokenIf( TokenType::LogicalOr ) || this->NextTokenIf( TokenType::LogicalAnd ) ){
+		this->Next();
+		const TOKEN_TYPE& opetype = this->getTokenType();
+		int pos = this->WriteJNZ();
+		expression2( exp , parser );
+		this->WriteJmpPos( pos );
+		exp->CalcStack( opetype );
+	}
+}
+
+// •]‰¿2
+// !=
+// ==
+// >=
+// <=
+// >
+// <
+Parser::expression2::expression2( expression* exp , Parser* parser ) : expression_base( exp , parser ) {
+	expression3( exp , parser );
+	bool isExpression = false;
+	if( this->NextTokenIf( TokenType::Equal ) )    isExpression = true;
+	if( this->NextTokenIf( TokenType::NotEqual ) ) isExpression = true;
+	if( this->NextTokenIf( TokenType::GEq ) )      isExpression = true;
+	if( this->NextTokenIf( TokenType::Greater ) )  isExpression = true;
+	if( this->NextTokenIf( TokenType::LEq ) )      isExpression = true;
+	if( this->NextTokenIf( TokenType::Lesser ) )   isExpression = true;
+	if( isExpression ){
+		this->Next();
+		const TOKEN_TYPE& opetype = this->getTokenType();
+		expression3( exp , parser );
+		exp->CalcStack( opetype );
+	}
+}
+
 /*
  * +
  * -
  */
-Parser::expression1::expression1( expression* exp , Parser* parser ) : Parser::expression_base( exp , parser ) {
-	expression2 expr( exp , parser );
-
+Parser::expression3::expression3( expression* exp , Parser* parser ) : Parser::expression_base( exp , parser ) {
+	expression4 expr( exp , parser );
 	while( this->NextTokenIf( TokenType::Add ) || this->NextTokenIf( TokenType::Sub ) ){
 		this->Next();
 		const TOKEN_TYPE& opetype = this->getTokenType();
-		expression2( exp , parser );
+		expression4( exp , parser );
 		exp->CalcStack( opetype );
 	}
 }
@@ -381,13 +419,12 @@ Parser::expression1::expression1( expression* exp , Parser* parser ) : Parser::e
  * /
  * %
  */
-Parser::expression2::expression2( expression* exp , Parser* parser ) : Parser::expression_base( exp , parser ) {
-	expression3 expr( exp , parser );
-
+Parser::expression4::expression4( expression* exp , Parser* parser ) : Parser::expression_base( exp , parser ) {
+	expression5 expr( exp , parser );
 	while( this->NextTokenIf( TokenType::Mul ) || this->NextTokenIf( TokenType::Div ) || this->NextTokenIf( TokenType::Rem ) ){
 		this->Next();
 		const TOKEN_TYPE& opetype = this->getTokenType();
-		expression3( exp , parser );
+		expression5( exp , parser );
 		exp->CalcStack( opetype );
 	}
 }
@@ -395,7 +432,7 @@ Parser::expression2::expression2( expression* exp , Parser* parser ) : Parser::e
 /*
  * TOKEN
  */
-Parser::expression3::expression3( expression* exp , Parser* parser ) : Parser::expression_base( exp , parser ) {
+Parser::expression5::expression5( expression* exp , Parser* parser ) : Parser::expression_base( exp , parser ) {
 	if( this->NextTokenIf( TokenType::VariableSymbol ) ){
 		this->Next();
 		expression_variable( exp , parser );
@@ -427,7 +464,7 @@ Parser::expression3::expression3( expression* exp , Parser* parser ) : Parser::e
 	}
 	else if( this->NextTokenIf( TokenType::Lparen ) ){
 		this->Next();
-		expression1( exp , parser );
+		expression3( exp , parser );
 		if( this->NextTokenIf( TokenType::Rparen ) ){
 			this->Next();
 		}
@@ -507,7 +544,7 @@ void Parser::expression_variable::memberFunc( const string& symbolName ){
 	varinfo inst( this->getThis() );
 	this->expr->PushThis( inst );
 	while( !this->NextTokenIf( TokenType::Rparen ) ){
-		expression1( this->expr , m_parser );
+		expression3( this->expr , m_parser );
 		if( this->NextTokenIf( TokenType::Comma ) ){
 			this->Next();
 		}
@@ -518,7 +555,7 @@ void Parser::expression_variable::memberFunc( const string& symbolName ){
 }
 
 Parser::expression_bracket::expression_bracket( expression* exp , Parser* parser , Type* type , var_chain& var ) : Parser::expression_base( exp , parser ) {
-	expression1( exp , this->m_parser );
+	expression3( exp , this->m_parser );
 	this->ErrorCheckNextToken( TokenType::Rbracket );
 	varinfo& current = var.peek();
 	current.Index( exp->R-1 );	
@@ -542,7 +579,7 @@ Parser::expression_func::expression_func( expression* exp , Parser* parser ) : P
 
 	this->Next();
 	while( !this->NextTokenIf( TokenType::Rparen ) ){
-		expression1( exp , parser );
+		expression3( exp , parser );
 		if( this->NextTokenIf( TokenType::Comma ) ){
 			this->Next();
 		}
