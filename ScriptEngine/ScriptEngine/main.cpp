@@ -5,8 +5,7 @@
 using namespace SenchaVM;
 using namespace SenchaVM::Assembly;
 
-
-void main(){
+void main(){	
 	CLexcialReader lexer( new SenchaVM::LexcialReader( Sencha::Util::CStream( new Sencha::Util::FileStream( "sample/FizzBuzz.txt" ) ) ) );
 	CParser parser( new SenchaVM::Assembly::Parser( lexer->getResult() ) );
 }

@@ -336,6 +336,11 @@ void BinaryWriter::clear(){
 int BinaryWriter::count(){
 	return m_stream->count();
 }
+void BinaryWriter::append( BinaryWriter& w ){
+	while( w.m_stream->hasNext() ){
+		m_stream->write( w.m_stream->getByte() );
+	}
+}
 // *******************************************************************************
 
 

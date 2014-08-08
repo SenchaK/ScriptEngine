@@ -130,6 +130,7 @@ public  :
 	void writeDouble( double value );
 	void writeString( string value );
 	void clear();
+	void append( BinaryWriter& w );
 	int count();
 	CStream getStream();
 };

@@ -48,18 +48,6 @@
     <ClCompile Include="lib\vm\parser\vmparser.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="lib\vm\parser\vmparser_for.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="lib\vm\parser\vmparser_if.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="lib\vm\parser\vmparser_switch.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="lib\vm\parser\vmparser_while.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
     <ClCompile Include="lib\vm\parser\vmscope.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>

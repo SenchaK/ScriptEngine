@@ -177,27 +177,39 @@ public :
 // 構文解析器
 // ************************************************
 class Parser {
+	friend class Args;
 	friend class interpreter;
 private :
-	//// ジャンプ命令情報
-	//// continue文/break文を使用するときにどこでその命令を見つけたのか、
-	//// という内部コードアドレスを記録する
-	//struct JumpInfo {
-	//	int codeAddr;
-	//};
+	// ジャンプ命令情報
+	// continue文/break文を使用するときにどこでその命令を見つけたのか、
+	// という内部コードアドレスを記録する
+	struct JumpInfo {
+		int pos;
+	};
 
-	//// 解析時パラメータ
-	//// _parse関数にポインタで渡す
-	//// 基本的にこのインスタンスは自動領域に取る(_parseは再帰するので)
-	//struct Context {
-	//	vector<JumpInfo> continueAddr ; // continue文発見時のバイト位置
-	//	vector<JumpInfo> breakAddr    ; // break文発見時のバイト位置
-	//	vector<SymbolInfo*> symbolArgs;
-	//	size_t args;
-	//	Context(){
-	//		args = 0;
-	//	}
-	//};
+	// 解析時パラメータ
+	// Parse関数にポインタで渡す
+	// 基本的にこのインスタンスは自動領域に取る(_parseは再帰するので)
+	class Args {
+	private :
+		Parser* m_parser;
+	public :
+		vector<JumpInfo> Continue; // continue文発見時のバイト位置
+		vector<JumpInfo> Break; // break文発見時のバイト位置
+		Args( Parser* parser ){
+			this->m_parser = parser;
+		}
+		void WriteBreak( int breakPos ){
+			for( size_t i = 0 ; i < Break.size() ; i++ ){
+				this->m_parser->m_writer->writeInt32( breakPos , Break[i].pos );
+			}
+		}
+		void WriteContinue( int continuePos ){
+			for( size_t i = 0 ; i < Continue.size() ; i++ ){
+				this->m_parser->m_writer->writeInt32( continuePos , Continue[i].pos );
+			}
+		}
+	};
 
 	// パーサー解析基底
 	// パーサーのコントロール全般を取り扱う機能を継承先に提供する
@@ -216,6 +228,9 @@ private :
 		}
 		void Next(){
 			m_parser->nextToken();
+		}
+		void Back(){
+			this->m_parser->backToken();
 		}
 		TOKEN_TYPE getTokenType(){
 			return m_parser->getToken().type;
@@ -271,11 +286,34 @@ private :
 		}
 
 		int WriteJ(){
-			this->WriteJ(0);
+			return this->WriteJ(0);
 		}
 
 		int GetWritePos(){
 			return this->m_parser->m_writer->count();
+		}
+
+		/*
+		 * 新しいバイナリライタを生成して古いやつを返す
+		 */
+		CBinaryWriter CreateNewWriter(){
+			CBinaryWriter result = this->m_parser->m_writer;
+			this->m_parser->m_writer = CBinaryWriter( new BinaryWriter() );
+			return result;
+		}
+		/*
+		 * ライターを貰って一歩前の状態を返す
+		 */
+		CBinaryWriter SetWriter( CBinaryWriter newObj ){
+			CBinaryWriter result = this->m_parser->m_writer;
+			this->m_parser->m_writer = newObj;
+			return result;
+		}
+		/*
+		 * ライターオブジェクトを結合させる
+		 */
+		void AppendWriter( CBinaryWriter src ){
+			this->m_parser->m_writer->append( *src );
 		}
 
 		/*
@@ -363,19 +401,27 @@ private :
 		/*
 		 * 解析処理
 		 */
-		void Parse( interpreter* listener ){
-			this->m_parser->_parse( listener );
+		void Parse( Args* args ){
+			this->m_parser->parse( args );
+			this->Back();
 		}
+		/*
+		 * 解析処理
+		 */
+		void Parse(){
+			this->Parse( NULL );
+		}
+
 		/*
 		 * 指定のトークンが見つかるまで解析を進める
 		 * 見つからない場合はエラーを返す
 		 */
-		void ParseWhile( TOKEN_TYPE tokenType , interpreter* listener ){
+		void ParseWhile( TOKEN_TYPE tokenType , Args* args ){
 			if( this->TokenIf( tokenType ) ){
 				return;
 			}
 			while( this->m_parser->hasNext() ){
-				this->Parse( listener );
+				this->m_parser->parse( args );
 				if( this->TokenIf( tokenType ) ){
 					return;
 				}
@@ -485,7 +531,7 @@ private :
 	// チャンク解析
 	class parse_chunk : public interpreter {
 	public :
-		parse_chunk( Parser* parser );
+		parse_chunk( Parser* parser , Args* args );
 	};
 	// return文
 	class parse_return : public interpreter {
@@ -493,22 +539,28 @@ private :
 		parse_return( Parser* parser );
 	};
 	class parse_if : public interpreter {
-		parse_if( Parser* parser , interpreter* listener );
+	public :
+		parse_if( Parser* parser );
 	};
 	class parse_switch : public interpreter {
-		parse_switch( Parser* parser , interpreter* listener );
+	public :
+		parse_switch( Parser* parser );
 	};
 	class parse_for : public interpreter {
-		parse_for( Parser* parser , interpreter* listener );
+	public :
+		parse_for( Parser* parser );
 	};
 	class parse_while : public interpreter {
-		parse_while( Parser* parser , interpreter* listener );
+	public :
+		parse_while( Parser* parser );
 	};
 	class parse_continue : public interpreter {
-		parse_continue( Parser* parser , interpreter* listener );
+	public :
+		parse_continue( Parser* parser , Args* args );
 	};
 	class parse_break : public interpreter {
-		parse_break( Parser* parser , interpreter* listener );
+	public :
+		parse_break( Parser* parser , Args* args );
 	};
 
 	// 式評価基底
@@ -763,7 +815,6 @@ private :
 	void _execute();
 	void _initialize( vector<TOKEN> tokens );
 private :
-	// トークン処理など
 	const TOKEN& backToken();
 	const TOKEN& nextToken();
 	const TOKEN& getToken();
@@ -771,16 +822,7 @@ private :
 	bool hasNext();
 	void _consume( int consumeCount );
 private :
-	// ステートメントなど
-	void _parse( interpreter* listener );
-	//void _parse_if( Context* param );
-	//void _parse_switch( Context* param );
-	//void _parse_for( Context* param );
-	//void _parse_while( Context* param );
-	//void _parse_continue( Context* param );
-	//void _parse_break( Context* param );
-private :
-	void _skipParen();
+	void parse( Args* args );
 };
 typedef std::shared_ptr<Parser> CParser;
 
