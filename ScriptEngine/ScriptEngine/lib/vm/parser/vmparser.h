@@ -604,7 +604,7 @@ private :
 					printf( "+" );
 				}
 			}
-			printf( ",R%d\n" , R );
+			printf( " , R%d\n" , R );
 		}
 
 		void CalcStack( int opetype ){
@@ -683,14 +683,14 @@ private :
 		void MovR( varinfo& src ){
 			switch( (varinfo::Type)src ){
 			case varinfo::LiteralValue : 
-				printf( "mov R%d,%0.2f\n" , R , (double)src ); 
+				printf( "mov R%d , %0.2f\n" , R , (double)src ); 
 				break;
 			case varinfo::LiteralString : 
-				printf( "mov R%d,%s\n" , R , ((string)src).c_str() ); 
+				printf( "mov R%d , %s\n" , R , ((string)src).c_str() ); 
 				break;
 			case varinfo::Symbol : 
 				printf( "mov " );
-				printf( "R%d," , R );
+				printf( "R%d , " , R );
 				if( src.IsArray() ){
 					printf( "*(" );
 				}
@@ -712,7 +712,7 @@ private :
 
 		void MovR( var_chain& src ){
 			printf( "mov " );
-			printf( "R%d," , R );
+			printf( "R%d , " , R );
 			for( size_t i = 0 ; i < src.size() ; i++ ){
 				if( src[i].IsArray() ){
 					printf( "*(" );

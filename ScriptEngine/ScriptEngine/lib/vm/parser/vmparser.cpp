@@ -377,8 +377,9 @@ Parser::expression1::expression1( expression* exp , Parser* parser ) : expressio
 	if( this->NextTokenIf( TokenType::LogicalOr ) ){
 		this->Next();
 		const TOKEN_TYPE& opetype = this->getTokenType();
-		expression e( parser , exp );
-		e.CalcStack( opetype );
+		expression4( exp , parser );
+		expression3( exp , parser );
+		exp->CalcStack( opetype );
 		expression2( exp , parser );
 		expression1( exp , parser );
 	}
@@ -390,8 +391,9 @@ Parser::expression2::expression2( expression* exp , Parser* parser ) : expressio
 	if( this->NextTokenIf( TokenType::LogicalAnd ) ){
 		this->Next();
 		const TOKEN_TYPE& opetype = this->getTokenType();
-		expression e( parser , exp );
-		e.CalcStack( opetype );
+		expression4( exp , parser );
+		expression3( exp , parser );
+		exp->CalcStack( opetype );
 		expression2( exp , parser );
 		expression1( exp , parser );
 	}
@@ -464,12 +466,10 @@ Parser::expression6::expression6( expression* exp , Parser* parser ) : Parser::e
 	else if( this->NextTokenIf( TokenType::Digit ) ){
 		this->Next();
 		this->ExprPushData( this->getTokenDouble() );
-		expression3( exp , parser );
 	}
 	else if( this->NextTokenIf( TokenType::String ) ){
 		this->Next();
 		this->ExprPushData( this->getTokenString() );
-		expression3( exp , parser );
 	}
 	else if( this->NextTokenIf( TokenType::Letter ) ){
 		this->Next();
