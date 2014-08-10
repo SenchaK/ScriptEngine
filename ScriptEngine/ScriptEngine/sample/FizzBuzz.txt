@@ -27,7 +27,8 @@ struct VEC3{
 
 function main(){
 	$value = 0;
-	if( $value >= 100 && $value >= ( 150 + 5 ) * 3 ){
+	if( $value >= 100 && $value <= 300 ){
+		$x = 300;
 	}
 }
 

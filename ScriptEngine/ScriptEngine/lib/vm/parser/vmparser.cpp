@@ -334,9 +334,19 @@ Parser::parse_break::parse_break( Parser* parser , Args* args ) : Parser::interp
  */
 Parser::expression::expression( Parser* parser ) : Parser::interpreter( parser ){
 	R = 0;
+	expression4( this , parser );
+	expression3( this , parser );
+	expression2( this , parser );
 	expression1( this , parser );
 }
 
+Parser::expression::expression( Parser* parser , expression* e ) : Parser::interpreter( parser ){
+	R = e->R;
+	expression4( this , parser );
+	expression3( this , parser );
+	expression2( this , parser );
+	expression1( this , parser );
+}
 
 /*
  * =
@@ -356,35 +366,45 @@ Parser::expression0::expression0( expression* exp , Parser* parser , var_chain& 
 	if( isExpression ){
 		this->Next();
 		const TOKEN_TYPE& opetype = this->getTokenType();
-		expression1( exp , parser );
+		expression4( exp , parser );
 		exp->Assign( var );
 	}
 }
 
 // •]‰¿1
 // ||
-// &&
 Parser::expression1::expression1( expression* exp , Parser* parser ) : expression_base( exp , parser ) {
-	expression2( exp , parser );
-	if( this->NextTokenIf( TokenType::LogicalOr ) || this->NextTokenIf( TokenType::LogicalAnd ) ){
+	if( this->NextTokenIf( TokenType::LogicalOr ) ){
 		this->Next();
 		const TOKEN_TYPE& opetype = this->getTokenType();
-		int pos = this->WriteJNZ();
+		expression e( parser , exp );
+		e.CalcStack( opetype );
 		expression2( exp , parser );
-		this->WriteJmpPos( pos );
-		exp->CalcStack( opetype );
+		expression1( exp , parser );
 	}
 }
 
 // •]‰¿2
+// &&
+Parser::expression2::expression2( expression* exp , Parser* parser ) : expression_base( exp , parser ) {
+	if( this->NextTokenIf( TokenType::LogicalAnd ) ){
+		this->Next();
+		const TOKEN_TYPE& opetype = this->getTokenType();
+		expression e( parser , exp );
+		e.CalcStack( opetype );
+		expression2( exp , parser );
+		expression1( exp , parser );
+	}
+}
+
+// •]‰¿3
 // !=
 // ==
 // >=
 // <=
 // >
 // <
-Parser::expression2::expression2( expression* exp , Parser* parser ) : expression_base( exp , parser ) {
-	expression3( exp , parser );
+Parser::expression3::expression3( expression* exp , Parser* parser ) : expression_base( exp , parser ) {
 	bool isExpression = false;
 	if( this->NextTokenIf( TokenType::Equal ) )    isExpression = true;
 	if( this->NextTokenIf( TokenType::NotEqual ) ) isExpression = true;
@@ -395,7 +415,7 @@ Parser::expression2::expression2( expression* exp , Parser* parser ) : expressio
 	if( isExpression ){
 		this->Next();
 		const TOKEN_TYPE& opetype = this->getTokenType();
-		expression3( exp , parser );
+		expression4( exp , parser );
 		exp->CalcStack( opetype );
 	}
 }
@@ -404,12 +424,12 @@ Parser::expression2::expression2( expression* exp , Parser* parser ) : expressio
  * +
  * -
  */
-Parser::expression3::expression3( expression* exp , Parser* parser ) : Parser::expression_base( exp , parser ) {
-	expression4 expr( exp , parser );
+Parser::expression4::expression4( expression* exp , Parser* parser ) : Parser::expression_base( exp , parser ) {
+	expression5 expr( exp , parser );
 	while( this->NextTokenIf( TokenType::Add ) || this->NextTokenIf( TokenType::Sub ) ){
 		this->Next();
 		const TOKEN_TYPE& opetype = this->getTokenType();
-		expression4( exp , parser );
+		expression5( exp , parser );
 		exp->CalcStack( opetype );
 	}
 }
@@ -419,12 +439,12 @@ Parser::expression3::expression3( expression* exp , Parser* parser ) : Parser::e
  * /
  * %
  */
-Parser::expression4::expression4( expression* exp , Parser* parser ) : Parser::expression_base( exp , parser ) {
-	expression5 expr( exp , parser );
+Parser::expression5::expression5( expression* exp , Parser* parser ) : Parser::expression_base( exp , parser ) {
+	expression6 expr( exp , parser );
 	while( this->NextTokenIf( TokenType::Mul ) || this->NextTokenIf( TokenType::Div ) || this->NextTokenIf( TokenType::Rem ) ){
 		this->Next();
 		const TOKEN_TYPE& opetype = this->getTokenType();
-		expression5( exp , parser );
+		expression6( exp , parser );
 		exp->CalcStack( opetype );
 	}
 }
@@ -432,7 +452,7 @@ Parser::expression4::expression4( expression* exp , Parser* parser ) : Parser::e
 /*
  * TOKEN
  */
-Parser::expression5::expression5( expression* exp , Parser* parser ) : Parser::expression_base( exp , parser ) {
+Parser::expression6::expression6( expression* exp , Parser* parser ) : Parser::expression_base( exp , parser ) {
 	if( this->NextTokenIf( TokenType::VariableSymbol ) ){
 		this->Next();
 		expression_variable( exp , parser );
@@ -444,10 +464,12 @@ Parser::expression5::expression5( expression* exp , Parser* parser ) : Parser::e
 	else if( this->NextTokenIf( TokenType::Digit ) ){
 		this->Next();
 		this->ExprPushData( this->getTokenDouble() );
+		expression3( exp , parser );
 	}
 	else if( this->NextTokenIf( TokenType::String ) ){
 		this->Next();
 		this->ExprPushData( this->getTokenString() );
+		expression3( exp , parser );
 	}
 	else if( this->NextTokenIf( TokenType::Letter ) ){
 		this->Next();
@@ -464,7 +486,8 @@ Parser::expression5::expression5( expression* exp , Parser* parser ) : Parser::e
 	}
 	else if( this->NextTokenIf( TokenType::Lparen ) ){
 		this->Next();
-		expression3( exp , parser );
+		expression e( parser , exp );
+		exp->Clone( &e );
 		if( this->NextTokenIf( TokenType::Rparen ) ){
 			this->Next();
 		}

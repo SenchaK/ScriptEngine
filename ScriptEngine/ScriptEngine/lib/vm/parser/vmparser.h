@@ -754,6 +754,11 @@ private :
 			this->MovR( src );
 		}
 		expression( Parser* parser );
+		expression( Parser* parser , expression* e );
+
+		void Clone( expression* e ){
+			this->R = e->R;
+		}
 	};
 	// Ž®•]‰¿ˆ—Šî’ê
 	class expression_base : public interpreter {
@@ -780,46 +785,52 @@ private :
 
 	// •]‰¿1
 	// ||
-	// &&
 	class expression1 : public expression_base {
 	public :
 		expression1( expression* exp , Parser* parser );
 	};
 
 	// •]‰¿2
-	// !=
-	// ==
-	// >=
-	// <=
-	// >
-	// <
+	// &&
 	class expression2 : public expression_base {
 	public :
 		expression2( expression* exp , Parser* parser );
 	};
 
 	// •]‰¿3
-	// +
-	// -
+	// !=
+	// ==
+	// >=
+	// <=
+	// >
+	// <
 	class expression3 : public expression_base {
 	public :
 		expression3( expression* exp , Parser* parser );
+	};
+
+	// •]‰¿3
+	// +
+	// -
+	class expression4 : public expression_base {
+	public :
+		expression4( expression* exp , Parser* parser );
 	};
 
 	// •]‰¿4
 	// *
 	// /
 	// %
-	class expression4 : public expression_base {
+	class expression5 : public expression_base {
 	public :
-		expression4( expression* exp , Parser* parser );
+		expression5( expression* exp , Parser* parser );
 	};
 
 	// •]‰¿5
 	// symbol
-	class expression5 : public expression_base {
+	class expression6 : public expression_base {
 	public :
-		expression5( expression* exp , Parser* parser );
+		expression6( expression* exp , Parser* parser );
 	};
 
 	// •Ï”•]‰¿
