@@ -380,8 +380,8 @@ Parser::expression1::expression1( expression* exp , Parser* parser ) : expressio
 		expression4( exp , parser );
 		expression3( exp , parser );
 		exp->CalcStack( opetype );
-		expression2( exp , parser );
 		expression1( exp , parser );
+		expression2( exp , parser );
 	}
 }
 
