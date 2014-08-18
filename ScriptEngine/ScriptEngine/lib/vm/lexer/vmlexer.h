@@ -19,99 +19,119 @@ using namespace std;
 using namespace Sencha;
 using namespace Util;
 
-class TokenType {
-public :
-	enum {
-		NONCE           , // 
-		Letter          , // [A-Za-z_][A-Za-z_0-9]*
-		Dot             , // .
-		Assign          , // =
-		Add		        , // +
-		Sub		        , // -
-		Mul		        , // *
-		Div		        , // /
-		Rem  	        , // %
-		RefSymbol = Rem ,
-		AddAssign       , // +=
-		SubAssign       , // -=
-		MulAssign       , // *=
-		DivAssign       , // /=
-		RemAssign       , // %=
-		Equal           , // ==
-		NotEqual        , // !=
-		GEq             , // >=
-		Greater         , // >
-		LEq             , // <=
-		Lesser          , // <
-		LogicalOr       , // ||
-		LogicalAnd      , // &&
-		Inc             , // ++
-		Dec             , // --
-		Digit           , // [0-9][0-9]*.?[0-9]*f?
-		DoubleQt        , // "
-		String          , // "string_value"
-		Not             , // !
-		Comma           , // ,
-		Semicolon       , // ;
-		Colon           , // :
-		Lbracket        , // [
-		Rbracket        , // ]
-		Lparen          , // (
-		Rparen          , // )
-		BeginChunk      , // {
-		EndChunk        , // }
-		Function        , // "function"
-		VariableSymbol  , // "$`"
-		Switch          , // "switch"
-		For             , // "for"
-		While           , // "while"
-		If              , // "if"
-		Else            , // "else"
-		Continue        , // "continue"
-		Break           , // "break"
-		YIELD           , // "yield"
-		Return          , // "return"
-		Struct          , // "struct"
 
-		As              , // as
-		Array           , // array
-		AsString        , // string( $xxx )
-		AsInteger       , // int( $xxx )
 
-		Namespace       , // "namespace"
-		END_TOKEN       ,
-	};
-};
-typedef int TOKEN_TYPE;
 
 //	----------------------------------------------------------
 //	š‹åî•ñ
 //	----------------------------------------------------------
-struct TOKEN {
+class Token : public ITokenContainer {
+public :
+	class Type {
+	public :
+		enum {
+			NONCE           , // 
+			Letter          , // [A-Za-z_][A-Za-z_0-9]*
+			Dot             , // .
+			Assign          , // =
+			Add		        , // +
+			Sub		        , // -
+			Mul		        , // *
+			Div		        , // /
+			Rem  	        , // %
+			RefSymbol = Rem ,
+			AddAssign       , // +=
+			SubAssign       , // -=
+			MulAssign       , // *=
+			DivAssign       , // /=
+			RemAssign       , // %=
+			Equal           , // ==
+			NotEqual        , // !=
+			GEq             , // >=
+			Greater         , // >
+			LEq             , // <=
+			Lesser          , // <
+			LogicalOr       , // ||
+			LogicalAnd      , // &&
+			Inc             , // ++
+			Dec             , // --
+			Digit           , // [0-9][0-9]*.?[0-9]*f?
+			DoubleQt        , // "
+			String          , // "string_value"
+			Not             , // !
+			Comma           , // ,
+			Semicolon       , // ;
+			Colon           , // :
+			Lbracket        , // [
+			Rbracket        , // ]
+			Lparen          , // (
+			Rparen          , // )
+			BeginChunk      , // {
+			EndChunk        , // }
+			Function        , // "function"
+			VariableSymbol  , // "$`"
+			Switch          , // "switch"
+			For             , // "for"
+			While           , // "while"
+			If              , // "if"
+			Else            , // "else"
+			Continue        , // "continue"
+			Break           , // "break"
+			YIELD           , // "yield"
+			Return          , // "return"
+			Struct          , // "struct"
+
+			As              , // as
+			Array           , // array
+			AsString        , // string( $xxx )
+			AsInteger       , // int( $xxx )
+
+			Namespace       , // "namespace"
+			END_TOKEN       ,
+		};
+	};
 	std::string text;
-	TOKEN_TYPE type;
-	TOKEN( std::string txt , TOKEN_TYPE typ ){
-		text = txt;
-		type = typ;
+	int type;
+	Token( std::string txt , int typ ){
+		this->text = txt;
+		this->type = typ;
+	}
+	bool operator == ( int type ){
+		if( this->type == type ) return true;
+		return false;
+	}
+	bool operator != ( int type ){
+		if( this->type != type ) return true;
+		return false;
 	}
 	int toAssembleCode();
 };
 
 
 //	----------------------------------------------------------
-//	š‹åî•ñƒ‚ƒWƒ…[ƒ‹
+//	š‹åî•ñ
 //	----------------------------------------------------------
-class LexcialReader {
+class Lexer : public ITokenizer {
 private :
-	size_t m_index;
+	CStream m_stream;
 	std::string m_text;
-	std::vector<TOKEN> m_tokens;
+	size_t m_textIndex;
+	std::vector<Token> m_tokens;
+	size_t m_tokenIndex;
 public  :
-	std::vector<TOKEN> getResult();
-	LexcialReader( CStream stream );
-	~LexcialReader();
+	Lexer( CStream stream );
+	virtual ~Lexer();
+	virtual ITokenContainer* back();
+	virtual ITokenContainer* next();
+	virtual ITokenContainer* current();
+	virtual ITokenContainer* offset( int ofs );
+	virtual bool hasNext();
 private :
-	void _execute();
+	Token& getToken();
+	Token& getToken( int ofs );
+	void seek( int pos ){ m_tokenIndex = pos; }
+	Token& peekToken();
+	Token& _execute();
 	void _initialize( CStream stream );
 	void _advance();
 	void _backstep();
@@ -119,13 +139,13 @@ private :
 	bool _isEof();
 	void _isS();
 	bool _isComment();
-	void _isSyntax2Wd();
-	void _isSyntax1Wd();
+	bool _isSyntax2Wd();
+	bool _isSyntax1Wd();
 	bool _isLetter();
 	bool _isDigit();
 	bool _isString();
 };
-typedef std::shared_ptr<LexcialReader> CLexcialReader;
+typedef std::shared_ptr<Lexer> CLexer;
 
 }
 //	namespace SenchaVM

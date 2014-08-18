@@ -7,7 +7,7 @@ namespace Assembly{
 typedef Sencha::Util::byte vmbyte;
 
 
-class AssemblyInfo {
+class AsmInfo {
 private :
 	string m_name;
 	size_t m_stackFrame;
@@ -32,7 +32,7 @@ public :
 	void setName( const string& name ){
 		m_name = name;
 	}
-	string name(){
+	string& name(){
 		return m_name;
 	}
 	void setStackFrame( size_t stackFrame ){
@@ -47,14 +47,17 @@ public :
 	size_t addr(){
 		return m_addr;
 	}
+	bool equal( string& name ){
+		return this->m_name.compare( name ) == 0;
+	}
 
 	bool hasMore( int pc );
 	vmbyte getCommand( const int& pc );
-	unsigned __int8  moveU8    ( int& pc );
-	unsigned __int16 moveU16   ( int& pc );
-	unsigned __int32 moveU32   ( int& pc );
-	double           moveDouble( int& pc );
-	string           moveString( int& pc );
+	unsigned __int8  moveU8( int& pc );
+	unsigned __int16 moveU16( int& pc );
+	unsigned __int32 moveU32( int& pc );
+	double moveDouble( int& pc );
+	string moveString( int& pc );
 };
 
 
@@ -63,10 +66,37 @@ struct VMCallStack {
 	int prog;	
 };
 
-struct VMAssembleCollection {
-	vector<AssemblyInfo> assemblyInfo;
+class VMAssembleCollection {
+private :
+	vector<AsmInfo*> Asm;
+public :
+	~VMAssembleCollection(){
+		this->clear();
+	}
+	void entryAssembly( AsmInfo* code ){
+		Asm.push_back( code );
+	}
+	size_t count(){
+		return Asm.size();
+	}
+	AsmInfo* const indexAt( int index ){
+		assert( index >= 0 && index < (int)Asm.size() );
+		return Asm[index];
+	}
+	int find( string& funcName ){
+		for( size_t i = 0 ; i < this->count() ; i++ ){
+			if( this->indexAt(i)->equal( funcName ) ){
+				return i;
+			}
+		}
+		return -1;
+	}
+private :
 	void clear(){
-		assemblyInfo.clear();
+		for( size_t i = 0 ; i < Asm.size() ; i++ ){
+			delete Asm[i];
+		}
+		Asm.clear();
 	}
 };
 

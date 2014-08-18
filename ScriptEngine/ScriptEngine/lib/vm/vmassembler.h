@@ -137,7 +137,7 @@ protected :
 
 class VMMainRoutineDriver : public VMDriver {
 private :
-	vector<AssemblyInfo> m_assemblyInfo;
+	vector<AsmInfo> m_AsmInfo;
 	VMDriver* m_current;
 	CVMCoroutineDriver m_activeCoroutine;
 	size_t m_localAddr;
@@ -148,7 +148,7 @@ private :
 	CMemory m_static;
 	CVMCoroutineDriver m_coroutine;
 private :
-	AssemblyInfo* currentAssembly();
+	AsmInfo* currentAssembly();
 	valuepairS createValuePair();
 	void callSubroutine( int addres );
 	void startCoroutine( int addres );
@@ -183,7 +183,7 @@ private :
 protected :
 	virtual vmbyte getByte( int funcAddr , int pc ) override;
 	virtual bool isProgramEnd() override;
-	AssemblyInfo* findFunction( string name );
+	AsmInfo* findFunction( string name );
 	int getFunctionAddr( string name );	
 	void getFunction( string func );
 	void vmsetup();

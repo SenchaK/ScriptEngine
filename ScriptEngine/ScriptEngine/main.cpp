@@ -4,28 +4,13 @@
 #include "memory_pool.h"
 using namespace SenchaVM;
 using namespace SenchaVM::Assembly;
+using namespace Sencha::Util;
 
-int A(){
-	printf( "A" );
-	return 0;
-}
-int B(){
-	printf( "B" );
-	return 0;
-}
-int C(){
-	printf( "C" );
-	return 0;
-}
-
-int D(){
-	printf( "D" );
-	return 0;
-}
 
 void main(){
-//	CLexcialReader lexer( new SenchaVM::LexcialReader( Sencha::Util::CStream( new Sencha::Util::FileStream( "sample/FizzBuzz.txt" ) ) ) );
-//	CParser parser( new SenchaVM::Assembly::Parser( lexer->getResult() ) );
-	int a = A() && B() || C() || D();
-	printf( "\n" );
+	Lexer* lexer = new Lexer( CStream( new FileStream( "sample/FizzBuzz.txt" ) ) );
+	Parser* parser = new Parser( lexer );
+
+	delete lexer;
+	delete parser;
 }

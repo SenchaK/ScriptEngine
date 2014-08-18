@@ -175,7 +175,7 @@ void VMDriver::VMSleep( int sleeptime ){
 
 
 
-static memoryinfoS CreateMemoryInfo( AssemblyInfo* assembly , int& pc ){
+static memoryinfoS CreateMemoryInfo( AsmInfo* assembly , int& pc ){
 	memoryinfoS result;
 	result.type = assembly->moveU8 ( pc );
 	result.index = 0;
@@ -212,7 +212,7 @@ static memoryinfoS CreateMemoryInfo( AssemblyInfo* assembly , int& pc ){
 // ***********************************************************************
 // class VMMainRoutineDriver
 // ***********************************************************************
-static valuepairS CreateValuePair( AssemblyInfo* assembly , int& pc ){
+static valuepairS CreateValuePair( AsmInfo* assembly , int& pc ){
 	valuepairS result;
 	result.src  = CreateMemoryInfo( assembly , pc ); // SRC
 	result.dest = CreateMemoryInfo( assembly , pc ); // DEST
@@ -220,12 +220,12 @@ static valuepairS CreateValuePair( AssemblyInfo* assembly , int& pc ){
 	VM_ASSERT( result.src.type != EMnemonic::LIT_STRING );
 	return result;
 }
-static valuepairS CreateValueSingle( AssemblyInfo* assembly , int& pc ){
+static valuepairS CreateValueSingle( AsmInfo* assembly , int& pc ){
 	valuepairS result;
 	result.dest = CreateMemoryInfo( assembly , pc );
 	return result;
 }
-static Memory CreateMemory( SenchaVM::Assembly::AssemblyInfo* assembly , int& pc ){
+static Memory CreateMemory( SenchaVM::Assembly::AsmInfo* assembly , int& pc ){
 	vmbyte type = assembly->moveU8( pc );
 	Memory result;
 	switch( type ){
@@ -246,8 +246,8 @@ valuepairS VMMainRoutineDriver::createValuePair(){
 	return CreateValuePair( currentAssembly() , m_prog );
 }
 
-AssemblyInfo* VMMainRoutineDriver::currentAssembly(){
-	return &m_assemblyInfo[m_funcAddr];
+AsmInfo* VMMainRoutineDriver::currentAssembly(){
+	return &m_AsmInfo[m_funcAddr];
 }
 
 VMMainRoutineDriver::VMMainRoutineDriver() : VMDriver(){
@@ -284,7 +284,7 @@ void VMMainRoutineDriver::initialize( const VMAssembleCollection& context , size
 	for( unsigned int i = 0 ; i < coroutinesize ; i++ ){
 		m_coroutine.get()->initialize( this , 2048 );
 	}
-	m_assemblyInfo = context.assemblyInfo;
+//	m_AsmInfo = context.Asm;
 	memset( &m_callStack , 0 , sizeof( m_callStack ) );
 }
 
@@ -382,8 +382,8 @@ Memory& VMMainRoutineDriver::getMemory( const memoryinfoS& info ){
 }
 /* override */
 vmbyte VMMainRoutineDriver::getByte( int funcAddr , int pc ){
-	VM_ASSERT( funcAddr >= 0 && funcAddr < (int)m_assemblyInfo.size() );
-	return m_assemblyInfo[funcAddr].getCommand( pc );
+	VM_ASSERT( funcAddr >= 0 && funcAddr < (int)m_AsmInfo.size() );
+	return m_AsmInfo[funcAddr].getCommand( pc );
 }
 /* override */
 bool VMMainRoutineDriver::isProgramEnd(){
@@ -405,7 +405,7 @@ bool VMMainRoutineDriver::isProgramEnd(){
 	if( m_funcAddr < 0 ){
 		return true;
 	}
-	if( m_assemblyInfo.size() <= 0 ){
+	if( m_AsmInfo.size() <= 0 ){
 		return true;
 	}
 	if( currentAssembly()->hasMore( m_prog ) ){
@@ -497,16 +497,16 @@ void VMMainRoutineDriver::execute(){
 	}
 }
 
-AssemblyInfo* VMMainRoutineDriver::findFunction( string name ){
-	for( size_t i = 0 ; i < m_assemblyInfo.size() ; i++ ){
-		if( m_assemblyInfo[i].name().compare( name ) == 0 ) return &m_assemblyInfo[i];
+AsmInfo* VMMainRoutineDriver::findFunction( string name ){
+	for( size_t i = 0 ; i < m_AsmInfo.size() ; i++ ){
+		if( m_AsmInfo[i].name().compare( name ) == 0 ) return &m_AsmInfo[i];
 	}
 	return NULL;
 }
 
 int VMMainRoutineDriver::getFunctionAddr( string name ){
-	for( size_t i = 0 ; i < m_assemblyInfo.size() ; i++ ){
-		if( m_assemblyInfo[i].name().compare( name ) == 0 ) return i;
+	for( size_t i = 0 ; i < m_AsmInfo.size() ; i++ ){
+		if( m_AsmInfo[i].name().compare( name ) == 0 ) return i;
 	}
 	return -1;
 }

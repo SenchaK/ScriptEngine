@@ -17,52 +17,6 @@ typedef shared_ptr<Symtable> CSymtable;
 typedef shared_ptr<Scope>    CScope;
 
 
-// オブジェクトメタデータ
-class Metadata {
-};
-
-// 計算機スタック
-// 変数、関数などのシンボルはm_symbol  ,
-// 演算子なら                m_operator,
-// リテラルの場合            m_literal ,
-// にそれぞれの対応値を入れる
-class OperationStack {
-private :
-	int         m_type;
-	SymbolInfo* m_symbol;
-	TOKEN_TYPE  m_operator;
-	string      m_literal;
-public :
-	OperationStack( SymbolInfo* symbol ){
-		m_type     = 0;
-		m_symbol   = symbol;
-		m_operator = TokenType::NONCE;
-		m_literal  = "";
-	}
-	OperationStack( TOKEN_TYPE operator_type ){
-		m_type     = 1;
-		m_symbol   = NULL;
-		m_operator = operator_type;
-		m_literal  = "";
-	}
-	OperationStack( string literal_value ){
-		m_type     = 2;
-		m_symbol   = NULL;
-		m_operator = TokenType::NONCE;
-		m_literal  = literal_value;
-	}
-	TOKEN_TYPE getOperator(){
-		return m_operator;
-	}
-	SymbolInfo* const Symbol(){
-		return m_symbol;
-	}
-	const string& Literal(){
-		return m_literal;
-	}
-};
-
-
 class varinfo {
 public :
 	enum Type{
@@ -220,10 +174,10 @@ private :
 		interpreter( Parser* parser ){
 			m_parser = parser;
 		}
-		bool NextTokenIf( TOKEN_TYPE tokenType ){
+		bool NextTokenIf( int tokenType ){
 			return m_parser->getToken(1).type == tokenType;
 		}
-		bool TokenIf( TOKEN_TYPE tokenType ){
+		bool TokenIf( int tokenType ){
 			return m_parser->getToken(0).type == tokenType;
 		}
 		void Next(){
@@ -232,7 +186,7 @@ private :
 		void Back(){
 			this->m_parser->backToken();
 		}
-		TOKEN_TYPE getTokenType(){
+		int getTokenType(){
 			return m_parser->getToken().type;
 		}
 		int getTokenInt(){
@@ -282,13 +236,16 @@ private :
 			return this->WriteJNZ(0);
 		}
 		int WriteJ( int pos ){
-			return this->WriteJmpCommand( EMnemonic::JumpNotZero , pos );
+			return this->WriteJmpCommand( EMnemonic::Jmp , pos );
 		}
 		int WriteJ(){
 			return this->WriteJ(0);
 		}
 		int GetWritePos(){
 			return this->m_parser->m_writer->count();
+		}
+		int GetFuncAddres( string& funcName ){
+			return this->m_parser->getFuncAddres( funcName );
 		}
 
 		/*
@@ -326,8 +283,16 @@ private :
 		 * アセンブリの登録
 		 * (ポインタ渡しにしたほうがコピーが発生しないので早い？かもしれないのでそのうち直すかも)
 		 */
-		void EntryAssembly( const AssemblyInfo& funcAssembly ){ 
-			this->m_parser->m_assemblyCollection.assemblyInfo.push_back( funcAssembly );
+		void EntryAssembly( AsmInfo* funcAssembly ){ 
+			this->m_parser->m_asm->entryAssembly( funcAssembly );
+		}
+		int GetFunctionAddres( string& funcName ){
+			for( size_t i = 0 ; i < this->m_parser->m_asm->count() ; i++ ){
+				if( this->m_parser->m_asm->indexAt(i)->equal( funcName ) == 0 ){
+					return i;
+				}
+			}
+			return -1;
 		}
 		/*
 		 * 現在のスコープから割り当てられる変数の領域を判定する。 
@@ -380,7 +345,7 @@ private :
 		 * 次のトークンが指定のものでない場合エラーと見なして2059番エラーを投げる。
 		 * 指定のものである場合は次に進める
 		 */
-		void ErrorCheckNextToken( TOKEN_TYPE tokenType ){
+		void ErrorCheckNextToken( int tokenType ){
 			if( !this->NextTokenIf( tokenType ) ){
 				this->Next();
 				throw VMError( new ERROR_INFO_C2059( this->getTokenString() ) );
@@ -390,7 +355,7 @@ private :
 		/*
 		 * 現在のトークンが指定のものでない場合エラーと見なして2059番エラーを投げる。
 		 */
-		void ErrorCheckToken( TOKEN_TYPE tokenType ){
+		void ErrorCheckToken( int tokenType ){
 			if( !this->TokenIf( tokenType ) ){
 				throw VMError( new ERROR_INFO_C2059( this->getTokenString() ) );
 			}
@@ -414,7 +379,7 @@ private :
 		 * 指定のトークンが見つかるまで解析を進める
 		 * 見つからない場合はエラーを返す
 		 */
-		void ParseWhile( TOKEN_TYPE tokenType , Args* args ){
+		void ParseWhile( int tokenType , Args* args ){
 			if( this->TokenIf( tokenType ) ){
 				return;
 			}
@@ -429,7 +394,7 @@ private :
 		/*
 		 * 指定のトークンが見つかるまで解析を進める
 		 */
-		void ParseWhile( TOKEN_TYPE tokenType ){
+		void ParseWhile( int tokenType ){
 			this->ParseWhile( tokenType , NULL );
 		}
 
@@ -585,10 +550,28 @@ private :
 			this->Push();
 		}
 
-		void Assign( var_chain& src ){
-		//	this->WriteData( src );
+		void Assign( var_chain& src , int opetype ){
+			switch( opetype ){
+				case Token::Type::AddAssign : this->m_parser->m_writer->write( EMnemonic::Add ); break;
+				case Token::Type::SubAssign : this->m_parser->m_writer->write( EMnemonic::Sub ); break;
+				case Token::Type::MulAssign : this->m_parser->m_writer->write( EMnemonic::Mul ); break;
+				case Token::Type::DivAssign : this->m_parser->m_writer->write( EMnemonic::Div ); break;
+				case Token::Type::RemAssign : this->m_parser->m_writer->write( EMnemonic::Rem ); break;
+				case Token::Type::Assign    : this->m_parser->m_writer->write( EMnemonic::Mov ); break;
+			}
+			this->WriteData( src );
 			this->WritePopR();
-			printf( "mov " );
+
+
+			
+			switch( opetype ){
+				case Token::Type::AddAssign : printf( "add " ); break;
+				case Token::Type::SubAssign : printf( "sub " ); break;
+				case Token::Type::MulAssign : printf( "mul " ); break;
+				case Token::Type::DivAssign : printf( "div " ); break;
+				case Token::Type::RemAssign : printf( "rem " ); break;
+				case Token::Type::Assign    : printf( "mov " ); break;
+			}
 			for( size_t i = 0 ; i < src.size() ; i++ ){
 				if( src[i].IsArray() ){
 					printf( "*(" );
@@ -609,34 +592,34 @@ private :
 
 		void CalcStack( int opetype ){
 			switch( opetype ){
-				case TokenType::Add        : this->m_parser->m_writer->write( EMnemonic::Add );    break;
-				case TokenType::Sub        : this->m_parser->m_writer->write( EMnemonic::Sub );    break;
-				case TokenType::Mul        : this->m_parser->m_writer->write( EMnemonic::Mul );    break;
-				case TokenType::Div        : this->m_parser->m_writer->write( EMnemonic::Div );    break;
-				case TokenType::Rem        : this->m_parser->m_writer->write( EMnemonic::Rem );    break;
-				case TokenType::Equal      : this->m_parser->m_writer->write( EMnemonic::CmpEq );  break;
-				case TokenType::NotEqual   : this->m_parser->m_writer->write( EMnemonic::CmpNEq ); break;
-				case TokenType::GEq        : this->m_parser->m_writer->write( EMnemonic::CmpGeq ); break;
-				case TokenType::Greater    : this->m_parser->m_writer->write( EMnemonic::CmpG );   break;
-				case TokenType::LEq        : this->m_parser->m_writer->write( EMnemonic::CmpLeq ); break;
-				case TokenType::Lesser     : this->m_parser->m_writer->write( EMnemonic::CmpL );   break;
-				case TokenType::LogicalAnd : this->m_parser->m_writer->write( EMnemonic::LogAnd ); break;
-				case TokenType::LogicalOr  : this->m_parser->m_writer->write( EMnemonic::LogOr );  break;
+				case Token::Type::Add        : this->m_parser->m_writer->write( EMnemonic::Add );    break;
+				case Token::Type::Sub        : this->m_parser->m_writer->write( EMnemonic::Sub );    break;
+				case Token::Type::Mul        : this->m_parser->m_writer->write( EMnemonic::Mul );    break;
+				case Token::Type::Div        : this->m_parser->m_writer->write( EMnemonic::Div );    break;
+				case Token::Type::Rem        : this->m_parser->m_writer->write( EMnemonic::Rem );    break;
+				case Token::Type::Equal      : this->m_parser->m_writer->write( EMnemonic::CmpEq );  break;
+				case Token::Type::NotEqual   : this->m_parser->m_writer->write( EMnemonic::CmpNEq ); break;
+				case Token::Type::GEq        : this->m_parser->m_writer->write( EMnemonic::CmpGeq ); break;
+				case Token::Type::Greater    : this->m_parser->m_writer->write( EMnemonic::CmpG );   break;
+				case Token::Type::LEq        : this->m_parser->m_writer->write( EMnemonic::CmpLeq ); break;
+				case Token::Type::Lesser     : this->m_parser->m_writer->write( EMnemonic::CmpL );   break;
+				case Token::Type::LogicalAnd : this->m_parser->m_writer->write( EMnemonic::LogAnd ); break;
+				case Token::Type::LogicalOr  : this->m_parser->m_writer->write( EMnemonic::LogOr );  break;
 			}
 			switch( opetype ){
-				case TokenType::Add        : printf( "add R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case TokenType::Sub        : printf( "sub R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case TokenType::Mul        : printf( "mul R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case TokenType::Div        : printf( "div R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case TokenType::Rem        : printf( "rem R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case TokenType::Equal      : printf( "eq  R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case TokenType::NotEqual   : printf( "neq R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case TokenType::GEq        : printf( "geq R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case TokenType::Greater    : printf( "g   R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case TokenType::LEq        : printf( "leq R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case TokenType::Lesser     : printf( "l   R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case TokenType::LogicalAnd : printf( "and R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case TokenType::LogicalOr  : printf( "or  R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case Token::Type::Add        : printf( "add R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case Token::Type::Sub        : printf( "sub R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case Token::Type::Mul        : printf( "mul R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case Token::Type::Div        : printf( "div R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case Token::Type::Rem        : printf( "rem R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case Token::Type::Equal      : printf( "eq  R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case Token::Type::NotEqual   : printf( "neq R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case Token::Type::GEq        : printf( "geq R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case Token::Type::Greater    : printf( "g   R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case Token::Type::LEq        : printf( "leq R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case Token::Type::Lesser     : printf( "l   R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case Token::Type::LogicalAnd : printf( "and R%d , R%d\n" , R - 2 , R - 1 ); break;
+				case Token::Type::LogicalOr  : printf( "or  R%d , R%d\n" , R - 2 , R - 1 ); break;
 			}
 			this->WriteR( -2 );
 			this->WriteR( -1 );
@@ -648,7 +631,18 @@ private :
 			R--;
 		}
 
-		void CallFunction( const string& funcName ){
+		void CallFunction( string& funcName ){
+			this->m_parser->m_writer->write( EMnemonic::ST );
+			this->m_parser->m_writer->write( R );
+			this->m_parser->m_writer->write( EMnemonic::Call );
+			this->m_parser->m_writer->writeInt32( this->GetFuncAddres( funcName ) );
+			this->m_parser->m_writer->write( EMnemonic::Mov );
+			this->m_parser->m_writer->write( EMnemonic::REG );
+			this->m_parser->m_writer->write( R );
+			this->m_parser->m_writer->write( EMnemonic::REG );
+			this->m_parser->m_writer->write( 0 );
+			this->m_parser->m_writer->write( EMnemonic::LD );
+
 			printf( "st  %d\n" , R );
 			printf( "cal %s\n" , funcName.c_str() );
 			printf( "mov R%d , R%d\n" , R , 0 );
@@ -667,16 +661,31 @@ private :
 				this->m_parser->m_writer->writeString( (string)src );
 				break;
 			case varinfo::Symbol :	
-				this->m_parser->m_writer->write( ((SymbolInfo*)src)->toAssembleCode() );
-				this->m_parser->m_writer->write( ((SymbolInfo*)src)->isArray() );
-				this->m_parser->m_writer->write( ((SymbolInfo*)src)->isReferenceMember() );
-				this->m_parser->m_writer->write( ((SymbolInfo*)src)->IsReference() );
-				if( ((SymbolInfo*)src)->isReferenceMember() ){
-					this->m_parser->m_writer->writeInt32( ((SymbolInfo*)src)->TopSymbolAddr() );
+				{
+					this->m_parser->m_writer->write( ((SymbolInfo*)src)->toAssembleCode() );
+					this->m_parser->m_writer->writeInt32( 1 );
+					this->m_parser->m_writer->write( src.IsArray() );
+					this->m_parser->m_writer->write( src.IsRef() );
+					this->m_parser->m_writer->writeInt32( ((SymbolInfo*)src)->Addr() );
+					if( src.IsArray() ){
+						this->m_parser->m_writer->writeInt32( ((SymbolInfo*)src)->SizeOf() );
+						this->m_parser->m_writer->writeInt32( src.Index() );
+					}
 				}
-				this->m_parser->m_writer->writeInt32( ((SymbolInfo*)src)->Addr() );
-				this->m_parser->m_writer->writeString( ((SymbolInfo*)src)->Name() );
 				break;
+			}
+		}
+		void WriteData( var_chain& src ){
+			this->m_parser->m_writer->write( ((SymbolInfo*)src[0])->toAssembleCode() );
+			this->m_parser->m_writer->writeInt32( src.size() );
+			for( size_t i = 0 ; i < src.size() ; i++ ){
+				this->m_parser->m_writer->write( src[i].IsArray() );
+				this->m_parser->m_writer->write( src[i].IsRef() );
+				this->m_parser->m_writer->writeInt32( ((SymbolInfo*)src[i])->Addr() );
+				if( src[i].IsArray() ){
+					this->m_parser->m_writer->writeInt32( ((SymbolInfo*)src[i])->SizeOf() );
+					this->m_parser->m_writer->writeInt32( src[i].Index() );
+				}
 			}
 		}
 
@@ -732,7 +741,7 @@ private :
 
 			this->m_parser->m_writer->write( EMnemonic::Mov );
 			this->WritePushR();
-			//this->WriteData( src );
+			this->WriteData( src );
 		}
 		void WritePushR(){
 			this->WriteR();
@@ -752,6 +761,11 @@ private :
 		}
 		void WriteMovR( varinfo& src ){
 			this->MovR( src );
+		}
+		void WriteNot(){
+			this->m_parser->m_writer->write( EMnemonic::Not );
+			this->WritePopR();
+			printf( "not R%d\n" , this->R );
 		}
 		expression( Parser* parser );
 		expression( Parser* parser , expression* e );
@@ -846,7 +860,7 @@ private :
 		void exp();
 		void bracket( const string& symbolName );
 		void dot( const string& symbolName );
-		void memberFunc( const string& symbolName );
+		void memberFunc( string& symbolName );
 		bool isExistSymbolInType( const string& symbolName ){
 			assert( this->type );
 			return this->type->getSymbol( symbolName ) ? true : false;
@@ -870,28 +884,26 @@ private :
 		expression_func( expression* exp , Parser* parser );
 	};
 private :
-	vector<TOKEN> m_tokens;
-	VMAssembleCollection m_assemblyCollection;
+	VMAssembleCollection* m_asm;
 	CBinaryWriter m_writer;
 	CScope m_scope;
 	Scope* m_currentScope;
-	size_t m_pos;
+	ITokenizer* m_token;
 public :
-	const VMAssembleCollection& getResult(){ return m_assemblyCollection; }
-	Parser( vector<TOKEN> tokens );
+	Parser( ITokenizer* tokenizer );
 	~Parser();
 private :
-	void _execute();
-	void _initialize( vector<TOKEN> tokens );
+	void execute();
+	void initialize( ITokenizer* tokenizer );
 private :
-	const TOKEN& backToken();
-	const TOKEN& nextToken();
-	const TOKEN& getToken();
-	const TOKEN& getToken(int ofs);
+	const Token& backToken();
+	const Token& nextToken();
+	const Token& getToken();
+	const Token& getToken(int ofs);
 	bool hasNext();
-	void _consume( int consumeCount );
 private :
 	void parse( Args* args );
+	int getFuncAddres( string& funcName );
 };
 typedef std::shared_ptr<Parser> CParser;
 

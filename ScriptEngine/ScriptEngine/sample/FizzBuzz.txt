@@ -27,7 +27,8 @@ struct VEC3{
 
 function main(){
 	$value = 0;
-	if( ( $value >= 0 || $value <= 300 ) && ( $value >= 450 || $value + $value < 150 * 2 ) ){
+	if( !$value ){
+		Log( "Hello World!!" );
 	}
 }
 

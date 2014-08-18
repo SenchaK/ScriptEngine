@@ -45,6 +45,7 @@ public :
 		CmpNEq , 
 		LogOr  ,
 		LogAnd ,
+		Not    ,
 		Inc    ,
 		Dec    ,
 
@@ -79,6 +80,9 @@ public :
 
 		AsString   ,
 		AsInteger  ,
+
+		ST , 
+		LD ,
 	};
 public :
 static string toString( int mnemonic );

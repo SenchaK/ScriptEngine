@@ -4,6 +4,7 @@
 namespace SenchaVM{
 namespace Assembly{
 string EMnemonic::toString( int mnemonic ){
+#define TO_STRING( token ) #token
 #define MATCH( symbol ) case symbol : return TO_STRING( symbol );
 	switch( mnemonic ){
 	MATCH(PMov)

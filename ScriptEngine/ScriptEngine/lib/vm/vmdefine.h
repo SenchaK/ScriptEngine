@@ -10,7 +10,7 @@
 #include<memory>
 
 
-#define TO_STRING( token ) #token
+
 
 #define VM_DEBUG
 #ifdef VM_DEBUG
@@ -26,6 +26,48 @@
 
 
 namespace SenchaVM{
+
+// トークンコンテナ
+// トークナイザーに管理されるトークン要素はこれを継承する必要がある
+class ITokenContainer {
+};
+
+
+// トークンインターフェース
+// 構文解析を行うときはこのインターフェースを参照する
+// 内部でどのように実装されるかは隠蔽するように作る
+class ITokenizer {
+public :
+	// 一つ前にポジションを戻す
+	// @return 一つ前のトークン
+	virtual ITokenContainer* back() = 0;
+
+	// トークンを一つ進める
+	// @return 次のトークン
+	virtual ITokenContainer* next() = 0;
+
+	// 現在のトークンを返す
+	// @return 現在のトークン
+	virtual ITokenContainer* current() = 0;
+
+	// 現在位置からのオフセット値を加算した位置のトークンを返す
+	// @return 指定位置のトークン
+	virtual ITokenContainer* offset( int ofs ) = 0;
+
+	// 次のトークンが存在するのか
+	// @return
+	// ・これ以上すすめられない場合false
+	// ・進められる場合はtrue
+	virtual bool hasNext() = 0;
+};
+
+
+// アセンブル情報提供インターフェース
+// 内部コードを取得する機能を提供する
+class IAssembleReader {
+};
+
+
 namespace Assembly{
 
 // シンボル種類
@@ -36,7 +78,6 @@ enum ESymbolType {
 	VariableGlobal = 0x08 ,
 	Struct         = 0x10 ,
 };
-
 
 } // namespace Assembly
 } // namespace SenchaVM

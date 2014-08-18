@@ -1,15 +1,10 @@
 #include "vmlexer.h"
-#include "../assembly/vm_mnemonic_define.h"
 #include <assert.h>
-
-#define LEXER_ASSERT assert
-
-
 
 namespace SenchaVM {
 using namespace std;
-using namespace Assembly;
 
+static Token EndToken( "" , Token::Type::END_TOKEN );
 const string LETTER = 
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	"abcdefghijklmnopqrstuvwxyz"
@@ -24,55 +19,55 @@ const string DIGIT =
 struct syntax2WordS {
 	char c1;
 	char c2;
-	TOKEN_TYPE type;
+	int type;
 };
 syntax2WordS SYNTAX2[] = {
-	{ '+' , '=' , TokenType::AddAssign  } , 
-	{ '-' , '=' , TokenType::SubAssign  } , 
-	{ '*' , '=' , TokenType::MulAssign  } , 
-	{ '/' , '=' , TokenType::DivAssign  } , 
-	{ '%' , '=' , TokenType::RemAssign  } , 
-	{ '=' , '=' , TokenType::Equal      } , 
-	{ '!' , '=' , TokenType::NotEqual   } , 
-	{ '>' , '=' , TokenType::GEq        } , 
-	{ '<' , '=' , TokenType::LEq        } , 
-	{ '+' , '+' , TokenType::Inc        } , 
-	{ '-' , '-' , TokenType::Dec        } , 
-	{ '|' , '|' , TokenType::LogicalOr  } , 
-	{ '&' , '&' , TokenType::LogicalAnd } ,
+	{ '+' , '=' , Token::Type::AddAssign  } , 
+	{ '-' , '=' , Token::Type::SubAssign  } , 
+	{ '*' , '=' , Token::Type::MulAssign  } , 
+	{ '/' , '=' , Token::Type::DivAssign  } , 
+	{ '%' , '=' , Token::Type::RemAssign  } , 
+	{ '=' , '=' , Token::Type::Equal      } , 
+	{ '!' , '=' , Token::Type::NotEqual   } , 
+	{ '>' , '=' , Token::Type::GEq        } , 
+	{ '<' , '=' , Token::Type::LEq        } , 
+	{ '+' , '+' , Token::Type::Inc        } , 
+	{ '-' , '-' , Token::Type::Dec        } , 
+	{ '|' , '|' , Token::Type::LogicalOr  } , 
+	{ '&' , '&' , Token::Type::LogicalAnd } ,
 };
 //	------------------------------------------------------
 //	1文字シンタックス
 //	------------------------------------------------------
 struct syntax1WordS {
 	char c;
-	TOKEN_TYPE type;
+	int type;
 };
 syntax1WordS SYNTAX1[] = {
-	{ '!' , TokenType::Not			} , // !
-	{ ',' , TokenType::Comma		} , // ,
-	{ ';' , TokenType::Semicolon	} , // ;
-	{ ':' , TokenType::Colon    	} , // :
-	{ '[' , TokenType::Lbracket  	} , // [
-	{ ']' , TokenType::Rbracket  	} , // ]
-	{ '(' , TokenType::Lparen    	} , // (
-	{ ')' , TokenType::Rparen    	} , // )
-	{ '{' , TokenType::BeginChunk	} , // {
-	{ '}' , TokenType::EndChunk	    } , // }
-	{ '>' , TokenType::Greater  	} , // >
-	{ '<' , TokenType::Lesser  	    } , // <
-	{ '.' , TokenType::Dot     	    } , // .
-	{ '=' , TokenType::Assign    	} , // =
-	{ '+' , TokenType::Add    		} , // +
-	{ '-' , TokenType::Sub			} , // -
-	{ '*' , TokenType::Mul    		} , // *
-	{ '/' , TokenType::Div    		} , // /
-	{ '%' , TokenType::Rem    		} , // %
-	{ '$' , TokenType::VariableSymbol	} , // $
+	{ '!' , Token::Type::Not			    } , // !
+	{ ',' , Token::Type::Comma			    } , // ,
+	{ ';' , Token::Type::Semicolon		    } , // ;
+	{ ':' , Token::Type::Colon    		    } , // :
+	{ '[' , Token::Type::Lbracket  		    } , // [
+	{ ']' , Token::Type::Rbracket  		    } , // ]
+	{ '(' , Token::Type::Lparen    		    } , // (
+	{ ')' , Token::Type::Rparen    		    } , // )
+	{ '{' , Token::Type::BeginChunk		    } , // {
+	{ '}' , Token::Type::EndChunk		    } , // }
+	{ '>' , Token::Type::Greater  		    } , // >
+	{ '<' , Token::Type::Lesser  	    	} , // <
+	{ '.' , Token::Type::Dot     	    	} , // .
+	{ '=' , Token::Type::Assign    		    } , // =
+	{ '+' , Token::Type::Add    		    } , // +
+	{ '-' , Token::Type::Sub			    } , // -
+	{ '*' , Token::Type::Mul    		    } , // *
+	{ '/' , Token::Type::Div    		    } , // /
+	{ '%' , Token::Type::Rem    		    } , // %
+	{ '$' , Token::Type::VariableSymbol	    } , // $
 };
 
-static TOKEN isSyntax2( char c1 , char c2 ){
-	TOKEN result( "" , TokenType::NONCE );
+static Token isSyntax2( char c1 , char c2 ){
+	Token result( "" , Token::Type::NONCE );
 	for( int i = 0 ; i < sizeof(SYNTAX2)/sizeof(*SYNTAX2) ; i++ ){
 		if( SYNTAX2[i].c1 == c1 && SYNTAX2[i].c2 == c2 ){
 			result.type = SYNTAX2[i].type;
@@ -83,8 +78,8 @@ static TOKEN isSyntax2( char c1 , char c2 ){
 	}
 	return result;
 }
-static TOKEN isSyntax1( char c ){
-	TOKEN result( "" , TokenType::NONCE );
+static Token isSyntax1( char c ){
+	Token result( "" , Token::Type::NONCE );
 	for( int i = 0 ; i < sizeof(SYNTAX1)/sizeof(*SYNTAX1) ; i++ ){
 		if( SYNTAX1[i].c == c ){
 			result.type = SYNTAX1[i].type;
@@ -108,61 +103,105 @@ static bool isDigit( char c ){
 }
 //	------------------------------------------------------
 
-int TOKEN::toAssembleCode(){
-	switch( type ){
-		case TokenType::Add    : return EMnemonic::Add;
-		case TokenType::Sub    : return EMnemonic::Sub;
-		case TokenType::Mul    : return EMnemonic::Mul;
-		case TokenType::Div    : return EMnemonic::Div;
-		case TokenType::Rem    : return EMnemonic::Rem;
-		case TokenType::Assign : return EMnemonic::Mov;
-	}
-	return 0;
-}
 
 
-LexcialReader::LexcialReader( CStream stream ){
-	VM_ASSERT( stream.get() ); 
+Lexer::Lexer( CStream stream ){
+	assert( stream.get() ); 
 	this->_initialize( stream );
-	this->_execute();
 }
-LexcialReader::~LexcialReader(){
-	VM_PRINT( "LexcialReader::Finish\n" );
-}
-std::vector<TOKEN> LexcialReader::getResult(){
-	return m_tokens;
-}
-void LexcialReader::_initialize( CStream stream ){
-	VM_ASSERT( stream.get() );
-	m_index = 0;
-	while( stream->hasNext() ){
-		m_text += (char)stream->getByte();
-	}
-}
-void LexcialReader::_execute(){
-	LEXER_ASSERT( m_text.length() > 0 );
-	LEXER_ASSERT( m_index == 0 );
 
-	while( !_isEof() ){
+Lexer::~Lexer(){
+}
+
+Token& Lexer::getToken() {
+	return getToken(0);
+}
+
+Token& Lexer::getToken( int ofs ){
+	size_t pos = m_tokenIndex + ofs;
+	while( pos >= m_tokens.size() ){
+		Token& result = _execute();
+		if( result == Token::Type::END_TOKEN ){
+			break;
+		}
+	}
+	if( pos < m_tokens.size() ){
+		return m_tokens[pos];
+	}
+	return EndToken;
+}
+
+// virtual
+ITokenContainer* Lexer::next(){
+	this->m_tokenIndex++;
+	return &this->getToken();
+}
+
+// virtual
+ITokenContainer* Lexer::back(){
+	this->m_tokenIndex--;
+	return &this->getToken();
+}
+
+// virtual
+ITokenContainer* Lexer::current(){
+	return &this->getToken();
+}
+
+// virtual
+ITokenContainer* Lexer::offset( int ofs ){
+	return &this->getToken( ofs );
+}
+
+// virtual
+bool Lexer::hasNext(){
+	if( !this->m_stream->hasNext() ){
+		if( this->m_tokenIndex >= m_tokens.size() ){
+			return false;
+		}
+	}
+	return true;
+}
+
+Token& Lexer::peekToken(){
+	assert( m_tokens.size() > 0 );
+	return m_tokens[m_tokens.size()-1];
+}
+
+void Lexer::_initialize( CStream stream ){
+	assert( stream.get() );
+	m_stream = stream;
+	m_textIndex = 0;
+	m_tokenIndex = 0;
+}
+
+Token& Lexer::_execute(){	
+	while( true ){
 		_isS();
 		if( _isComment() ){
 			continue;
 		}
-		_isSyntax2Wd();
-		if( _isLetter() ){
-			continue;
-		}
-		if( _isDigit() ){
-			continue;
-		}
-		if( _isString() ){
-			continue;
-		}
-		_advance();
+		break;
 	}
+	if( _isSyntax2Wd() ){
+		return this->peekToken();
+	}
+	if( _isSyntax1Wd() ){
+		return this->peekToken();
+	}
+	if( _isLetter() ){
+		return this->peekToken();
+	}
+	if( _isDigit() ){
+		return this->peekToken();
+	}
+	if( _isString() ){
+		return this->peekToken();
+	}
+	return EndToken;
 }
 
-bool LexcialReader::_isComment(){
+bool Lexer::_isComment(){
 	char c1 = _getc(); _advance();
 	char c2 = _getc(); _backstep();
 	if( c1 == '/' && c2 == '*' ){
@@ -197,41 +236,44 @@ bool LexcialReader::_isComment(){
 }
 
 
-void LexcialReader::_isS(){
+void Lexer::_isS(){
 	char c = _getc();
 	while( c == '\t' || c == ' ' || c == '\n' || c == '\r' ){
 		_advance();
 		c = _getc();
 	}
 }
-void LexcialReader::_isSyntax2Wd(){
+bool Lexer::_isSyntax2Wd(){
 	char c1 = _getc(); _advance();
 	char c2 = _getc(); _backstep();
-	TOKEN token = isSyntax2( c1 , c2 );
-	if( token.type != TokenType::NONCE ){
+	Token token = isSyntax2( c1 , c2 );
+	if( token != Token::Type::NONCE ){
 		_advance();
 		m_tokens.push_back( token );
-		return;
+		return true;
 	}
-	_isSyntax1Wd();
+	return false;
 }
-void LexcialReader::_isSyntax1Wd(){
+bool Lexer::_isSyntax1Wd(){
 	char c = _getc();
-	TOKEN token = isSyntax1( c );
-	if( token.type != TokenType::NONCE ){
+	Token token = isSyntax1( c );
+	if( token != Token::Type::NONCE ){
+		_advance();
 		m_tokens.push_back( token );
+		return true;
 	}
+	return false;
 }
 
 // 識別子解析
 // 一文字目はかならず[A-Za-z_]でなければいけない
-bool LexcialReader::_isLetter(){
+bool Lexer::_isLetter(){
 	char c = _getc();
 	if( !isLetter( c ) ){
 		return false;
 	}
 	string text = "";
-	TOKEN_TYPE tokenType = TokenType::Letter;
+	int type = Token::Type::Letter;
 
 	while( isLetter( c ) || isDigit( c ) ){	
 		text += c;
@@ -239,34 +281,34 @@ bool LexcialReader::_isLetter(){
 		c = _getc();
 	}
 
-	if( text.compare( "function" ) == 0 )	{ tokenType = TokenType::Function	; }
-	if( text.compare( "switch" ) == 0 )		{ tokenType = TokenType::Switch	    ; }
-	if( text.compare( "for" ) == 0 )		{ tokenType = TokenType::For		; }
-	if( text.compare( "while" ) == 0 )		{ tokenType = TokenType::While		; }
-	if( text.compare( "if" ) == 0 )			{ tokenType = TokenType::If		    ; }
-	if( text.compare( "else" ) == 0 )       { tokenType = TokenType::Else       ; }
-	if( text.compare( "continue" ) == 0 )	{ tokenType = TokenType::Continue	; }
-	if( text.compare( "break" ) == 0 )		{ tokenType = TokenType::Break		; }
-	if( text.compare( "yield" ) == 0 )		{ tokenType = TokenType::YIELD		; }
-	if( text.compare( "return" ) == 0 )		{ tokenType = TokenType::Return	    ; }
-	if( text.compare( "struct" ) == 0 )		{ tokenType = TokenType::Struct  	; }
-	if( text.compare( "namespace" ) == 0 )	{ tokenType = TokenType::Namespace	; }
-	if( text.compare( "string" ) == 0 )		{ tokenType = TokenType::AsString   ; }
-	if( text.compare( "int" ) == 0 )	    { tokenType = TokenType::AsInteger  ; }
-	if( text.compare( "as" ) == 0 )	        { tokenType = TokenType::As         ; }
-	if( text.compare( "array" ) == 0 )	    { tokenType = TokenType::Array      ; }
+	if( text.compare( "function" ) == 0 )	{ type = Token::Type::Function	 ; }
+	if( text.compare( "switch" ) == 0 )		{ type = Token::Type::Switch	 ; }
+	if( text.compare( "for" ) == 0 )		{ type = Token::Type::For		 ; }
+	if( text.compare( "while" ) == 0 )		{ type = Token::Type::While		 ; }
+	if( text.compare( "if" ) == 0 )			{ type = Token::Type::If		 ; }
+	if( text.compare( "else" ) == 0 )       { type = Token::Type::Else       ; }
+	if( text.compare( "continue" ) == 0 )	{ type = Token::Type::Continue	 ; }
+	if( text.compare( "break" ) == 0 )		{ type = Token::Type::Break		 ; }
+	if( text.compare( "yield" ) == 0 )		{ type = Token::Type::YIELD		 ; }
+	if( text.compare( "return" ) == 0 )		{ type = Token::Type::Return	 ; }
+	if( text.compare( "struct" ) == 0 )		{ type = Token::Type::Struct  	 ; }
+	if( text.compare( "namespace" ) == 0 )	{ type = Token::Type::Namespace	 ; }
+	if( text.compare( "string" ) == 0 )		{ type = Token::Type::AsString   ; }
+	if( text.compare( "int" ) == 0 )	    { type = Token::Type::AsInteger  ; }
+	if( text.compare( "as" ) == 0 )	        { type = Token::Type::As         ; }
+	if( text.compare( "array" ) == 0 )	    { type = Token::Type::Array      ; }
 
-	m_tokens.push_back( TOKEN( text , tokenType ) );
+	m_tokens.push_back( Token( text , type ) );
 	return true;
 }
 
-bool LexcialReader::_isDigit(){
+bool Lexer::_isDigit(){
 	char c = _getc();
 	if( !isDigit( c ) ){
 		return false;
 	}
 	string text = "";
-	TOKEN_TYPE tokenType = TokenType::Digit;
+	int type = Token::Type::Digit;
 	while( isDigit( c ) ){
 		text += c;
 		_advance();
@@ -282,10 +324,10 @@ bool LexcialReader::_isDigit(){
 		_advance();
 		c = _getc();
 	}
-	m_tokens.push_back( TOKEN( text , tokenType ) );
+	m_tokens.push_back( Token( text , type ) );
 	return true;
 }
-bool LexcialReader::_isString(){
+bool Lexer::_isString(){
 	char c = _getc();
 	if( c != '"' ) return false;
 	_advance();
@@ -297,23 +339,37 @@ bool LexcialReader::_isString(){
 		c = _getc();
 	}
 	_advance();
-	m_tokens.push_back( TOKEN( text , TokenType::String ) );
+	m_tokens.push_back( Token( text , Token::Type::String ) );
 	return true;
 }
-bool LexcialReader::_isEof(){
+
+bool Lexer::_isEof(){
 	char c = _getc();
 	if( c == EOF ) return true;
 	return false;
 }
-char LexcialReader::_getc(){
-	if( m_index >= m_text.length() ) return EOF;
-	return m_text[m_index];
+
+char Lexer::_getc(){
+	size_t index = m_textIndex;
+	while( index >= m_text.length() ){
+		if( m_stream->hasNext() ){
+			m_text += m_stream->getByte();
+			continue;
+		}
+		break;
+	}
+	if( index < m_text.length() ){
+		return m_text[index];
+	}
+	return EOF;
 }
-void LexcialReader::_advance(){
-	m_index++;
+
+void Lexer::_advance(){
+	m_textIndex++;
 }
-void LexcialReader::_backstep(){
-	m_index--;
+
+void Lexer::_backstep(){
+	m_textIndex--;
 }
 
 
