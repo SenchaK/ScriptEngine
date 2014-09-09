@@ -249,6 +249,7 @@ bool Lexer::_isSyntax2Wd(){
 	Token token = isSyntax2( c1 , c2 );
 	if( token != Token::Type::NONCE ){
 		_advance();
+		_advance();
 		m_tokens.push_back( token );
 		return true;
 	}

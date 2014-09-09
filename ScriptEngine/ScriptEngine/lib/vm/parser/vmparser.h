@@ -1,4 +1,5 @@
 #pragma once
+#include "../../util/logger.h"
 #include "vmscope.h"
 #include "..\lexer\vmlexer.h"
 #include "..\symbol\vmsymbol.h"
@@ -6,7 +7,7 @@
 #include "error\vmerror.h"
 #include <stack>
 #include <queue>
-
+#include <stdarg.h>
 namespace SenchaVM {
 namespace Assembly {
 
@@ -130,7 +131,7 @@ public :
 // ************************************************
 // \•¶‰ðÍŠí
 // ************************************************
-class Parser {
+class Parser : public IAssembleReader {
 	friend class Args;
 	friend class interpreter;
 private :
@@ -186,6 +187,14 @@ private :
 		void Back(){
 			this->m_parser->backToken();
 		}
+		void Log( const char* formatString , ... ){
+			va_list args;
+			va_start( args , formatString );
+			if( this->m_parser->m_log ){
+				this->m_parser->m_log->print( formatString , args );
+			}
+			va_end( args );
+		}
 		int getTokenType(){
 			return m_parser->getToken().type;
 		}
@@ -200,13 +209,11 @@ private :
 		}
 		void WriteEndFunc(){
 			this->m_parser->m_writer->write( EMnemonic::EndFunc );
-			printf( "end\n" );
 		}
 		void WriteReturn( int R ){
 			this->m_parser->m_writer->write( EMnemonic::RET );
 			this->m_parser->m_writer->write( EMnemonic::REG );
-			this->m_parser->m_writer->writeInt32( R );
-			printf( "ret R%d\n" , R );
+			this->m_parser->m_writer->write( R );
 			this->WriteEndFunc();
 		}
 		/*
@@ -503,7 +510,7 @@ private :
 	};
 	class parse_if : public interpreter {
 	public :
-		parse_if( Parser* parser );
+		parse_if( Parser* parser , Args* args );
 	};
 	class parse_switch : public interpreter {
 	public :
@@ -561,33 +568,6 @@ private :
 			}
 			this->WriteData( src );
 			this->WritePopR();
-
-
-			
-			switch( opetype ){
-				case Token::Type::AddAssign : printf( "add " ); break;
-				case Token::Type::SubAssign : printf( "sub " ); break;
-				case Token::Type::MulAssign : printf( "mul " ); break;
-				case Token::Type::DivAssign : printf( "div " ); break;
-				case Token::Type::RemAssign : printf( "rem " ); break;
-				case Token::Type::Assign    : printf( "mov " ); break;
-			}
-			for( size_t i = 0 ; i < src.size() ; i++ ){
-				if( src[i].IsArray() ){
-					printf( "*(" );
-				}
-				if( src[i].IsRef() ){
-					printf( "&" );
-				}
-				printf( "%s[%d]" , ((SymbolInfo*)src[i])->Name().c_str() , ((SymbolInfo*)src[i])->Addr() );
-				if( src[i].IsArray() ){
-					printf( "+(sizeof(%s)*R%d))" ,  ((SymbolInfo*)src[i])->DataTypeName().c_str() , src[i].Index() );
-				}
-				if( i + 1 < src.size() ){
-					printf( "+" );
-				}
-			}
-			printf( " , R%d\n" , R );
 		}
 
 		void CalcStack( int opetype ){
@@ -606,29 +586,14 @@ private :
 				case Token::Type::LogicalAnd : this->m_parser->m_writer->write( EMnemonic::LogAnd ); break;
 				case Token::Type::LogicalOr  : this->m_parser->m_writer->write( EMnemonic::LogOr );  break;
 			}
-			switch( opetype ){
-				case Token::Type::Add        : printf( "add R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case Token::Type::Sub        : printf( "sub R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case Token::Type::Mul        : printf( "mul R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case Token::Type::Div        : printf( "div R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case Token::Type::Rem        : printf( "rem R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case Token::Type::Equal      : printf( "eq  R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case Token::Type::NotEqual   : printf( "neq R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case Token::Type::GEq        : printf( "geq R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case Token::Type::Greater    : printf( "g   R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case Token::Type::LEq        : printf( "leq R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case Token::Type::Lesser     : printf( "l   R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case Token::Type::LogicalAnd : printf( "and R%d , R%d\n" , R - 2 , R - 1 ); break;
-				case Token::Type::LogicalOr  : printf( "or  R%d , R%d\n" , R - 2 , R - 1 ); break;
-			}
 			this->WriteR( -2 );
 			this->WriteR( -1 );
 			R -= 1;
 		}
 
 		void Push(){
-			printf( "push R%d\n" , R-1 );
-			R--;
+			this->m_parser->m_writer->write( EMnemonic::Push );
+			this->WritePopR();
 		}
 
 		void CallFunction( string& funcName ){
@@ -642,11 +607,7 @@ private :
 			this->m_parser->m_writer->write( EMnemonic::REG );
 			this->m_parser->m_writer->write( 0 );
 			this->m_parser->m_writer->write( EMnemonic::LD );
-
-			printf( "st  %d\n" , R );
-			printf( "cal %s\n" , funcName.c_str() );
-			printf( "mov R%d , R%d\n" , R , 0 );
-			printf( "ld  %d\n" , R );
+			this->m_parser->m_writer->write( R );
 			R++;
 		}
 
@@ -690,55 +651,12 @@ private :
 		}
 
 		void MovR( varinfo& src ){
-			switch( (varinfo::Type)src ){
-			case varinfo::LiteralValue : 
-				printf( "mov R%d , %0.2f\n" , R , (double)src ); 
-				break;
-			case varinfo::LiteralString : 
-				printf( "mov R%d , %s\n" , R , ((string)src).c_str() ); 
-				break;
-			case varinfo::Symbol : 
-				printf( "mov " );
-				printf( "R%d , " , R );
-				if( src.IsArray() ){
-					printf( "*(" );
-				}
-				if( src.IsRef() ){
-					printf( "&" );
-				}
-				printf( "%s[%d]" , ((SymbolInfo*)src)->Name().c_str() , ((SymbolInfo*)src)->Addr() );
-				if( src.IsArray() ){
-					printf( "+(sizeof(%s)*R%d))" ,  ((SymbolInfo*)src)->DataTypeName().c_str() , src.Index() );
-				}
-				printf( "\n");
-				break;
-			}
-
 			this->m_parser->m_writer->write( EMnemonic::Mov );
 			this->WritePushR();
 			this->WriteData( src );
 		}
 
 		void MovR( var_chain& src ){
-			printf( "mov " );
-			printf( "R%d , " , R );
-			for( size_t i = 0 ; i < src.size() ; i++ ){
-				if( src[i].IsArray() ){
-					printf( "*(" );
-				}
-				if( src[i].IsRef() ){
-					printf( "&" );
-				}
-				printf( "%s[%d]" , ((SymbolInfo*)src[i])->Name().c_str() , ((SymbolInfo*)src[i])->Addr() );
-				if( src[i].IsArray() ){
-					printf( "+(sizeof(%s)*R%d))" ,  ((SymbolInfo*)src[i])->DataTypeName().c_str() , src[i].Index() );
-				}
-				if( i + 1 < src.size() ){
-					printf( "+" );
-				}
-			}
-			printf( "\n");
-
 			this->m_parser->m_writer->write( EMnemonic::Mov );
 			this->WritePushR();
 			this->WriteData( src );
@@ -765,7 +683,6 @@ private :
 		void WriteNot(){
 			this->m_parser->m_writer->write( EMnemonic::Not );
 			this->WritePopR();
-			printf( "not R%d\n" , this->R );
 		}
 		expression( Parser* parser );
 		expression( Parser* parser , expression* e );
@@ -889,12 +806,22 @@ private :
 	CScope m_scope;
 	Scope* m_currentScope;
 	ITokenizer* m_token;
+	Log* m_log;
 public :
+	Parser( ITokenizer* tokenizer , Log* logger );
 	Parser( ITokenizer* tokenizer );
 	~Parser();
+	virtual AsmInfo* getAssembly( int index ){
+		if( this->m_asm ) return this->m_asm->indexAt( index );
+		return NULL;
+	}
+	virtual AsmInfo* getAssembly( std::string name ){
+		if( this->m_asm ) return this->m_asm->indexAt( this->m_asm->find( name ) );
+		return NULL;
+	}
 private :
 	void execute();
-	void initialize( ITokenizer* tokenizer );
+	void initialize( ITokenizer* tokenizer , Log* logger );
 private :
 	const Token& backToken();
 	const Token& nextToken();

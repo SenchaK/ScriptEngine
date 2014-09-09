@@ -14,14 +14,22 @@ namespace Assembly {
 
 static const Token EndToken( "END_TOKEN" , Token::Type::END_TOKEN );
 
-Parser::Parser( ITokenizer* tokenizer ){
-	initialize( tokenizer );
+Parser::Parser( ITokenizer* tokenizer , Log* logger ){
+	initialize( tokenizer , logger );
 	execute();
 }
+
+Parser::Parser( ITokenizer* tokenizer ){
+	initialize( tokenizer , NULL );
+	execute();
+}
+
 Parser::~Parser(){
 	VM_PRINT( "Parser Finish!!\n" );
 }
-void Parser::initialize( ITokenizer* tokenizer ){
+
+void Parser::initialize( ITokenizer* tokenizer , Log* logger ){
+	this->m_log = logger;
 	this->m_token = tokenizer;
 	this->m_scope = Assembly::CScope( new Assembly::Scope( "global" , SCOPE_LEVEL_GLOBAL ) );
 	this->m_currentScope = m_scope.get();
@@ -29,36 +37,30 @@ void Parser::initialize( ITokenizer* tokenizer ){
 	this->m_asm = new VMAssembleCollection();
 	//printf( "Global %p\n" , m_currentScope );
 }
+
 // 一個前のトークンに戻る
 const Token& Parser::backToken(){
 	return *reinterpret_cast<Token*>( this->m_token->back() );
-	//m_pos--;
-	//return getToken();
 }
+
 // 次のトークンへ進める
 const Token& Parser::nextToken(){
 	return *reinterpret_cast<Token*>( this->m_token->next() );
-	//m_pos++;
-	//return getToken();
 }
+
 // 現在のトークンを取得する
 const Token& Parser::getToken(){
 	return *reinterpret_cast<Token*>( this->m_token->current() );
-	//if( m_pos >= m_tokens.size() ) return EndToken;
-	//return m_tokens[m_pos];
 }
+
 // 現在の位置からオフセット値を計算した場所にあるトークンを取得
 const Token& Parser::getToken(int ofs){
-	//size_t pos = m_pos + ofs;
-	//if( pos >= m_tokens.size() ) return EndToken;
-	//return m_tokens[pos];
 	return *reinterpret_cast<Token*>( this->m_token->offset( ofs ) );
 }
+
 // 次のトークンある？
 bool Parser::hasNext(){
 	return this->m_token->hasNext();
-	//if( m_pos >= m_tokens.size() ) return false;
-	//return true;
 }
 
 // 解析開始
@@ -100,8 +102,8 @@ Parser::parse_as::parse_as( Parser* parser , varinfo& var ) : Parser::interprete
  * 配列型である場合評価
  */
 Parser::parse_array::parse_array( Parser* parser , SymbolInfo* symbol ) : Parser::interpreter( parser ){
-	//assert( this->NextTokenIf( Token::Type::Lparen ) );
-	//this->Next();
+	assert( this->NextTokenIf( Token::Type::Lparen ) );
+	this->Next();
 	//if( this->NextTokenIf( Token::Type::Letter ) ){
 	//	this->Next();
 	//	as a( parser , symbol );
@@ -203,7 +205,7 @@ Parser::parse_chunk::parse_chunk( Parser* parser , Args* args ) : Parser::interp
  */
 Parser::parse_return::parse_return( Parser* parser ) : Parser::interpreter( parser ){
 	expression e( parser );
-	this->WriteReturn( e.R - 1 );
+	this->WriteReturn( e.R );
 }
 
 
@@ -218,28 +220,23 @@ Parser::parse_return::parse_return( Parser* parser ) : Parser::interpreter( pars
  * ・ifで評価されなかった場合はifと同じ評価を行う
  * （else ifの場合はifで引っかかり、elseの場合はその処理が評価される）
  */
-Parser::parse_if::parse_if( Parser* parser ) : Parser::interpreter( parser ){
+Parser::parse_if::parse_if( Parser* parser , Args* args ) : Parser::interpreter( parser ){
 	this->ErrorCheckToken( Token::Type::Lparen );
 	expression e( parser );
 	int IF_JumpPos = this->WriteJZ();
-	printf( "jz @IF\n" );
 	this->ErrorCheckNextToken( Token::Type::Rparen );
 	this->Next();
-	this->Parse();
+	this->Parse( args );
 	this->WriteJmpPos( IF_JumpPos );
 	if( !this->NextTokenIf( Token::Type::Else ) ){
-		printf( ":IF\n" );
 	}
 	while( this->NextTokenIf( Token::Type::Else ) ){
 		this->Next();
 		int IF_EndJumpPos = this->WriteJ();
 		this->WriteJmpPos( IF_JumpPos );
-		printf( "jmp @IF_END\n" );
-		printf( ":IF\n" );
 		this->Next();
-		this->Parse();
+		this->Parse( args );
 		this->WriteJmpPos( IF_EndJumpPos );
-		printf( ":IF_END\n" );
 	}
 }
 
@@ -249,31 +246,25 @@ Parser::parse_switch::parse_switch( Parser* parser ) : Parser::interpreter( pars
 Parser::parse_for::parse_for( Parser* parser ) : Parser::interpreter( parser ){
 	this->GoToChunk();
 	this->ErrorCheckToken( Token::Type::Lparen );
-	printf( "--for first \n");
 	expression first_expr( parser );
 	this->ErrorCheckNextToken( Token::Type::Semicolon );
-	printf( ":CONTINUE\n" );
-	printf( "--for loop end \n");
+	
+	int continuePos = this->GetWritePos();
 	expression loop_end_expr( parser );
 	this->ErrorCheckNextToken( Token::Type::Semicolon );
 	int forJmpPos = this->WriteJZ();
-	printf( "jz @FOR\n" );
 	CBinaryWriter old = this->CreateNewWriter();
-	printf( "--for last \n");
 	expression last_expr( parser );
-	printf( "--\n");
 
 	this->ErrorCheckNextToken( Token::Type::Rparen );
 	this->Next();
 	CBinaryWriter lastExprCode = this->SetWriter( old );
-	int continuePos = this->GetWritePos();
+	
 	Args args( parser );
 	this->Parse( &args );
 	this->AppendWriter( lastExprCode );
 	this->WriteJ( continuePos );
-	printf( "jmp CONTINUE\n" );
 	this->WriteJmpPos( forJmpPos );
-	printf( ":FOR\n" );
 	this->GoToBack();
 	int breakPos = this->GetWritePos();
 	args.WriteBreak( breakPos );
@@ -284,17 +275,13 @@ Parser::parse_while::parse_while( Parser* parser ) : Parser::interpreter( parser
 	Args args( parser );
 	this->ErrorCheckToken( Token::Type::Lparen );
 	int continuePos = this->GetWritePos();
-	printf( ":CONTINUE\n" );
 	expression e( parser );
 	int whileJmpPos = this->WriteJZ();
-	printf( "jz @WHILE\n" );
 	this->ErrorCheckNextToken( Token::Type::Rparen );
 	this->Next();
 	this->Parse( &args );
 	this->WriteJ( continuePos );
-	printf( "jmp CONTINUE\n" );
 	this->WriteJmpPos( whileJmpPos );
-	printf( ":WHILE\n" );
 	int breakPos = this->GetWritePos();
 	args.WriteBreak( breakPos );
 	args.WriteContinue( continuePos );
@@ -530,7 +517,7 @@ void Parser::expression_variable::exp(){
 				throw VMError( new ERROR_INFO_C2065( symbolName ) );
 			}
 			symbol = this->addSymbol( symbolName );
-			printf( "シンボル生成 : %s [addr %d]\n" , symbol->Name().c_str() , symbol->Addr() );
+			this->Log( "シンボル生成 : %s [addr %d]\n" , symbol->Name().c_str() , symbol->Addr() );
 		}
 		varinfo current( symbol );
 		this->var.push( current );
@@ -574,7 +561,7 @@ void Parser::expression_variable::memberFunc( string& symbolName ){
 	varinfo inst( this->getThis() );
 	this->expr->PushThis( inst );
 	while( !this->NextTokenIf( Token::Type::Rparen ) ){
-		expression3( this->expr , m_parser );
+		expression4( this->expr , m_parser );
 		if( this->NextTokenIf( Token::Type::Comma ) ){
 			this->Next();
 		}
@@ -585,7 +572,7 @@ void Parser::expression_variable::memberFunc( string& symbolName ){
 }
 
 Parser::expression_bracket::expression_bracket( expression* exp , Parser* parser , Type* type , var_chain& var ) : Parser::expression_base( exp , parser ) {
-	expression3( exp , this->m_parser );
+	expression4( exp , this->m_parser );
 	this->ErrorCheckNextToken( Token::Type::Rbracket );
 	varinfo& current = var.peek();
 	current.Index( exp->R-1 );	
@@ -664,7 +651,7 @@ void Parser::parse( Args* args ){
 		break;
 	case Token::Type::If :
 		this->nextToken();
-		parse_if( this );
+		parse_if( this , args );
 		break;
 	case Token::Type::Continue :
 		this->nextToken();

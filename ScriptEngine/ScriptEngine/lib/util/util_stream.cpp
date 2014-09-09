@@ -70,13 +70,22 @@ int FileStream::getByte(){
 }
 /*override*/
 bool FileStream::hasNext(){
-	if( !m_fp )        return false;
-	if( feof( m_fp ) ) return false;
+	if( !m_fp ){
+		return false;
+	}
+	if( feof( m_fp ) ){
+		this->close();
+		return false;
+	}
 	return true;
 }
 
 FileStream::~FileStream(){
 	UTIL_PRINT( "FileStream Finish\n" );
+	this->close();
+}
+
+void FileStream::close(){
 	if( m_fp ){
 		fclose( m_fp );
 		m_fp = NULL;

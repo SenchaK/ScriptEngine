@@ -1,10 +1,10 @@
-/*
+
 struct VEC2{
 	$x;
 	$y;
-	function init(){
-		%this.x = 320;
-		%this.y = 240;
+	function init( $_x , $_y ){
+		%this.x = $_x;
+		%this.y = $_y;
 	}
 	function getX(){
 		return %this.x;
@@ -13,6 +13,7 @@ struct VEC2{
 		return %this.y;
 	}
 }
+
 
 struct VEC3{
 	$pos as VEC2;
@@ -23,12 +24,34 @@ struct VEC3{
 		%this.z = 100;
 	}
 }
-*/
+
+
+function Log( $message ){
+}
+
+function HelloWorld(){
+	Log( "Hello!!" );
+}
 
 function main(){
-	$value = 0;
-	if( !$value ){
-		Log( "Hello World!!" );
+	$i = 1;
+	while( $i <= 100 ){
+		if( $i % 5 == 0 && $i % 3 == 0 ){
+			Log( "FizzBuzz" );
+			continue;
+		}
+		else if( $i % 3 == 0 ){
+			Log( "Fizz" );
+			continue;
+		}
+		else if( $i % 5 == 0 ){
+			Log( "Buzz" );
+			continue;
+		}
+		else{
+			Log( $i );
+		}
+		$i += 1;
 	}
 }
 

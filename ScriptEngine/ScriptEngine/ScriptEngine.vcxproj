@@ -74,6 +74,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="lib\util\logger.cpp" />
     <ClCompile Include="lib\util\util_binary.cpp" />
     <ClCompile Include="lib\util\util_stream.cpp" />
     <ClCompile Include="lib\vm\assembly\vmassemble_reader.cpp" />
@@ -93,6 +94,7 @@
     <ClCompile Include="vmplugin\VMSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="lib\util\logger.h" />
     <ClInclude Include="lib\util\util_binary.h" />
     <ClInclude Include="lib\util\util_stream.h" />
     <ClInclude Include="lib\vm\assembly\vmassemble_reader.h" />

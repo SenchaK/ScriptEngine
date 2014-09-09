@@ -41,6 +41,7 @@ public :
 	~FileStream();
 	virtual int getByte() override;
 	virtual bool hasNext() override;
+	void close();
 };
 
 

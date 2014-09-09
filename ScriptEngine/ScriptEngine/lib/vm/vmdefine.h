@@ -61,14 +61,8 @@ public :
 	virtual bool hasNext() = 0;
 };
 
-
-// アセンブル情報提供インターフェース
-// 内部コードを取得する機能を提供する
-class IAssembleReader {
-};
-
-
 namespace Assembly{
+class AsmInfo;
 
 // シンボル種類
 enum ESymbolType {
@@ -78,6 +72,15 @@ enum ESymbolType {
 	VariableGlobal = 0x08 ,
 	Struct         = 0x10 ,
 };
+
+// アセンブル情報提供インターフェース
+// 内部コードを取得する機能を提供する
+class IAssembleReader {
+public :
+	virtual AsmInfo* getAssembly( int index ) = 0;
+	virtual AsmInfo* getAssembly( std::string index ) = 0;
+};
+
 
 } // namespace Assembly
 } // namespace SenchaVM

@@ -74,14 +74,14 @@ public :
 		this->clear();
 	}
 	void entryAssembly( AsmInfo* code ){
-		Asm.push_back( code );
+		this->Asm.push_back( code );
 	}
 	size_t count(){
-		return Asm.size();
+		return this->Asm.size();
 	}
-	AsmInfo* const indexAt( int index ){
-		assert( index >= 0 && index < (int)Asm.size() );
-		return Asm[index];
+	AsmInfo* const indexAt( size_t index ){
+		if( index >= this->count() ) return NULL;
+		return this->Asm[index];
 	}
 	int find( string& funcName ){
 		for( size_t i = 0 ; i < this->count() ; i++ ){
@@ -93,10 +93,10 @@ public :
 	}
 private :
 	void clear(){
-		for( size_t i = 0 ; i < Asm.size() ; i++ ){
-			delete Asm[i];
+		for( size_t i = 0 ; i < this->Asm.size() ; i++ ){
+			delete this->Asm[i];
 		}
-		Asm.clear();
+		this->Asm.clear();
 	}
 };
 
