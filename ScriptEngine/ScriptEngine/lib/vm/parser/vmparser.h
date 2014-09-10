@@ -14,6 +14,7 @@ namespace Assembly {
 class Scope;
 class Symtable;
 class SymbolInfo;
+class VMDriver;
 typedef shared_ptr<Symtable> CSymtable;
 typedef shared_ptr<Scope>    CScope;
 
@@ -802,13 +803,15 @@ private :
 	};
 private :
 	VMAssembleCollection* m_asm;
+	VMBuiltIn* m_built_in;
 	CBinaryWriter m_writer;
 	CScope m_scope;
 	Scope* m_currentScope;
 	ITokenizer* m_token;
 	Log* m_log;
 public :
-	Parser( ITokenizer* tokenizer , Log* logger );
+	Parser( ITokenizer* tokenizer , VMBuiltIn* built_in , Log* logger );
+	Parser( ITokenizer* tokenizer , VMBuiltIn* built_in );
 	Parser( ITokenizer* tokenizer );
 	~Parser();
 	virtual AsmInfo* getAssembly( int index ){
@@ -820,8 +823,8 @@ public :
 		return NULL;
 	}
 private :
+	void initialize( ITokenizer* tokenizer , VMBuiltIn* built_in , Log* logger );
 	void execute();
-	void initialize( ITokenizer* tokenizer , Log* logger );
 private :
 	const Token& backToken();
 	const Token& nextToken();

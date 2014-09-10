@@ -65,7 +65,7 @@ private :
 	size_t m_index;
 public  :
 	BinaryStream();
-	BinaryStream( vector<byte> binaryData );
+	BinaryStream( vector<byte>& binaryData );
 	virtual int getByte() override;
 	virtual int getByte( int position ) override;
 	virtual bool hasNext() override;
@@ -135,6 +135,8 @@ public  :
 	int count();
 	CStream getStream();
 };
+
+
 typedef std::shared_ptr<BinaryWriter> CBinaryWriter;
 
 

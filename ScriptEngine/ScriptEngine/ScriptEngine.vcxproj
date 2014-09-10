@@ -77,7 +77,8 @@
     <ClCompile Include="lib\util\logger.cpp" />
     <ClCompile Include="lib\util\util_binary.cpp" />
     <ClCompile Include="lib\util\util_stream.cpp" />
-    <ClCompile Include="lib\vm\assembly\vmassemble_reader.cpp" />
+    <ClCompile Include="lib\vm\assembly\vm_assemble_io.cpp" />
+    <ClCompile Include="lib\vm\assembly\vm_assemble_log.cpp" />
     <ClCompile Include="lib\vm\assembly\vmassembly_info.cpp" />
     <ClCompile Include="lib\vm\assembly\vm_mnemonic_define.cpp" />
     <ClCompile Include="lib\vm\lexer\vmlexer.cpp" />
@@ -97,7 +98,8 @@
     <ClInclude Include="lib\util\logger.h" />
     <ClInclude Include="lib\util\util_binary.h" />
     <ClInclude Include="lib\util\util_stream.h" />
-    <ClInclude Include="lib\vm\assembly\vmassemble_reader.h" />
+    <ClInclude Include="lib\vm\assembly\vm_assemble_io.h" />
+    <ClInclude Include="lib\vm\assembly\vm_assemble_log.h" />
     <ClInclude Include="lib\vm\assembly\vmassembly_info.h" />
     <ClInclude Include="lib\vm\assembly\vm_mnemonic_define.h" />
     <ClInclude Include="lib\vm\lexer\vmlexer.h" />

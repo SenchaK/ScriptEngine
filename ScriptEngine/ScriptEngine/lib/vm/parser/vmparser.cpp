@@ -14,22 +14,28 @@ namespace Assembly {
 
 static const Token EndToken( "END_TOKEN" , Token::Type::END_TOKEN );
 
-Parser::Parser( ITokenizer* tokenizer , Log* logger ){
-	initialize( tokenizer , logger );
-	execute();
+Parser::Parser( ITokenizer* tokenizer , VMBuiltIn* built_in , Log* logger ){
+	this->initialize( tokenizer , built_in , logger );
+	this->execute();
+}
+
+Parser::Parser( ITokenizer* tokenizer , VMBuiltIn* built_in ){
+	this->initialize( tokenizer , built_in , NULL );
+	this->execute();
 }
 
 Parser::Parser( ITokenizer* tokenizer ){
-	initialize( tokenizer , NULL );
-	execute();
+	this->initialize( tokenizer , NULL , NULL );
+	this->execute();
 }
 
 Parser::~Parser(){
 	VM_PRINT( "Parser Finish!!\n" );
 }
 
-void Parser::initialize( ITokenizer* tokenizer , Log* logger ){
+void Parser::initialize( ITokenizer* tokenizer , VMBuiltIn* built_in , Log* logger ){
 	this->m_log = logger;
+	this->m_built_in = built_in;
 	this->m_token = tokenizer;
 	this->m_scope = Assembly::CScope( new Assembly::Scope( "global" , SCOPE_LEVEL_GLOBAL ) );
 	this->m_currentScope = m_scope.get();
@@ -609,6 +615,7 @@ Parser::expression_func::expression_func( expression* exp , Parser* parser ) : P
 	exp->CallFunction( funcName );
 }
 
+
 // 解析処理
 // 各ステートメントの処理を行う
 void Parser::parse( Args* args ){
@@ -683,9 +690,30 @@ void Parser::parse( Args* args ){
 }
 
 int Parser::getFuncAddres( string& funcName ){
-	int result = this->m_asm->find( funcName );
-	if( result < 0 ) throw VMError( new ERROR_INFO_C2065( funcName ) );
-	return result;
+	struct funcinfoS{
+		unsigned int address : 24;
+		unsigned int type    :  8;
+	};
+	union {
+		funcinfoS info;
+		int int_value;
+	} result;
+
+	result.info.address = 0;
+	result.info.type    = 0;
+	int addr = this->m_asm->find( funcName );
+	if( addr < 0 ){
+		if( this->m_built_in ){
+			addr = this->m_built_in->find( funcName );
+			result.info.type = 1;
+		}
+		if( addr < 0 ){
+			throw VMError( new ERROR_INFO_C2065( funcName ) );
+		}
+	}
+
+	result.info.address = addr;
+	return result.int_value;
 }
 
 } // namespace Assembly

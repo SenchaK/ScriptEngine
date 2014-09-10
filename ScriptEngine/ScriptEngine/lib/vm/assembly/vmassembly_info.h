@@ -5,6 +5,7 @@
 namespace SenchaVM{
 namespace Assembly{
 typedef Sencha::Util::byte vmbyte;
+class VMDriver;
 
 
 class AsmInfo {
@@ -32,11 +33,14 @@ public :
 	void setName( const string& name ){
 		m_name = name;
 	}
-	string& name(){
-		return m_name;
+	void setAddress( size_t address ){
+		m_addr = address;
 	}
 	void setStackFrame( size_t stackFrame ){
 		m_stackFrame = stackFrame;
+	}
+	string& name(){
+		return m_name;
 	}
 	size_t Args(){
 		return m_args;
@@ -46,6 +50,9 @@ public :
 	}
 	size_t addr(){
 		return m_addr;
+	}
+	size_t CodeSize(){
+		return m_code.size();
 	}
 	bool equal( string& name ){
 		return this->m_name.compare( name ) == 0;
@@ -61,9 +68,65 @@ public :
 };
 
 
+
+/*
+ * 組み込み関数
+ * パーザに登録する
+ */
+class VMBuiltInFunction {
+private :
+	string m_name;                        // マッピング関数名
+	void (*function)( VMDriver* driver ); // コールバック関数
+public :
+	bool equal( string& src ){
+		if( this->m_name.compare( src ) == 0 ){
+			return true;
+		}
+		return false;
+	}
+	VMBuiltInFunction( string name , void (*built_in_function)( VMDriver* ) ){
+		this->m_name = name;
+		this->function = built_in_function;
+	}
+};
+
 struct VMCallStack {
 	int funcAddr;
 	int prog;	
+};
+
+class VMBuiltIn {
+private :
+	vector<VMBuiltInFunction*> built_in_function;
+public :
+	void entryFunction( VMBuiltInFunction* func ){
+		this->built_in_function.push_back( func );
+	}
+
+	void clear(){
+		for( size_t i = 0 ; i < this->built_in_function.size() ; i++ ){
+			delete this->built_in_function[i];
+		}
+		this->built_in_function.clear();
+	}
+
+	VMBuiltInFunction* indexAt( size_t index ){
+		if( index >= this->built_in_function.size() ) return NULL;
+		return this->built_in_function[index];
+	}
+
+	int find( string& funcName ){
+		for( size_t i = 0 ; i < this->built_in_function.size() ; i++ ){
+			if( this->built_in_function[i]->equal( funcName ) ){
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	~VMBuiltIn(){
+		this->clear();
+	}
 };
 
 class VMAssembleCollection {

@@ -128,7 +128,7 @@ TextStream::~TextStream(){
 BinaryStream::BinaryStream(){
 	m_index = 0;
 }
-BinaryStream::BinaryStream( vector<byte> binaryData ){
+BinaryStream::BinaryStream( vector<byte>& binaryData ){
 	m_binaryData = binaryData;
 	m_index = 0;
 }

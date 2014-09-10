@@ -1,6 +1,7 @@
 #include "sencha_vm.h"
 
 
+
 namespace SenchaVM {
 
 //SenchaVM::Assembly::CVMMainRoutineDriver CompileFromText( string text ){
@@ -19,5 +20,20 @@ namespace SenchaVM {
 //	return driver;
 //}
 
+	namespace Assembly {
+		/*
+		 * テキストファイル形式にしてログ生成
+		 */
+		void VMAssembleTextFileLog( IAssembleReader* reader , const char* fileName ){
+			VMAssembleLog log( reader , CLog( new TextFileLog( fileName ) ) );
+		}
+
+		/*
+		 * コンソールにログ出力
+		 */
+		void VMAssembleConsoleLog( IAssembleReader* reader ){
+			VMAssembleLog log( reader , CLog( new ConsoleLog() ) );
+		}
+	}
 
 } // namespace SenchaVM

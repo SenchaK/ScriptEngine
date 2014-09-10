@@ -1,8 +1,0 @@
-シンボル生成 : x [addr 0]
-シンボル生成 : y [addr 1]
-シンボル生成 : _x [addr 1]
-シンボル生成 : _y [addr 2]
-シンボル生成 : pos [addr 0]
-シンボル生成 : z [addr 2]
-シンボル生成 : message [addr 0]
-シンボル生成 : i [addr 0]
