@@ -1,7 +1,6 @@
 #include "lib\vm\sencha_vm.h"
 #include "lib\vm\assembly\vm_assemble_log.h"
 #include "lib\vm\assembly\vm_assemble_io.h"
-#include "memory_pool.h"
 
 using namespace SenchaVM;
 using namespace SenchaVM::Assembly;
@@ -10,10 +9,6 @@ using namespace Sencha::Util;
 void ReadScriptAndWriteBinary();
 void ReadScriptAndWriteTextFileLog();
 void ReadBinaryAndWriteTextFileLog();
-
-static const int CONTAINER_SIZE = 64;
-static const int POOL_SIZE = 1024;
-
 
 
 void built_in_function_Log( VMDriver* driver ){
