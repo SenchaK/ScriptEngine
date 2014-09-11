@@ -35,6 +35,7 @@ void main(){
 
 	Lexer* lexer = new Lexer( CStream( new FileStream( "sample/FizzBuzz.txt" ) ) );
 	Parser* parser = new Parser( lexer , built_in , log );
+	VMAssembleTextFileLog( parser , "parser_log.txt" );
 	VMDriver d( parser , built_in );
 	d.executeFunction( "main" );
 

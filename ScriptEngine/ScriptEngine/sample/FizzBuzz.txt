@@ -2,16 +2,7 @@ function main(){
 	for( $i = 0 ; $i < 100 ; $i += 1 ){
 		$value = $i + 1;
 		if( $value % 5 == 0 && $value % 3 == 0 ){
-			Log( "FizzBuzz" );
-		}
-		else if( $value % 3 == 0 ){
-			Log( "Fizz" );
-		}
-		else if( $value % 5 == 0 ){
-			Log( "Buzz" );
-		}
-		else{
-			Log( ToString( $value ) );
+			Log( "FizzBuzz:"+ToString( $value ) );
 		}
 	}
 }
