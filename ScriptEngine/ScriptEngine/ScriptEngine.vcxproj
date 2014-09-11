@@ -91,8 +91,6 @@
     <ClCompile Include="lib\vm\vmmemory.cpp" />
     <ClCompile Include="lib\vm\vmregister.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="vmplugin\VMFileSystem.cpp" />
-    <ClCompile Include="vmplugin\VMSystem.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lib\util\logger.h" />
@@ -113,8 +111,6 @@
     <ClInclude Include="lib\vm\vmmemory.h" />
     <ClInclude Include="lib\vm\vmregister.h" />
     <ClInclude Include="memory_pool.h" />
-    <ClInclude Include="vmplugin\VMFileSystem.h" />
-    <ClInclude Include="vmplugin\VMSystem.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

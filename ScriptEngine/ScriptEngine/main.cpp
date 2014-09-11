@@ -1,6 +1,4 @@
 #include "lib\vm\sencha_vm.h"
-#include "vmplugin\VMFileSystem.h"
-#include "vmplugin\VMSystem.h"
 #include "lib\vm\assembly\vm_assemble_log.h"
 #include "lib\vm\assembly\vm_assemble_io.h"
 #include "memory_pool.h"
