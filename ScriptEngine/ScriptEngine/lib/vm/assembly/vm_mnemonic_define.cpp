@@ -7,7 +7,6 @@ string EMnemonic::toString( int mnemonic ){
 #define TO_STRING( token ) #token
 #define MATCH( symbol ) case symbol : return TO_STRING( symbol );
 	switch( mnemonic ){
-	MATCH(PMov)
 	MATCH(Mov)
 	MATCH(Add) 
 	MATCH(Sub)
@@ -45,8 +44,6 @@ string EMnemonic::toString( int mnemonic ){
 	MATCH(MEM_S)
 	MATCH(RET)
 	MATCH(MEM_THIS_P)
-	MATCH(ArrayIndexSet)
-	MATCH(ArrayIndexAdd)
 	}
 #undef MATCH
 	return "unknown";

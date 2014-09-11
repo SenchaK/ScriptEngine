@@ -1,49 +1,18 @@
-
-struct VEC2{
-	$x;
-	$y;
-	function init( $_x , $_y ){
-		%this.x = $_x;
-		%this.y = $_y;
-	}
-	function getX(){
-		return %this.x;
-	}
-	function getY(){
-		return %this.y;
-	}
-}
-
-
-struct VEC3{
-	$pos as VEC2;
-	$z;
-
-	function init(){
-		%this.pos.y = 50;
-		%this.z = 100;
-	}
-}
-
-
 function main(){
-	$i = 1;
-	while( $i <= 100 ){
-		if( $i % 5 == 0 && $i % 3 == 0 ){
+	for( $i = 0 ; $i < 100 ; $i += 1 ){
+		$value = $i + 1;
+		if( $value % 5 == 0 && $value % 3 == 0 ){
 			Log( "FizzBuzz" );
-			continue;
 		}
-		else if( $i % 3 == 0 ){
+		else if( $value % 3 == 0 ){
 			Log( "Fizz" );
-			continue;
 		}
-		else if( $i % 5 == 0 ){
+		else if( $value % 5 == 0 ){
 			Log( "Buzz" );
 		}
 		else{
-			Log( $i );
+			Log( ToString( $value ) );
 		}
-		$i += 1;
 	}
 }
 

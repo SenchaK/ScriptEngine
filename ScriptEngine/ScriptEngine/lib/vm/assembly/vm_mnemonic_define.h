@@ -17,7 +17,6 @@ public :
 		/*
 		 * Žl‘¥‰‰ŽZ
 		 */
-		PMov,
 		Mov ,
 		Add , 
 		Sub ,
@@ -30,7 +29,6 @@ public :
 		 */
 		Push ,
 		Pop ,
-		SetStackPointer ,
 		Call , 
 		EndFunc ,
 
@@ -65,10 +63,6 @@ public :
 		Jmp  ,
 		JumpZero , 
 		JumpNotZero ,
-
-		ArrayIndexSet , 
-		ArrayIndexAdd ,
-
 		RET        ,
 		REG        ,
 
@@ -77,10 +71,6 @@ public :
 		MEM_L      ,
 		MEM_S      ,
 		MEM_THIS_P ,
-
-		AsString   ,
-		AsInteger  ,
-
 		ST , 
 		LD ,
 	};

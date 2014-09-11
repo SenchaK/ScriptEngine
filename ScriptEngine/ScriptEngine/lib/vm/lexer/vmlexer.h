@@ -83,9 +83,6 @@ public :
 
 			As              , // as
 			Array           , // array
-			AsString        , // string( $xxx )
-			AsInteger       , // int( $xxx )
-
 			Namespace       , // "namespace"
 			END_TOKEN       ,
 		};

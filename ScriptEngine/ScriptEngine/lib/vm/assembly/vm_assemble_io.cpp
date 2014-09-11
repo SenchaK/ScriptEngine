@@ -49,6 +49,7 @@ VMAssembleInput::VMAssembleInput( CStream stream ){
 	assert( stream.get() );
 	BinaryReader reader( stream );
 	this->m_asm = new VMAssembleCollection();
+
 	while( reader.hasNext() ){
 		vector<unsigned char> Code;
 		string AssemblyName = reader.ToString();
@@ -56,7 +57,6 @@ VMAssembleInput::VMAssembleInput( CStream stream ){
 		size_t Address = reader.ToUInt32();
 		size_t Args = reader.ToUInt32();
 		size_t CodeSize = reader.ToUInt32();
-
 		if( !reader.hasNext() ){
 			break;
 		}

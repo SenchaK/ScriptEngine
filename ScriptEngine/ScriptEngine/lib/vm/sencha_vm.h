@@ -11,8 +11,8 @@
 
 
 namespace SenchaVM {
-	SenchaVM::Assembly::CVMMainRoutineDriver CompileFromText( string text );
-	SenchaVM::Assembly::CVMMainRoutineDriver OpenFromFile( string fileName );
+	SenchaVM::Assembly::VMDriver CompileFromText( string text );
+	SenchaVM::Assembly::VMDriver OpenFromFile( string fileName );
 
 	namespace Assembly {
 		void VMAssembleTextFileLog( IAssembleReader* reader , const char* fileName );

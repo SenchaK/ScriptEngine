@@ -38,11 +38,14 @@ private :
 	FILE* m_fp;
 public :
 	FileStream( string fileName );
+	FileStream( string fileName , const char* mode );
 	~FileStream();
 	virtual int getByte() override;
 	virtual bool hasNext() override;
 	void close();
 };
+FileStream* BinaryFileOpen( string fileName );
+FileStream* TextFileOpen( string fileName );
 
 
 // •¶š—ñƒXƒgƒŠ[ƒ€

@@ -58,8 +58,14 @@ int Stream::count(){
 // *******************************************************************************
 // class FileStream
 // *******************************************************************************
+FileStream* BinaryFileOpen( string fileName ){ return new FileStream( fileName , "rb" ); }
+FileStream* TextFileOpen( string fileName )  { return new FileStream( fileName ); }
+
 FileStream::FileStream( string fileName ){
 	m_fp = fopen( fileName.c_str() , "r" );
+}
+FileStream::FileStream( string fileName , const char* mode ){
+	m_fp = fopen( fileName.c_str() , mode );
 }
 
 /*override*/

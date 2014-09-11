@@ -38,9 +38,6 @@ public :
 		void addres_dump(){
 			for( int i = 0 ; i < poolsize ; i++ ){
 				memoryblockS* current_container = get( i );
-				printf( "container : %p\n" , current_container );
-				printf( "\tparent : %p\n" , current_container->prev );
-				printf( "\tchild : %p\n" , current_container->next );
 			}
 		}
 	};
@@ -69,7 +66,6 @@ private :
 		if( m_current ){
 			m_current->prev = prev;
 		}
-		printf( "malloc %p\n" , result );
 		return result;
 	}
 	void _insertItem( memoryblockS* item ){

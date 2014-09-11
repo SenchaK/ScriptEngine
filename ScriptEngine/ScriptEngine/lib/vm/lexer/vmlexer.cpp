@@ -294,8 +294,6 @@ bool Lexer::_isLetter(){
 	if( text.compare( "return" ) == 0 )		{ type = Token::Type::Return	 ; }
 	if( text.compare( "struct" ) == 0 )		{ type = Token::Type::Struct  	 ; }
 	if( text.compare( "namespace" ) == 0 )	{ type = Token::Type::Namespace	 ; }
-	if( text.compare( "string" ) == 0 )		{ type = Token::Type::AsString   ; }
-	if( text.compare( "int" ) == 0 )	    { type = Token::Type::AsInteger  ; }
 	if( text.compare( "as" ) == 0 )	        { type = Token::Type::As         ; }
 	if( text.compare( "array" ) == 0 )	    { type = Token::Type::Array      ; }
 

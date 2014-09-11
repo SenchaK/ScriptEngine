@@ -88,6 +88,11 @@ public :
 		this->m_name = name;
 		this->function = built_in_function;
 	}
+	void exec( VMDriver* driver ){
+		if( this->function ){
+			this->function( driver );
+		}
+	}
 };
 
 struct VMCallStack {
@@ -137,6 +142,8 @@ public :
 		this->clear();
 	}
 	void entryAssembly( AsmInfo* code ){
+		assert( code );
+		code->setAddress( this->Asm.size() );
 		this->Asm.push_back( code );
 	}
 	size_t count(){

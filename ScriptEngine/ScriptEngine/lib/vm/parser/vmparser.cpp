@@ -472,12 +472,6 @@ Parser::expression6::expression6( expression* exp , Parser* parser ) : Parser::e
 	else if( this->NextTokenIf( Token::Type::Lbracket ) ){
 		this->Next();
 	}
-	else if( this->NextTokenIf( Token::Type::AsString ) ){
-		this->Next();
-	}
-	else if( this->NextTokenIf( Token::Type::AsInteger ) ){
-		this->Next();
-	}
 	else if( this->NextTokenIf( Token::Type::Lparen ) ){
 		this->Next();
 		expression e( parser , exp );
@@ -642,8 +636,6 @@ void Parser::parse( Args* args ){
 		break;
 	case Token::Type::Inc :
 	case Token::Type::Dec :
-	case Token::Type::AsString :
-	case Token::Type::AsInteger :
 		break;
 	case Token::Type::Switch :
 		//_parse_switch( param );
