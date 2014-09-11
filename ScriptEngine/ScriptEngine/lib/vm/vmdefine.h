@@ -10,18 +10,6 @@
 #include<memory>
 
 
-
-
-#define VM_DEBUG
-#ifdef VM_DEBUG
-	//#define VM_PRINT printf
-	#define VM_PRINT(...)
-	#define VM_ASSERT assert
-#else
-	#define VM_PRINT(...)
-	#define VM_ASSERT(...)
-#endif
-
 #define SCOPE_LEVEL_GLOBAL ( 0 )
 
 

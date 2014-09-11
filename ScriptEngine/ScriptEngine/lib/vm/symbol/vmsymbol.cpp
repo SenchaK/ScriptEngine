@@ -45,8 +45,8 @@ int SymbolInfo::SizeOf(){
  * ŠO‚©‚ç‚ÍŒÄ‚×‚È‚¢
  */
 SymbolInfo::SymbolInfo( SymbolInfo* src , SymbolInfo* parent ){
-	VM_ASSERT( src );
-	VM_ASSERT( parent );
+	assert( src );
+	assert( parent );
 	this->m_name         = src->m_name;
 	this->m_addr         = src->m_addr;
 	this->m_arrayLength  = src->m_arrayLength;
@@ -140,7 +140,7 @@ void SymbolInfo::copyAndAddChildrenOfSymbol( SymbolInfo* symbol ){
  */
 void SymbolInfo::copyAndAddChildrenOfSymbol( const vector<SymbolInfo*>& children ){
 	for( unsigned int i = 0 ; i < children.size() ; i++ ){
-		VM_ASSERT( children[i] );
+		assert( children[i] );
 		SymbolInfo* symbol = new SymbolInfo( children[i] , this );
 		symbol->copyAndAddChildrenOfSymbol( children[i] );
 		this->m_child.push_back( symbol );

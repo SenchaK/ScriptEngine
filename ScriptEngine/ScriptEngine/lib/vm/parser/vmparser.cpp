@@ -30,7 +30,6 @@ Parser::Parser( ITokenizer* tokenizer ){
 }
 
 Parser::~Parser(){
-	VM_PRINT( "Parser Finish!!\n" );
 }
 
 void Parser::initialize( ITokenizer* tokenizer , VMBuiltIn* built_in , Log* logger ){

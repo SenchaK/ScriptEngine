@@ -41,16 +41,16 @@ Memory& VMDriver::getLocal( int addres ){
 	return m_local.get()[addres];
 }
 Memory& VMDriver::getStatic( int addres ){
-	VM_ASSERT( addres >= 0 && addres < (int)m_staticsize );
+	assert( addres >= 0 && addres < (int)m_staticsize );
 	return m_static.get()[addres];
 }
 void VMDriver::setLocal( int addres , Memory& m ){
-	VM_ASSERT( addres >= 0 && addres < (int)m_stacksize );
+	assert( addres >= 0 && addres < (int)m_stacksize );
 	Memory& src = m_local.get()[addres];
 	src.setMemory( m );
 }
 void VMDriver::setStatic( int addres , Memory& m ){
-	VM_ASSERT( addres >= 0 && addres < (int)m_staticsize );
+	assert( addres >= 0 && addres < (int)m_staticsize );
 	m_static.get()[addres].setMemory( m );
 }
 void VMDriver::setMemory( Memory& src , Memory& value ){
