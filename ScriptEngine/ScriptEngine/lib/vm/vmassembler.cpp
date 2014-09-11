@@ -4,7 +4,32 @@
 
 namespace SenchaVM{
 namespace Assembly{
-
+/*
+ * ストア（一時保存領域）
+ * ST/LD命令に使用する。
+ * レジスタの一時回避領域
+ * 再利用性のない機能なので静的領域に配置する
+ * todo:: vmregister.hで吸収させる
+ */
+static const int STORE_SIZE = 1024;
+static Memory StoreMemory[STORE_SIZE];
+static int StoreP;
+/*
+ * ストア領域にメモリ登録
+ */
+static void pushStore( Memory& m ){
+	assert( StoreP < STORE_SIZE );
+	StoreMemory[StoreP] = m;
+	StoreP++;
+}
+/*
+ * ストア領域の一番上にあるメモリを取得
+ */
+static Memory& popStore(){
+	StoreP--;
+	assert( StoreP >= 0 );
+	return StoreMemory[StoreP];
+}
 
 
 AsmInfo* VMDriver::currentAssembly(){
@@ -349,16 +374,32 @@ void VMDriver::_call(){
 		this->_endFunc();
 		return;
 	}
+	this->m_push = 0;
 	this->m_funcAddr = func.info.address;
 	this->m_pc = 0;
 }
 
+/*
+ * ストア命令
+ * 一時計算メモリを別領域に退避させる
+ */ 
 void VMDriver::_st(){
-	int RIndex = this->currentAssembly()->moveU8( this->m_pc );
+	int UsedRCount = this->currentAssembly()->moveU8( this->m_pc );
+	for( int R_Address = 0 ; R_Address < UsedRCount ; R_Address++ ){
+		pushStore( R_STACK::getMemory(R_Address) );
+	}
 }
 
+/*
+ * ロード命令
+ * 一時退避させた計算メモリを元に戻す。
+ */
 void VMDriver::_ld(){
-	int RIndex = this->currentAssembly()->moveU8( this->m_pc );
+	int UsedRCount = this->currentAssembly()->moveU8( this->m_pc );
+	for( int R_Address = 0 ; R_Address < UsedRCount ; R_Address++ ){
+		Memory& m = popStore();
+		R_STACK::setMemory( ( UsedRCount - 1 ) - R_Address , m );
+	}
 }
 
 void VMDriver::_ret(){

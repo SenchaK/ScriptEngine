@@ -1,3 +1,7 @@
+function print( $message ){
+	Log( $message );
+}
+
 function main(){
 	for( $i = 0 ; $i < 100 ; $i += 1 ){
 		$value = $i + 1;

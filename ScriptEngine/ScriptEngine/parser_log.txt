@@ -1,3 +1,13 @@
+func print
+00000000:  mov R0 , L[0]
+00000014:  mov R0 , L[0]
+00000028: push R0
+00000031:   st 0
+00000033: call 0(built in function)
+00000038:  mov R0 , R0
+00000043:   ld 0
+00000045:  end
+
 func main
 00000000:  mov R0 , 0
 00000012:  mov L[0] , R0
