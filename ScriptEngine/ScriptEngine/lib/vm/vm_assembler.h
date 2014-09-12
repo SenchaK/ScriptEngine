@@ -7,7 +7,8 @@
 
 
 
-namespace SenchaVM{
+namespace Sencha{
+namespace VM {
 namespace Assembly{
 using namespace std;
 
@@ -91,4 +92,5 @@ public :
 
 
 } // namespace Assembly
-} // namespace SenchaVM
+} // namespace VM
+} // namespace Sencha

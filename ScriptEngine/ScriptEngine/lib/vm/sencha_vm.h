@@ -74,12 +74,11 @@
 		VMAssembleTextFileLog( parser , "parser_log.txt" );
 	*******************************************************************************************************************
  */
-namespace SenchaVM {
-	SenchaVM::Assembly::VMDriver CompileFromText( string text );
-	SenchaVM::Assembly::VMDriver OpenFromFile( string fileName );
-
-	namespace Assembly {
-		void VMAssembleTextFileLog( IAssembleReader* reader , const char* fileName );
-		void VMAssembleConsoleLog( IAssembleReader* reader );
-	}
+namespace Sencha {
+namespace VM{
+namespace Assembly {
+	void VMAssembleTextFileLog( IAssembleReader* reader , const char* fileName );
+	void VMAssembleConsoleLog( IAssembleReader* reader );
+}
+}
 }

@@ -1,7 +1,8 @@
 #pragma once
 #include <string>
 
-namespace SenchaVM{
+namespace Sencha{
+namespace VM {
 namespace Assembly{
 using namespace std;
 
@@ -80,5 +81,6 @@ static string toString( int mnemonic );
 
 
 
-} // namespace SenchaVM
 } // namespace Assembly
+} // namespace VM
+} // namespace Sencha

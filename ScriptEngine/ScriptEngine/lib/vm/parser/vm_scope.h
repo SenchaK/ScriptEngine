@@ -4,7 +4,8 @@
 #include "..\assembly\vm_assembly_info.h"
 #include <stack>
 
-namespace SenchaVM {
+namespace Sencha {
+namespace VM{
 namespace Assembly {
 
 class Scope;
@@ -118,5 +119,6 @@ public :
 };
 
 
-}
-}
+} // Assembly
+} // VM
+} // Sencha

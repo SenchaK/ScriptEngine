@@ -2,7 +2,8 @@
 #include "vm_register.h"
 
 
-namespace SenchaVM{
+namespace Sencha{
+namespace VM {
 namespace Assembly{
 AsmInfo* VMDriver::currentAssembly(){
 	return this->m_reader->getAssembly( m_funcAddr );
@@ -505,4 +506,5 @@ Memory& VMDriver::popMemory(){
 
 
 } // Assembly
-} // SenchaVM
+} // namespace VM
+} // Sencha

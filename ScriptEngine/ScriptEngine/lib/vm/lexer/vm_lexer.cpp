@@ -1,7 +1,8 @@
 #include "vm_lexer.h"
 #include <assert.h>
 
-namespace SenchaVM {
+namespace Sencha {
+namespace VM {
 using namespace std;
 
 static Token EndToken( "" , Token::Type::END_TOKEN );
@@ -371,6 +372,5 @@ void Lexer::_backstep(){
 	m_textIndex--;
 }
 
-
-}
-//	namespace SenchaVM
+} // namespace VM
+} // namespace Sencha

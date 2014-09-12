@@ -3,7 +3,8 @@
 #include "../parser/vm_scope.h"
 
 
-namespace SenchaVM{
+namespace Sencha{
+namespace VM {
 namespace Assembly{
 
 /* class SymbolInfo */
@@ -137,4 +138,5 @@ Symtable::~Symtable(){
 }
 
 } // namespace Assembly
-} // namespace SenchaVM
+} // namespace VM
+} // namespace Sencha

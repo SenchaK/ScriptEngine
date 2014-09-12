@@ -8,7 +8,8 @@
 #include <stack>
 #include <queue>
 #include <stdarg.h>
-namespace SenchaVM {
+namespace Sencha {
+namespace VM {
 namespace Assembly {
 
 class Scope;
@@ -827,5 +828,6 @@ private :
 typedef std::shared_ptr<Parser> CParser;
 
 } // namespace Assembly
-} // namespace SenchaVM
+} // namespace VM
+} // namespace Sencha
 

@@ -1,6 +1,7 @@
 #include "vm_memory.h"
 
-namespace SenchaVM{
+namespace Sencha{
+namespace VM {
 namespace Assembly{
 
 Memory::Memory( double v , string s ){
@@ -18,4 +19,5 @@ void Memory::setMemory( const Memory& m ){
 
 
 } // Assembly
-} // SenchaVM
+} // namespace VM
+} // Sencha

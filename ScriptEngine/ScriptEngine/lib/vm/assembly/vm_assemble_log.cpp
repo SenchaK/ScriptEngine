@@ -2,7 +2,8 @@
 #include "vm_mnemonic_define.h"
 
 
-namespace SenchaVM{
+namespace Sencha{
+namespace VM {
 namespace Assembly{
 static const char* Location( int location ){
 	if( location == EMnemonic::MEM_S ) return "S";
@@ -161,4 +162,5 @@ void VMAssembleLog::ret( AsmInfo* assembly ){
 
 
 } // namespace Assembly
-} // namespace SenchaVM
+} // VM
+} // namespace Sencha

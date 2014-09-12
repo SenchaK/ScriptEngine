@@ -2,9 +2,11 @@
 #include <crtdbg.h>
 
 
-using namespace SenchaVM;
-using namespace SenchaVM::Assembly;
+using namespace Sencha;
+using namespace Sencha::VM;
+using namespace Sencha::VM::Assembly;
 using namespace Sencha::Util;
+
 
 void ReadScriptAndWriteBinary();
 void ReadScriptAndWriteTextFileLog();

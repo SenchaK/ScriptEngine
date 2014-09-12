@@ -1,7 +1,8 @@
 #pragma once
 #include "vm_define.h"
 
-namespace SenchaVM{
+namespace Sencha{
+namespace VM{
 namespace Assembly{
 using namespace std;
 
@@ -85,4 +86,5 @@ public :
 typedef shared_ptr<Memory> CMemory;
 
 } // Assembly
-} // SenchaVM
+} // VM
+} // Sencha

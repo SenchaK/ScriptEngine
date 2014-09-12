@@ -2,7 +2,8 @@
 #include "../../vm_define.h"
 
 
-namespace SenchaVM {
+namespace Sencha {
+namespace VM {
 namespace Assembly {
 using namespace std;
 
@@ -125,5 +126,6 @@ public :
 };
 
 
-}
-}
+} // Assembly
+} // VM
+} // Sencha

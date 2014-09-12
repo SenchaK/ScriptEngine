@@ -1,8 +1,9 @@
 #include "vm_assemble_io.h"
 
 
-namespace SenchaVM{
-namespace Assembly{
+namespace Sencha {
+namespace VM {
+namespace Assembly {
 
 /*
  * 解析結果をバイナリ形式のファイルに出力する。
@@ -74,4 +75,5 @@ VMAssembleInput::VMAssembleInput( CStream stream ){
 }
 
 } // Assembly
-} // SenchaVM
+} // VM
+} // Sencha

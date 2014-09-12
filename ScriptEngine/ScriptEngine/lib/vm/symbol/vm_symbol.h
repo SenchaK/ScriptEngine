@@ -4,7 +4,8 @@
 #include "../vm_assembler.h"
 
 
-namespace SenchaVM{
+namespace Sencha{
+namespace VM{
 namespace Assembly{
 
 class Type;
@@ -98,4 +99,5 @@ typedef shared_ptr<Symtable> CSymtable;
 
 
 } // namespace Assembly
-} // namespace SenchaVM
+} // VM
+} // namespace Sencha

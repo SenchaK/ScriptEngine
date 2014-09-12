@@ -1,6 +1,7 @@
 #include "vm_error.h"
 
-namespace SenchaVM {
+namespace Sencha {
+namespace VM {
 namespace Assembly {
 
 /*
@@ -87,4 +88,5 @@ VMError::~VMError(){
 
 
 } // namespace Assembly
-} // namespace SenchaVM
+} // namespace VM
+} // namespace Sencha

@@ -1,7 +1,8 @@
 #include "vm_mnemonic_define.h"
 #include "../vm_define.h"
 
-namespace SenchaVM{
+namespace Sencha{
+namespace VM {
 namespace Assembly{
 string EMnemonic::toString( int mnemonic ){
 #define TO_STRING( token ) #token
@@ -51,5 +52,6 @@ string EMnemonic::toString( int mnemonic ){
 
 
 } // namespace Assembly
-} // namespace SenchaVM
+} // namespace VM
+} // namespace Sencha
 

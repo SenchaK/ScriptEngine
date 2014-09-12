@@ -10,7 +10,8 @@ using namespace std;
 #define PARSER_ASSERT VM_ASSERT
 
 
-namespace SenchaVM {
+namespace Sencha {
+namespace VM {
 namespace Assembly {
 
 Scope* Scope::getTopParent(){
@@ -243,4 +244,5 @@ int Type::SizeOf(){
 }
 
 } // namespace Assembly
-} // namespace SenchaVM
+} // namespace VM
+} // namespace Sencha

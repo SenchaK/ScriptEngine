@@ -1,7 +1,8 @@
 #include "vm_register.h"
 #include "../vm/assembly/vm_mnemonic_define.h"
 
-namespace SenchaVM{
+namespace Sencha{
+namespace VM {
 namespace Assembly{
 VMR::VMR(){
 	this->R = new Memory[R_MAX];
@@ -48,4 +49,5 @@ void VMR::setMemory( int addres , Memory value ){
 
 
 } // Assembly
-} // SenchaVM
+} // namespace VM
+} // Sencha

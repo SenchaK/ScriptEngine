@@ -6,8 +6,9 @@
 #include "vm_assembly_info.h"
 
 
-namespace SenchaVM{
-namespace Assembly{
+namespace Sencha {
+namespace VM {
+namespace Assembly {
 /*
  * 解析結果をバイナリ形式のファイルに出力する。
  * 内部コードを別ファイルにする用途で使用する。
@@ -45,5 +46,6 @@ public  :
 	}
 };
 
-}
-}
+} // namespace Assembly
+} // namespace VM
+} // namespace Sencha

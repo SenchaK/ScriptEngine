@@ -1,6 +1,7 @@
 #include "vm_assembly_info.h"
 
-namespace SenchaVM{
+namespace Sencha{
+namespace VM {
 namespace Assembly{
 
 // ***********************************************************************
@@ -44,4 +45,5 @@ string AsmInfo::moveString( int& pc ){
 
 
 } // namespace Assembly
-} // namespace SenchaVM
+} // namespace VM
+} // namespace Sencha

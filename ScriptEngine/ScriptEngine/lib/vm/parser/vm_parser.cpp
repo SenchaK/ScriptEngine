@@ -9,7 +9,8 @@ using namespace std;
 #define PARSER_ASSERT VM_ASSERT
 
 
-namespace SenchaVM {
+namespace Sencha {
+namespace VM {
 namespace Assembly {
 
 static const Token EndToken( "END_TOKEN" , Token::Type::END_TOKEN );
@@ -716,4 +717,5 @@ int Parser::getFuncAddres( string& funcName ){
 }
 
 } // namespace Assembly
-} // namespace SenchaVM
+} // namespace VM
+} // namespace Sencha

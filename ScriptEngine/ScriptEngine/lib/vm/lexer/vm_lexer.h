@@ -5,16 +5,7 @@
 
 
 namespace Sencha {
-	namespace Util {
-		class Stream;
-		class TextReader;
-		typedef shared_ptr<Stream> CStream;
-		typedef shared_ptr<TextReader> CTextReader;
-	}
-}
-
-
-namespace SenchaVM {
+namespace VM {
 using namespace std;
 using namespace Sencha;
 using namespace Util;
@@ -144,5 +135,5 @@ private :
 };
 typedef std::shared_ptr<Lexer> CLexer;
 
-}
-//	namespace SenchaVM
+} // namespace VM
+} // namespace Sencha

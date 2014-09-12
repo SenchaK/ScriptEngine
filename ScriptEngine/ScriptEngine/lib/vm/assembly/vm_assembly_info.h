@@ -2,7 +2,8 @@
 #include "../../util/stream.h"
 #include "../lexer/vm_lexer.h"
 
-namespace SenchaVM{
+namespace Sencha{
+namespace VM {
 namespace Assembly{
 typedef Sencha::Util::byte vmbyte;
 class VMDriver;
@@ -183,4 +184,5 @@ private :
 
 
 } // namespace Assembly
-} // namespace SenchaVM
+} // namespace VM
+} // namespace Sencha
