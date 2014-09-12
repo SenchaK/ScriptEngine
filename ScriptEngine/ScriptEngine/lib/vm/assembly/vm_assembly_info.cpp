@@ -1,4 +1,4 @@
-#include "vmassembly_info.h"
+#include "vm_assembly_info.h"
 
 namespace SenchaVM{
 namespace Assembly{

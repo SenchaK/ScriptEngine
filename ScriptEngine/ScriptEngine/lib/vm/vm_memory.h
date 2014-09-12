@@ -1,5 +1,5 @@
 #pragma once
-#include "vmdefine.h"
+#include "vm_define.h"
 
 namespace SenchaVM{
 namespace Assembly{

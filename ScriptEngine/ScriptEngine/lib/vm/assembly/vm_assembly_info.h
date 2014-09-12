@@ -1,6 +1,6 @@
 #pragma once
-#include "../../util/util_stream.h"
-#include "../lexer/vmlexer.h"
+#include "../../util/stream.h"
+#include "../lexer/vm_lexer.h"
 
 namespace SenchaVM{
 namespace Assembly{

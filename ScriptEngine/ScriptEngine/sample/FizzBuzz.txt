@@ -1,8 +1,4 @@
-function getValue( $x , $y ){
-	return $x * $y;
-}
-
 function main(){
-	Log( ToString( 10 + 2 * getValue( 3 , 5 ) ) );
+	Log( "Hello World!!" );
 }
 

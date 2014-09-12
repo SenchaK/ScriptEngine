@@ -1,10 +1,10 @@
 #pragma once
 #include "../../util/logger.h"
-#include "vmscope.h"
-#include "..\lexer\vmlexer.h"
-#include "..\symbol\vmsymbol.h"
-#include "..\assembly\vmassembly_info.h"
-#include "error\vmerror.h"
+#include "vm_scope.h"
+#include "..\lexer\vm_lexer.h"
+#include "..\symbol\vm_symbol.h"
+#include "..\assembly\vm_assembly_info.h"
+#include "error\vm_error.h"
 #include <stack>
 #include <queue>
 #include <stdarg.h>

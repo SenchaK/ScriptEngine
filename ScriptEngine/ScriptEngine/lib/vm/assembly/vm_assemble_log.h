@@ -1,8 +1,8 @@
 #pragma once
 #include "../../util/logger.h"
-#include "../vmdefine.h"
-#include "../parser/vmparser.h"
-#include "vmassembly_info.h"
+#include "../vm_define.h"
+#include "../parser/vm_parser.h"
+#include "vm_assembly_info.h"
 
 
 namespace SenchaVM{

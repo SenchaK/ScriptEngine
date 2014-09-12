@@ -1,7 +1,7 @@
 #pragma once
-#include "..\vmdefine.h"
-#include "..\..\util\util_binary.h"
-#include "..\..\util\util_stream.h"
+#include "..\vm_define.h"
+#include "..\..\util\binary.h"
+#include "..\..\util\stream.h"
 
 
 namespace Sencha {

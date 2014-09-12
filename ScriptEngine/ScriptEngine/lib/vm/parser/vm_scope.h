@@ -1,7 +1,7 @@
 #pragma once
-#include "..\lexer\vmlexer.h"
-#include "..\symbol\vmsymbol.h"
-#include "..\assembly\vmassembly_info.h"
+#include "..\lexer\vm_lexer.h"
+#include "..\symbol\vm_symbol.h"
+#include "..\assembly\vm_assembly_info.h"
 #include <stack>
 
 namespace SenchaVM {

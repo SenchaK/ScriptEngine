@@ -1,7 +1,7 @@
 #pragma once
-#include "../vmdefine.h"
-#include "../lexer/vmlexer.h"
-#include "../vmassembler.h"
+#include "../vm_define.h"
+#include "../lexer/vm_lexer.h"
+#include "../vm_assembler.h"
 
 
 namespace SenchaVM{

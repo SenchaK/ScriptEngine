@@ -1,6 +1,6 @@
 #pragma once
-#include "vmdefine.h"
-#include "vmmemory.h"
+#include "vm_define.h"
+#include "vm_memory.h"
 
 namespace SenchaVM{
 namespace Assembly{

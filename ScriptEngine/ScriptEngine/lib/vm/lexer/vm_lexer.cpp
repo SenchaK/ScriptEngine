@@ -1,4 +1,4 @@
-#include "vmlexer.h"
+#include "vm_lexer.h"
 #include <assert.h>
 
 namespace SenchaVM {

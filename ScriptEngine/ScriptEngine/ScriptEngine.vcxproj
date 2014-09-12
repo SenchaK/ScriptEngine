@@ -75,41 +75,41 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="lib\util\logger.cpp" />
-    <ClCompile Include="lib\util\util_binary.cpp" />
-    <ClCompile Include="lib\util\util_stream.cpp" />
+    <ClCompile Include="lib\util\binary.cpp" />
+    <ClCompile Include="lib\util\stream.cpp" />
     <ClCompile Include="lib\vm\assembly\vm_assemble_io.cpp" />
     <ClCompile Include="lib\vm\assembly\vm_assemble_log.cpp" />
-    <ClCompile Include="lib\vm\assembly\vmassembly_info.cpp" />
+    <ClCompile Include="lib\vm\assembly\vm_assembly_info.cpp" />
     <ClCompile Include="lib\vm\assembly\vm_mnemonic_define.cpp" />
-    <ClCompile Include="lib\vm\lexer\vmlexer.cpp" />
-    <ClCompile Include="lib\vm\parser\error\vmerror.cpp" />
-    <ClCompile Include="lib\vm\parser\vmparser.cpp" />
-    <ClCompile Include="lib\vm\parser\vmscope.cpp" />
+    <ClCompile Include="lib\vm\lexer\vm_lexer.cpp" />
+    <ClCompile Include="lib\vm\parser\error\vm_error.cpp" />
+    <ClCompile Include="lib\vm\parser\vm_parser.cpp" />
+    <ClCompile Include="lib\vm\parser\vm_scope.cpp" />
     <ClCompile Include="lib\vm\sencha_vm.cpp" />
-    <ClCompile Include="lib\vm\symbol\vmsymbol.cpp" />
-    <ClCompile Include="lib\vm\vmassembler.cpp" />
-    <ClCompile Include="lib\vm\vmmemory.cpp" />
-    <ClCompile Include="lib\vm\vmregister.cpp" />
+    <ClCompile Include="lib\vm\symbol\vm_symbol.cpp" />
+    <ClCompile Include="lib\vm\vm_assembler.cpp" />
+    <ClCompile Include="lib\vm\vm_memory.cpp" />
+    <ClCompile Include="lib\vm\vm_register.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lib\util\logger.h" />
-    <ClInclude Include="lib\util\util_binary.h" />
-    <ClInclude Include="lib\util\util_stream.h" />
+    <ClInclude Include="lib\util\binary.h" />
+    <ClInclude Include="lib\util\stream.h" />
     <ClInclude Include="lib\vm\assembly\vm_assemble_io.h" />
     <ClInclude Include="lib\vm\assembly\vm_assemble_log.h" />
-    <ClInclude Include="lib\vm\assembly\vmassembly_info.h" />
+    <ClInclude Include="lib\vm\assembly\vm_assembly_info.h" />
     <ClInclude Include="lib\vm\assembly\vm_mnemonic_define.h" />
-    <ClInclude Include="lib\vm\lexer\vmlexer.h" />
-    <ClInclude Include="lib\vm\parser\error\vmerror.h" />
-    <ClInclude Include="lib\vm\parser\vmparser.h" />
-    <ClInclude Include="lib\vm\parser\vmscope.h" />
+    <ClInclude Include="lib\vm\lexer\vm_lexer.h" />
+    <ClInclude Include="lib\vm\parser\error\vm_error.h" />
+    <ClInclude Include="lib\vm\parser\vm_parser.h" />
+    <ClInclude Include="lib\vm\parser\vm_scope.h" />
     <ClInclude Include="lib\vm\sencha_vm.h" />
-    <ClInclude Include="lib\vm\symbol\vmsymbol.h" />
-    <ClInclude Include="lib\vm\vmassembler.h" />
-    <ClInclude Include="lib\vm\vmdefine.h" />
-    <ClInclude Include="lib\vm\vmmemory.h" />
-    <ClInclude Include="lib\vm\vmregister.h" />
+    <ClInclude Include="lib\vm\symbol\vm_symbol.h" />
+    <ClInclude Include="lib\vm\vm_assembler.h" />
+    <ClInclude Include="lib\vm\vm_define.h" />
+    <ClInclude Include="lib\vm\vm_memory.h" />
+    <ClInclude Include="lib\vm\vm_register.h" />
     <ClInclude Include="memory_pool.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

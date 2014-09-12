@@ -1,6 +1,4 @@
 #include "lib\vm\sencha_vm.h"
-#include "lib\vm\assembly\vm_assemble_log.h"
-#include "lib\vm\assembly\vm_assemble_io.h"
 #include <crtdbg.h>
 
 

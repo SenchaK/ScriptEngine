@@ -1,4 +1,4 @@
-#include "vmregister.h"
+#include "vm_register.h"
 #include "../vm/assembly/vm_mnemonic_define.h"
 
 namespace SenchaVM{

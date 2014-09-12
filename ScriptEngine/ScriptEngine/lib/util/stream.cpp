@@ -1,4 +1,4 @@
-#include "util_stream.h"
+#include "stream.h"
 
 #ifdef UTIL_DEBUG
 	#define UTIL_ASSERT assert

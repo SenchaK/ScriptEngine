@@ -1,5 +1,5 @@
 #pragma once
-#include "util_binary.h"
+#include "binary.h"
 #include <cassert>
 #include <string>
 #include <vector>

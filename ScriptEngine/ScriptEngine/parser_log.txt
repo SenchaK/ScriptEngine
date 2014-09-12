@@ -1,35 +1,9 @@
-func getValue
-00000000:  mov R0 , L[0]
-00000014:  mov R0 , L[1]
-00000028:  mov R0 , L[0]
-00000042:  mov R1 , L[1]
-00000056:  mul R0 , R1
-00000061:  ret R0
-00000064:  end
-00000065:  end
-
 func main
-00000000:  mov R0 , 10
-00000012:  mov R1 , 2
-00000024:  mov R2 , 3
-00000036: push R2
-00000039:  mov R2 , 5
-00000051: push R2
-00000054:   st 2
-00000056: call 0
-00000061:  mov R2 , R0
-00000066:   ld 2
-00000068:  mul R1 , R2
-00000073:  add R0 , R1
-00000078: push R0
-00000081:   st 0
-00000083: call 1(built in function)
-00000088:  mov R0 , R0
-00000093:   ld 0
-00000095: push R0
-00000098:   st 0
-00000100: call 0(built in function)
-00000105:  mov R0 , R0
-00000110:   ld 0
-00000112:  end
+00000000:  mov R0 , Hello World!!
+00000018: push R0
+00000021:   st 0
+00000023: call 0(built in function)
+00000028:  mov R0 , R0
+00000033:   ld 0
+00000035:  end
 

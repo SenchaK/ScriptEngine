@@ -1,4 +1,4 @@
-#include "vmmemory.h"
+#include "vm_memory.h"
 
 namespace SenchaVM{
 namespace Assembly{

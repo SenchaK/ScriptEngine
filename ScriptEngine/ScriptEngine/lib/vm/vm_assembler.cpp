@@ -1,5 +1,5 @@
-#include "vmassembler.h"
-#include "vmregister.h"
+#include "vm_assembler.h"
+#include "vm_register.h"
 
 
 namespace SenchaVM{

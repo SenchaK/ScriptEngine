@@ -1,4 +1,4 @@
-#include "vmerror.h"
+#include "vm_error.h"
 
 namespace SenchaVM {
 namespace Assembly {

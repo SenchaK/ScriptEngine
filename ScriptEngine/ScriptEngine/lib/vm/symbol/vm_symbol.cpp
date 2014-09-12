@@ -1,6 +1,6 @@
-#include "../../vm/parser/error/vmerror.h"
-#include "vmsymbol.h"
-#include "../parser/vmscope.h"
+#include "../../vm/parser/error/vm_error.h"
+#include "vm_symbol.h"
+#include "../parser/vm_scope.h"
 
 
 namespace SenchaVM{

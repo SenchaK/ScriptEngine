@@ -1,7 +1,7 @@
 #pragma once
-#include "vmdefine.h"
-#include "vmmemory.h"
-#include "assembly\vmassembly_info.h"
+#include "vm_define.h"
+#include "vm_memory.h"
+#include "assembly\vm_assembly_info.h"
 #include "assembly\vm_mnemonic_define.h"
 #include <stack>
 

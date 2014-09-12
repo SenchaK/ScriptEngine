@@ -1,9 +1,9 @@
-#include "vmparser.h"
-#include "vmscope.h"
-#include "..\lexer\vmlexer.h"
-#include "..\vmassembler.h"
-#include "..\symbol\vmsymbol.h"
-#include "error\vmerror.h"
+#include "vm_parser.h"
+#include "vm_scope.h"
+#include "..\lexer\vm_lexer.h"
+#include "..\vm_assembler.h"
+#include "..\symbol\vm_symbol.h"
+#include "error\vm_error.h"
 
 using namespace std;
 #define PARSER_ASSERT VM_ASSERT
