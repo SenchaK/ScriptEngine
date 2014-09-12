@@ -74,9 +74,6 @@
     <ClInclude Include="lib\vm\sencha_vm.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="memory_pool.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
     <ClInclude Include="lib\util\logger.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>

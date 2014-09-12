@@ -8,10 +8,6 @@ using namespace Sencha::VM::Assembly;
 using namespace Sencha::Util;
 
 
-void ReadScriptAndWriteBinary();
-void ReadScriptAndWriteTextFileLog();
-void ReadBinaryAndWriteTextFileLog();
-
 
 void built_in_function_Log( VMDriver* driver ){
 	string message = driver->popMemory().value_string;

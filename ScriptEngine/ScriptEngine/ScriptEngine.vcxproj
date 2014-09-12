@@ -110,7 +110,6 @@
     <ClInclude Include="lib\vm\vm_define.h" />
     <ClInclude Include="lib\vm\vm_memory.h" />
     <ClInclude Include="lib\vm\vm_register.h" />
-    <ClInclude Include="memory_pool.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
