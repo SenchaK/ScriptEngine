@@ -78,28 +78,34 @@ namespace Sencha {
 namespace VM {
 using namespace Sencha::VM;
 using namespace Sencha::VM::Assembly;
-	class SenchaVM{
-	private :
-		Log* m_log;
-		Lexer* m_lexer;
-		IAssembleReader* m_reader;
-		VMDriver* m_driver;
-		VMBuiltIn* m_built_in;
-	private :
-		void clear();
-	public :
-		SenchaVM();
-		~SenchaVM();
-		void log_init( Log* logger );
-		void cleanup();
-		void compile_from_text( string text );
-		void compile_from_file( const char* fileName );
-		void compile_from_o_file( const char* objectFileName );
-		void create_o_file( const char* objectFileName );
-		void create_text_file_log( const char* fileName );
-		void output_console_log();
-		void define_function( string mappingName , void (*function)(VMDriver*) );
-		void execute_function( string funcName );
-	};
+
+/*
+ * スクリプトエンジン部分
+ * 一通りの機能を提供する。
+ */
+class SenchaVM{
+private :
+	Log* m_log;
+	Lexer* m_lexer;
+	IAssembleReader* m_reader;
+	VMDriver* m_driver;
+	VMBuiltIn* m_built_in;
+private :
+	void clear();
+public :
+	SenchaVM();
+	~SenchaVM();
+	void log_init( Log* logger );
+	void cleanup();
+	void compile_from_text( string text );
+	void compile_from_file( const char* fileName );
+	void compile_from_o_file( const char* objectFileName );
+	void create_o_file( const char* objectFileName );
+	void create_text_file_log( const char* fileName );
+	void output_console_log();
+	void define_function( string mappingName , void (*function)(VMDriver*) );
+	void execute_function( string funcName );
+};
+
 } // namespace VM
 } // namespace Sencha
