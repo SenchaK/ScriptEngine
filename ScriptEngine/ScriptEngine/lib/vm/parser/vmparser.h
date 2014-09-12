@@ -437,17 +437,6 @@ private :
 			if( symbol ) return true;
 			return false;
 		}
-		/*
-		 * あるシンボルの子階層にそのシンボルが存在するか
-		 * 存在する場合、メンバーとして扱う
-		 */
-		bool ExistSymbolMember( string& inst , string& member ){
-			SymbolInfo* instSymbol = m_parser->m_currentScope->getSymbol( inst );
-			assert( instSymbol );
-			SymbolInfo* memberSymbol = instSymbol->getSymbol( member );
-			if( memberSymbol ) return true;
-			return false;
-		}
 	};
 
 	// 変数シンボル解析
@@ -805,7 +794,7 @@ private :
 	VMAssembleCollection* m_asm;
 	VMBuiltIn* m_built_in;
 	CBinaryWriter m_writer;
-	CScope m_scope;
+	Scope* m_scope;
 	Scope* m_currentScope;
 	ITokenizer* m_token;
 	Log* m_log;

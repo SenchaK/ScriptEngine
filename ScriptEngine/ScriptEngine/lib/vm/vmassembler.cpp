@@ -4,34 +4,6 @@
 
 namespace SenchaVM{
 namespace Assembly{
-/*
- * ストア（一時保存領域）
- * ST/LD命令に使用する。
- * レジスタの一時回避領域
- * 再利用性のない機能なので静的領域に配置する
- * todo:: vmregister.hで吸収させる
- */
-static const int STORE_SIZE = 1024;
-static Memory StoreMemory[STORE_SIZE];
-static int StoreP;
-/*
- * ストア領域にメモリ登録
- */
-static void pushStore( Memory& m ){
-	assert( StoreP < STORE_SIZE );
-	StoreMemory[StoreP] = m;
-	StoreP++;
-}
-/*
- * ストア領域の一番上にあるメモリを取得
- */
-static Memory& popStore(){
-	StoreP--;
-	assert( StoreP >= 0 );
-	return StoreMemory[StoreP];
-}
-
-
 AsmInfo* VMDriver::currentAssembly(){
 	return this->m_reader->getAssembly( m_funcAddr );
 }
@@ -44,8 +16,14 @@ VMDriver::VMDriver( IAssembleReader* reader , VMBuiltIn* built_in ){
 	this->m_localAddr = 0;
 	this->m_callStackIndex = 0;
 	this->m_push = 0;
-	memset( &m_callStack , 0 , sizeof( m_callStack ) );
 	this->initialize( reader , built_in , 2048 , 1024 );
+}
+
+VMDriver::~VMDriver(){
+	delete this->R;
+	delete[] this->m_local;
+	delete[] this->m_static;
+	delete[] this->m_callStack;
 }
 
 void VMDriver::initialize( IAssembleReader* reader , VMBuiltIn* built_in , size_t stacksize , size_t staticsize ){
@@ -56,27 +34,28 @@ void VMDriver::initialize( IAssembleReader* reader , VMBuiltIn* built_in , size_
 	this->m_built_in = built_in;
 	this->m_stacksize = stacksize;
 	this->m_staticsize = staticsize;
-	this->m_local = CMemory( new Memory[stacksize] , std::default_delete<Memory[]>() );
-	this->m_static = CMemory( new Memory[staticsize] , std::default_delete<Memory[]>() );
-	memset( &m_callStack , 0 , sizeof( m_callStack ) );
+	this->m_local = new Memory[stacksize];
+	this->m_static = new Memory[staticsize];
+	this->m_callStack = new VMCallStack[CALL_STACK_SIZE];
+	this->R = new VMR();
 }
 
 Memory& VMDriver::getLocal( int addres ){
 	assert( addres >= 0 && addres < (int)m_stacksize );
-	return m_local.get()[addres];
+	return m_local[addres];
 }
 Memory& VMDriver::getStatic( int addres ){
 	assert( addres >= 0 && addres < (int)m_staticsize );
-	return m_static.get()[addres];
+	return m_static[addres];
 }
 void VMDriver::setLocal( int addres , Memory& m ){
 	assert( addres >= 0 && addres < (int)m_stacksize );
-	Memory& src = m_local.get()[addres];
+	Memory& src = m_local[addres];
 	src.setMemory( m );
 }
 void VMDriver::setStatic( int addres , Memory& m ){
 	assert( addres >= 0 && addres < (int)m_staticsize );
-	m_static.get()[addres].setMemory( m );
+	m_static[addres].setMemory( m );
 }
 void VMDriver::setMemory( Memory& src , Memory& value ){
 	src.setMemory( value );
@@ -192,7 +171,7 @@ int VMDriver::getFunctionAddr( string name ){
 	if( assembly ){
 		return assembly->addr();
 	}
-	printf( "not found function %s\n" , name.c_str() );
+	printf( "not found function [%s]\n" , name.c_str() );
 	return -1;
 }
 
@@ -205,6 +184,14 @@ void VMDriver::vmsetup(){
 	m_pc = 0;
 }
 
+/*
+ * メモリの取得に使用する。
+ * 先頭1バイトにはメモリ種類が含まれている。
+ * ・整数リテラル(double型)
+ * ・文字列リテラル(string型)
+ * ・レジスタ(Memory型)
+ * ・ローカルもしくは静的領域(Memory型)
+ */
 Memory& VMDriver::createOrGetMemory(){
 	static Memory literalMemory;
 
@@ -218,7 +205,7 @@ Memory& VMDriver::createOrGetMemory(){
 		return literalMemory;
 	}
 	if( location == EMnemonic::REG ){
-		return R_STACK::getMemory( this->currentAssembly()->moveU8( this->m_pc ) );
+		return R->getMemory( this->currentAssembly()->moveU8( this->m_pc ) );
 	}
 
 	int address = 0;
@@ -238,7 +225,7 @@ Memory& VMDriver::createOrGetMemory(){
 			if( isArray ){
 				int sizeOf = this->currentAssembly()->moveU32( this->m_pc );
 				int RIndex = this->currentAssembly()->moveU32( this->m_pc );
-				addr += sizeOf * ((int)R_STACK::getMemory( RIndex ).value);
+				addr += sizeOf * ((int)R->getMemory( RIndex ).value);
 			}
 			address += addr;
 		}
@@ -246,53 +233,88 @@ Memory& VMDriver::createOrGetMemory(){
 	return this->getMemory( location , address );
 }
 
+/*
+ * 代入命令
+ */
 void VMDriver::_mov(){
 	Memory& src = this->createOrGetMemory();
 	Memory& dest = this->createOrGetMemory();
 	this->setMemory( src , dest );
 }
 
+/*
+ * 足し算
+ */
 void VMDriver::_add(){
 	Memory& src = this->createOrGetMemory();
 	Memory& dest = this->createOrGetMemory();
 	this->setMemory( src , src + dest );
 }
 
+/*
+ * 引き算
+ */
 void VMDriver::_sub(){
 	Memory& src = this->createOrGetMemory();
 	Memory& dest = this->createOrGetMemory();
 	this->setMemory( src , src - dest );
 }
 
+/*
+ * 掛け算
+ */
 void VMDriver::_mul(){
 	Memory& src = this->createOrGetMemory();
 	Memory& dest = this->createOrGetMemory();
 	this->setMemory( src , src * dest );
 }
 
+/*
+ * 割り算
+ */
 void VMDriver::_div(){
 	Memory& src = this->createOrGetMemory();
 	Memory& dest = this->createOrGetMemory();
 	this->setMemory( src , src / dest );
 }
 
+/*
+ * 余算
+ */
 void VMDriver::_rem(){
 	Memory& src = this->createOrGetMemory();
 	Memory& dest = this->createOrGetMemory();
 	this->setMemory( src , src % dest );
 }
 
+/*
+ * インクリメント命令
+ */
 void VMDriver::_inc(){
 	Memory& src = this->createOrGetMemory();
 	this->setMemory( src , ++src );
 }
 
+/*
+ * デクリメント命令
+ */
 void VMDriver::_dec(){
 	Memory& src = this->createOrGetMemory();
 	this->setMemory( src , --src );
 }
 
-
+/* 
+ * 比較命令
+ * cmpTypeに該当する比較命令を行い、各比較条件に合っていれば真を返す。
+ * @param cmpType ... 比較命令種類
+ *
+ * geq ... srcがdestよりも大きいもしくは等しい
+ * g   ... srcがdestよりも大きい
+ * leq ... srcがdestよりも小さいもしくは等しい
+ * l   ... srcがdestよりも小さい
+ * eq  ... srcとdestは等しい
+ * neq ... srcとdestは等しくない
+ */
 void VMDriver::_cmp( int cmpType ){
 	bool result = 0;
 	Memory& src = this->createOrGetMemory();
@@ -308,6 +330,13 @@ void VMDriver::_cmp( int cmpType ){
 	setMemory( src , Memory( result , "" ) );
 }
 
+/*
+ * 論理演算 && , || 
+ * logはLogic Operation(論理演算)から
+ * 評価値 srcとdestのANDもしくはORの演算を行う。
+ * AND ... srcとdestが双方偽でないならば真
+ * OR  ... srcとdestどちらかが偽でないならば真
+ */
 void VMDriver::_log( int logType ){
 	bool result = 0;
 	Memory& src = this->createOrGetMemory();
@@ -319,27 +348,43 @@ void VMDriver::_log( int logType ){
 	setMemory( src , Memory( result , "" ) );
 }
 
+/*
+ * jmp命令
+ * 指定のアドレスにプログラムカウンタを移動させる。
+ */
 void VMDriver::_jmp(){
 	int jmpaddr = currentAssembly()->moveU32( this->m_pc );
 	this->m_pc = jmpaddr;
 }
 
+/* 
+ * jz命令
+ * 結果値が0である場合、指定のアドレスにプログラムカウンタを移動させる。
+ */
 void VMDriver::_jumpzero(){
 	int jmpaddr = currentAssembly()->moveU32( this->m_pc );
-	Memory r0 = R_STACK::getMemory( 0 );
+	Memory r0 = R->getMemory( 0 );
 	if( r0 == 0 ){
 		this->m_pc = jmpaddr;
 	}
 }
 
+/*
+ * jnz命令
+ * 結果値が0ではない場合、指定のアドレスにプログラムカウンタを移動させる。
+ */
 void VMDriver::_jumpnotzero(){
 	int jmpaddr = currentAssembly()->moveU32( this->m_pc );
-	Memory r0 = R_STACK::getMemory( 0 );
+	Memory r0 = R->getMemory( 0 );
 	if( r0 != 0 ){
 		this->m_pc = jmpaddr;
 	}
 }
 
+/*
+ * push命令
+ * スタックフレーム + 現在のスタックポインタ + プッシュ回数分だけずらした位置にメモリを配置する。
+ */
 void VMDriver::_push(){
 	size_t stackFrame = currentAssembly()->stackFrame();
 	Memory& m = this->createOrGetMemory();
@@ -348,12 +393,24 @@ void VMDriver::_push(){
 	setMemory( set , m );
 }
 
+/*
+ * pop命令
+ * スタックを1つ戻す
+ */
 void VMDriver::_pop(){
 	m_push--;
 }
 
+/*
+ * サブルーチン呼び出し命令
+ * 下位24ビットはアドレス
+ * 上位 8ビットは種類となっている。
+ * 0 ... スクリプト内のアセンブリ
+ * 1 ... 組み込み関数
+ * となる
+ */
 void VMDriver::_call(){
-	assert( m_callStackIndex >= 0 && m_callStackIndex < STK_SIZE );
+	assert( m_callStackIndex >= 0 && m_callStackIndex < CALL_STACK_SIZE );
 	struct funcinfoS{
 		unsigned int address : 24;
 		unsigned int type    :  8;
@@ -363,7 +420,6 @@ void VMDriver::_call(){
 		int int_value;
 	} func;
 	func.int_value = currentAssembly()->moveU32( this->m_pc );
-
 	m_callStack[m_callStackIndex].funcAddr = m_funcAddr;
 	m_callStack[m_callStackIndex].prog     = m_pc;
 	m_callStackIndex++;
@@ -385,9 +441,7 @@ void VMDriver::_call(){
  */ 
 void VMDriver::_st(){
 	int UsedRCount = this->currentAssembly()->moveU8( this->m_pc );
-	for( int R_Address = 0 ; R_Address < UsedRCount ; R_Address++ ){
-		pushStore( R_STACK::getMemory(R_Address) );
-	}
+	this->R->store( UsedRCount );
 }
 
 /*
@@ -396,24 +450,30 @@ void VMDriver::_st(){
  */
 void VMDriver::_ld(){
 	int UsedRCount = this->currentAssembly()->moveU8( this->m_pc );
-	for( int R_Address = 0 ; R_Address < UsedRCount ; R_Address++ ){
-		Memory& m = popStore();
-		R_STACK::setMemory( ( UsedRCount - 1 ) - R_Address , m );
-	}
+	this->R->load( UsedRCount );
 }
 
+/*
+ * ret命令
+ * 戻り値を0番レジスタに配置する
+ */
 void VMDriver::_ret(){
 	Memory& m = this->createOrGetMemory();
-	R_STACK::setMemory( 0 , m );
+	this->R->setMemory( 0 , m );
 }
 
+/*
+ * end命令
+ * 関数終了時に呼ばれ、コールスタックを1つ前の状態に戻す。
+ * それ以上前の状態がない場合はそこがエントリーポイントの終了地点なのでそこで終了とする。
+ */
 void VMDriver::_endFunc(){
 	m_callStackIndex--;
 	if( m_callStackIndex < 0 ){
 		m_funcAddr = -1;
 		return;
 	}
-	assert( m_callStackIndex < STK_SIZE );
+	assert( m_callStackIndex < CALL_STACK_SIZE );
 	this->m_funcAddr   = m_callStack[m_callStackIndex].funcAddr;
 	this->m_pc         = m_callStack[m_callStackIndex].prog;
 	this->m_localAddr -= currentAssembly()->stackFrame();
@@ -423,12 +483,20 @@ void VMDriver::_endFunc(){
 /* ****************************************************************************** *
  * public
  * ****************************************************************************** */ 
+
+/*
+ * 関数を呼び出し実行する
+ */
 void VMDriver::executeFunction( string funcName ){
 	this->getFunction( funcName );
 	this->vmsetup();
 	this->execute();
 }
 
+/*
+ * プッシュされているメモリを一つ取り出す。
+ * 組み込み関数に引数を渡すときに使用する。
+ */
 Memory& VMDriver::popMemory(){
 	this->_pop();
 	return this->getLocal( m_localAddr + m_push );

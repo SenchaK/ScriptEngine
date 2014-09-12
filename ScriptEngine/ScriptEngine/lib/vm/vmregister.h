@@ -4,27 +4,50 @@
 
 namespace SenchaVM{
 namespace Assembly{
-class R_STACK {
-private :
-	// 計算機メモリ
-	class CalcMemory {
-	public :
-		CMemory m_Mem; 
-		CalcMemory();
-	};
-private :
-	CalcMemory m_Calc;
-	R_STACK();
-private :
-	static shared_ptr<R_STACK> instance;
-	static shared_ptr<R_STACK> Instance();
 
+/*
+ * ドライバで使用するレジスタ・ストア領域
+ * 汎用レジスタを用意
+ * 退避領域もここに定義する。
+ */
+class VMR {
+private :
+	typedef enum {
+		R_MAX      =   32 , 
+		STORE_SIZE = 1028 , 
+	};
+	Memory* R;
+	Memory* STORE;
+	int store_p;
 // **************************************************************
 // 公開API
 // **************************************************************
 public :
-	static Memory& getMemory( int addres );
-	static void setMemory( int addres , Memory value );
+	VMR();
+	~VMR();
+	/*
+	 * 現在のレジスタの中身を指定カウント分だけストア領域に積み上げる。
+	 * countが3の場合
+	 * STORE[0] ... R[0]
+	 * STORE[1] ... R[1]
+	 * STORE[2] ... R[2]
+	 * というように積まれる。
+	 *
+	 * @param count ... 保存する領域数
+	 */
+	void store( int count );
+
+	/*
+	 * ストア領域から指定カウント分だけの情報をレジスタに渡して状態修復を行う
+	 * R[0] ... STORE[0]
+	 * R[1] ... STORE[1]
+	 * R[2] ... STORE[2]
+	 * という順番で戻るようにする。
+	 * @param count ... どこまで戻すかの取り出し数
+	 */
+	void load( int count );
+	Memory& getMemory( int addres );
+	void setMemory( int addres , Memory value );
 };
 
 } // Assembly

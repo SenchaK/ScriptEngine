@@ -1,6 +1,8 @@
 #include "lib\vm\sencha_vm.h"
 #include "lib\vm\assembly\vm_assemble_log.h"
 #include "lib\vm\assembly\vm_assemble_io.h"
+#include <crtdbg.h>
+
 
 using namespace SenchaVM;
 using namespace SenchaVM::Assembly;
@@ -19,14 +21,12 @@ void built_int_function_ToString( VMDriver* driver ){
 	Memory& m = driver->popMemory();
 	static char buf[512];
 	sprintf_s<512>( buf , "%.f" , m.value );
-	R_STACK::setMemory( 0 , Memory( 0 , buf ) );
+	driver->getR()->setMemory( 0 , Memory( 0 , buf ) );
 }
 
 
 void main(){
-//	ReadScriptAndWriteBinary();
-//	ReadScriptAndWriteTextFileLog();
-//	ReadBinaryAndWriteTextFileLog();
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
 	Log* log = new ConsoleLog();
 	VMBuiltIn* built_in = new VMBuiltIn();
@@ -36,6 +36,7 @@ void main(){
 	Lexer* lexer = new Lexer( CStream( new FileStream( "sample/FizzBuzz.txt" ) ) );
 	Parser* parser = new Parser( lexer , built_in , log );
 	VMAssembleTextFileLog( parser , "parser_log.txt" );
+	VMAssembleOutput output( parser , "parser_data.bin" );
 	VMDriver d( parser , built_in );
 	d.executeFunction( "main" );
 

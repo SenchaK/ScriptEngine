@@ -19,20 +19,13 @@ private :
 	size_t m_addr;
 	size_t m_arrayLength;
 	int m_scopeLevel;
-	int m_arrayIndexR;
 	bool m_isArray;
 	ESymbolType m_symbolType;
 	bool m_isReference;
-	bool m_isStruct;
 	unsigned short m_dataTypeId;
-	vector<SymbolInfo*> m_child;
-	SymbolInfo* m_parent;
 	Type* m_type;
-	SymbolInfo( SymbolInfo* src , SymbolInfo* parent );
 public :
-	const vector<SymbolInfo*>& getChilds(){ return m_child; }
-	SymbolInfo* const getChild( int index ){ return m_child[index]; }
-	SymbolInfo( string name , size_t arrayLength , ESymbolType symbolType , bool isReference , bool isStruct , int scopeLevel );
+	SymbolInfo( string name , size_t arrayLength , ESymbolType symbolType , bool isReference , int scopeLevel );
 	~SymbolInfo();
 	string DataTypeName();
 	int SizeOf();
@@ -43,22 +36,19 @@ public :
 	size_t Addr(){
 		return m_addr;
 	}
-	size_t TopSymbolAddr();
 	bool IsReference(){
 		return m_isReference;
 	}
-	size_t DataSize();
 	ESymbolType SymbolType(){
 		return m_symbolType;
 	}
 	int ScopeLevel(){
 		return m_scopeLevel;
 	}
-	int ChildSymbolCount(){
-		return m_child.size();
-	}
 	int getSymbolCount();
-	int ArrayLength(){ return m_arrayLength; }
+	int ArrayLength(){
+		return m_arrayLength;
+	}
 	void Addr( size_t value ){
 		m_addr = value;
 	}
@@ -71,33 +61,14 @@ public :
 	void IsReference( bool isReference ){
 		m_isReference = isReference;
 	}	
-	string SymbolTypeString(){
-		switch( m_symbolType ){
-		case Func           : return "Func";
-		case VariableLocal  : return "VariableLocal" ;
-		case VariableGlobal : return "VariableGlobal";
-		case Struct         : return "Struct";
-		}  
-		return "unknown";
-	}
-
 	bool isArray(){ return m_isArray; }
 	void isArray( bool isArray ){ m_isArray = isArray; }
-	void setArrayIndexR( int RNo ){ this->m_arrayIndexR = RNo; }
-	int getArrayIndexR(){ return this->m_arrayIndexR; }
-
 	void setType( Type* t ){ m_type = t; }
 	Type* const getType(){ return m_type; }
-	SymbolInfo* const getSymbol( string name );
-	SymbolInfo* const addSymbol( string name );
 
 	// このシンボルのスコープは静的な領域に存在しているのかどうか
 	bool isGlobal(){ return m_scopeLevel == SCOPE_LEVEL_GLOBAL; }
 	int toAssembleCode();
-	int isReferenceMember();
-	void copyAndAddChildrenOfSymbol( SymbolInfo* symbol );
-	void copyAndAddChildrenOfSymbol( const vector<SymbolInfo*>& symbolList );
-	void setupChildrenAddresToParentAddresOffset();
 };
 
 class Symtable {

@@ -153,7 +153,7 @@ void VMAssembleLog::end( AsmInfo* assembly ){
 }
 
 void VMAssembleLog::ret( AsmInfo* assembly ){
-	this->print( "%5s" , "ret" );
+	this->print( "%5s " , "ret" );
 	this->writeVarChain( assembly );
 	this->print( "\n" );
 }

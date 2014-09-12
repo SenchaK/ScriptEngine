@@ -15,15 +15,16 @@ using namespace std;
  * アセンブルコマンドを実行する
  * ************************************************** */
 class VMDriver;
+class VMR;
 typedef shared_ptr<VMDriver> CVMDriver;
 
 class VMDriver {
 private :
 	enum {
-		STK_SIZE = 1024 , 
+		CALL_STACK_SIZE = 1024 , 
 	};
 
-	VMCallStack m_callStack[STK_SIZE];
+	VMCallStack* m_callStack;
 	int m_callStackIndex;
 	int m_pc;
 	int m_push;
@@ -31,8 +32,9 @@ private :
 	size_t m_localAddr;
 	size_t m_stacksize;
 	size_t m_staticsize;
-	CMemory m_local;
-	CMemory m_static;
+	Memory* m_local;
+	Memory* m_static;
+	VMR* R;
 	IAssembleReader* m_reader;
 	VMBuiltIn* m_built_in;
 private :
@@ -70,7 +72,7 @@ private :
 	void setLocal( int addres , Memory& m );
 	void setStatic( int addres , Memory& m );
 	void setMemory( Memory& src , Memory& value );
-protected :
+private :
 	AsmInfo* findFunction( string name );
 	int getFunctionAddr( string name );	
 	void getFunction( string func );
@@ -79,8 +81,10 @@ protected :
 	void initialize( IAssembleReader* reader , VMBuiltIn* built_in , size_t stacksize , size_t staticsize );
 public :
 	VMDriver( IAssembleReader* reader , VMBuiltIn* built_in );
+	virtual ~VMDriver();
 	void executeFunction( string funcName );
 	Memory& popMemory();
+	VMR* getR(){ return this->R; }
 public :
 };
 

@@ -1,13 +1,8 @@
-function print( $message ){
-	Log( $message );
+function getValue( $x , $y ){
+	return $x * $y;
 }
 
 function main(){
-	for( $i = 0 ; $i < 100 ; $i += 1 ){
-		$value = $i + 1;
-		if( $value % 5 == 0 && $value % 3 == 0 ){
-			Log( "FizzBuzz:"+ToString( $value ) );
-		}
-	}
+	Log( ToString( 10 + 2 * getValue( 3 , 5 ) ) );
 }
 

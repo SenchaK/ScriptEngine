@@ -97,7 +97,11 @@ public :
 
 struct VMCallStack {
 	int funcAddr;
-	int prog;	
+	int prog;
+	VMCallStack(){
+		funcAddr = 0;
+		prog = 0;
+	}
 };
 
 class VMBuiltIn {
@@ -129,7 +133,7 @@ public :
 		return -1;
 	}
 
-	~VMBuiltIn(){
+	virtual ~VMBuiltIn(){
 		this->clear();
 	}
 };

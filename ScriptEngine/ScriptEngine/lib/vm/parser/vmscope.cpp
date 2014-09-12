@@ -163,7 +163,7 @@ SymbolInfo* const Scope::_addSymbol( string symbolName ){
 		//printf( "VariableField %s[%d]\n" , symbolName.c_str() , topAddr );
 		break;
 	}
-	m_symtable->entrySymbol( new SymbolInfo( symbolName , 1 , (ESymbolType)getSearchSymbolType() , false , false , this->m_scopeLevel ) );
+	m_symtable->entrySymbol( new SymbolInfo( symbolName , 1 , (ESymbolType)getSearchSymbolType() , false , this->m_scopeLevel ) );
 	SymbolInfo* symbol = m_symtable->peekSymbol();
 
 	symbol->Addr( topAddr );

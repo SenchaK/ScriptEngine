@@ -30,17 +30,24 @@ Parser::Parser( ITokenizer* tokenizer ){
 }
 
 Parser::~Parser(){
+	if( this->m_scope ){
+		delete this->m_scope;
+		this->m_scope = NULL;
+	}
+	if( this->m_asm ){
+		delete this->m_asm;
+		this->m_asm = NULL;
+	}
 }
 
 void Parser::initialize( ITokenizer* tokenizer , VMBuiltIn* built_in , Log* logger ){
+	this->m_scope = new Scope( "global" , SCOPE_LEVEL_GLOBAL );
+	this->m_asm = new VMAssembleCollection();
 	this->m_log = logger;
 	this->m_built_in = built_in;
 	this->m_token = tokenizer;
-	this->m_scope = Assembly::CScope( new Assembly::Scope( "global" , SCOPE_LEVEL_GLOBAL ) );
-	this->m_currentScope = m_scope.get();
+	this->m_currentScope = m_scope;
 	this->m_writer = CBinaryWriter( new BinaryWriter() );
-	this->m_asm = new VMAssembleCollection();
-	//printf( "Global %p\n" , m_currentScope );
 }
 
 // 一個前のトークンに戻る
@@ -210,6 +217,7 @@ Parser::parse_chunk::parse_chunk( Parser* parser , Args* args ) : Parser::interp
  */
 Parser::parse_return::parse_return( Parser* parser ) : Parser::interpreter( parser ){
 	expression e( parser );
+	e.R--;
 	this->WriteReturn( e.R );
 }
 
