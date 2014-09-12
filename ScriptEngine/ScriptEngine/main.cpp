@@ -28,7 +28,8 @@ void main(){
 	vm->log_init( new ConsoleLog() );
 	vm->define_function  ( "Log"      , built_in_function_Log      );
 	vm->define_function  ( "ToString" , built_in_function_ToString );
-	vm->compile_from_file( "sample/FizzBuzz.txt" );
+	vm->compile_from_file( "sample/FizzBuzz.snc" );
+	vm->create_text_file_log( "parser_log.txt" );
 	vm->execute_function ( "main" );
 	delete vm;
 }

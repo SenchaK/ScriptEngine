@@ -296,13 +296,15 @@ private :
 			this->m_parser->m_asm->entryAssembly( funcAssembly );
 		}
 		int GetFunctionAddres( string& funcName ){
-			for( size_t i = 0 ; i < this->m_parser->m_asm->count() ; i++ ){
-				if( this->m_parser->m_asm->indexAt(i)->equal( funcName ) == 0 ){
-					return i;
-				}
-			}
-			return -1;
+			return this->m_parser->m_asm->find( funcName );
 		}
+		/*
+		 * 指定の名前のアセンブリを取得する
+		 */
+		AsmInfo* GetAssembly( string funcName ){
+			return this->m_parser->m_asm->indexAt( GetFunctionAddres( funcName ) );
+		}
+
 		/*
 		 * 現在のスコープから割り当てられる変数の領域を判定する。 
 		 * ローカル領域なのか静的領域なのかを現在のスコープから判定
@@ -476,7 +478,14 @@ private :
 			this->m_parser->m_currentScope->notifyStructMethodScope();
 		}
 		parse_function( Parser* parser );
-		void EntryFunction();
+		/*
+		 * 関数の予約登録
+		 */
+		void TransactFunction();
+		/*
+		 * 完了したら確定申告する。
+		 */
+		void CommitFunction();
 		void This();
 	};
 	// as演算子解析

@@ -140,6 +140,7 @@ Parser::parse_array::parse_array( Parser* parser , SymbolInfo* symbol ) : Parser
  */
 Parser::parse_function::parse_function( Parser* parser ) : Parser::interpreter( parser ){
 	this->funcName = this->getTokenString();
+	this->TransactFunction();
 	this->GoToFunction( funcName );
 	this->ErrorCheckNextToken( Token::Type::Lparen );
 	this->Next();
@@ -150,20 +151,26 @@ Parser::parse_function::parse_function( Parser* parser ) : Parser::interpreter( 
 	this->args = this->GetArgs();
 	this->ParseWhile( Token::Type::EndChunk );
 	this->WriteEndFunc();
-	this->EntryFunction();
+	this->CommitFunction();
 	this->GoToBack();
 }
 
 /*
  * ŠÖ”“o˜^
  */
-void Parser::parse_function::EntryFunction(){
+void Parser::parse_function::TransactFunction(){
 	AsmInfo* funcAssembly = new AsmInfo();
+	funcAssembly->setName( this->funcName );
+	this->EntryAssembly( funcAssembly );
+}
+
+void Parser::parse_function::CommitFunction(){
+	AsmInfo* funcAssembly = this->GetAssembly( funcName );
+	assert( funcAssembly );
 	funcAssembly->setName( funcName );
 	funcAssembly->setArgs( args.size() );
 	funcAssembly->setStackFrame( this->GetStackFrame() );
 	funcAssembly->setBytes( this->GetCurrentStream() );
-	this->EntryAssembly( funcAssembly );
 }
 
 /*
@@ -276,13 +283,14 @@ Parser::parse_for::parse_for( Parser* parser ) : Parser::interpreter( parser ){
 	
 	Args args( parser );
 	this->Parse( &args );
+	int lastExprPos = this->GetWritePos();
 	this->AppendWriter( lastExprCode );
 	this->WriteJ( continuePos );
 	this->WriteJmpPos( forJmpPos );
 	this->GoToBack();
 	int breakPos = this->GetWritePos();
 	args.WriteBreak( breakPos );
-	args.WriteContinue( continuePos );
+	args.WriteContinue( lastExprPos );
 };
 
 Parser::parse_while::parse_while( Parser* parser ) : Parser::interpreter( parser ){
