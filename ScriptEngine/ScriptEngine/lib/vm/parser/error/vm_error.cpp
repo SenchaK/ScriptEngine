@@ -10,14 +10,7 @@ namespace Assembly {
  */
 string ERR_ID_EX::toString( ERR_ID value ){
 	switch( value ){
-	case ERROR_1001 : return "ERROR_1001";
-	case ERROR_1002 : return "ERROR_1002";
-	case ERROR_2001 : return "ERROR_2001";
-	case ERROR_2002 : return "ERROR_2002";
-	case ERROR_2003 : return "ERROR_2003";
-	case ERROR_3001 : return "ERROR_3001";
-	case ERROR_3002 : return "ERROR_3002";
-	case ERROR_4001 : return "ERROR_4001";
+	case ERROR_C2059 : return "ERROR_C2059";
 	case ERROR_C2065 : return "ERROR_C2065";
 	case ERROR_C2143 : return "ERROR_C2143";
 	}
@@ -39,18 +32,6 @@ VMError::VMError( VMErrorParameter* param ){
 
 	ostringstream o;
 	switch( param->errId ){
-	case ERROR_3001 :
-		{
-			ERROR_INFO_3001* errinfo = reinterpret_cast<ERROR_INFO_3001*>( param );
-			o << "構造体スコープ内で関数を宣言することはできません [funcName " << errinfo->funcName << "]";
-		}
-		break;
-	case ERROR_4001 :
-		{
-			ERROR_INFO_4001* errinfo = reinterpret_cast<ERROR_INFO_4001*>( param );
-			o << "不明なシンボルタイプ" << "[symbolName " << errinfo->symbolName << "][symbolType " << errinfo->symbolType << "]";
-		}
-		break;
 	case ERROR_C2065 :
 		{
 			ERROR_INFO_C2065* errinfo = reinterpret_cast<ERROR_INFO_C2065*>( param );

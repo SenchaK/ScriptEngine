@@ -55,7 +55,10 @@ int SymbolInfo::toCode(){
 		case VariableLocal  : return EMnemonic::MEM_L;
 		case VariableField  : return EMnemonic::MEM_THIS_P;
 	}
-	throw VMError( new ERROR_INFO_4001( m_name , m_symbolType ) );
+
+	std::cout << "不明なシンボルタイプ [m_symbolType:" << m_symbolType << "][name:" << this->m_name << "]" << std::endl;
+	abort();
+	return -1;
 }
 
 /*
