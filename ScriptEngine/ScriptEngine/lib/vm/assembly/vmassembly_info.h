@@ -95,15 +95,22 @@ public :
 	}
 };
 
+/*
+ * 関数コールスタック要素
+ */
 struct VMCallStack {
-	int funcAddr;
-	int prog;
+	int funcAddr; // 実行途中のアセンブリアドレス
+	int prog    ; // 実行途中のプログラムカウンタ
 	VMCallStack(){
 		funcAddr = 0;
 		prog = 0;
 	}
 };
 
+
+/*
+ * 組み込み関数マネージャ
+ */
 class VMBuiltIn {
 private :
 	vector<VMBuiltInFunction*> built_in_function;

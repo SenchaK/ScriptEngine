@@ -85,7 +85,6 @@ private :
 public  :
 	const vector<SymbolInfo*>& getSymbols(){ return m_symbolList; }
 	int getSymbolCount( int symbolMask );
-	int getSymbolTotal();
 	int sizeOf();
 	SymbolInfo* const findSymbol( string symbolName );
 	SymbolInfo* const findSymbol( int addr );

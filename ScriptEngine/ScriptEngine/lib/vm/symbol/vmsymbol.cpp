@@ -108,19 +108,6 @@ void Symtable::entrySymbol( SymbolInfo* symbol ){
 }
 #undef ENTITY_OF
 
-// 各シンボルの持つ子シンボルの数を計算した総数を返す
-int Symtable::getSymbolTotal(){
-	int result = 0;
-	for( vector<SymbolInfo*>::iterator iter = m_symbolList.begin() ; iter != m_symbolList.end() ; iter++ ){
-		//int childCount = ( *iter )->ChildSymbolCount();
-		//if( childCount > 0 ){
-		//	childCount--;
-		//}
-		//result += childCount;
-	}
-	result += m_symbolList.size();
-	return result;
-}
 
 int Symtable::getSymbolCount( int symbolMask ){
 	int result = 0;
@@ -142,7 +129,6 @@ int Symtable::sizeOf(){
 }
 
 Symtable::~Symtable(){
-	//VM_PRINT( "Symtable Destroy\n" );
 	for( unsigned int i = 0 ; i < m_symbolList.size() ; i++ ){
 		SymbolInfo* symbol = m_symbolList[i];
 		delete symbol;
