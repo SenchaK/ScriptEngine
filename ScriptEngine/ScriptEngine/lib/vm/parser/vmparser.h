@@ -613,7 +613,7 @@ private :
 				break;
 			case varinfo::Symbol :	
 				{
-					this->m_parser->m_writer->write( ((SymbolInfo*)src)->toAssembleCode() );
+					this->m_parser->m_writer->write( ((SymbolInfo*)src)->toCode() );
 					this->m_parser->m_writer->writeInt32( 1 );
 					this->m_parser->m_writer->write( src.IsArray() );
 					this->m_parser->m_writer->write( src.IsRef() );
@@ -627,7 +627,7 @@ private :
 			}
 		}
 		void WriteData( var_chain& src ){
-			this->m_parser->m_writer->write( ((SymbolInfo*)src[0])->toAssembleCode() );
+			this->m_parser->m_writer->write( ((SymbolInfo*)src[0])->toCode() );
 			this->m_parser->m_writer->writeInt32( src.size() );
 			for( size_t i = 0 ; i < src.size() ; i++ ){
 				this->m_parser->m_writer->write( src[i].IsArray() );

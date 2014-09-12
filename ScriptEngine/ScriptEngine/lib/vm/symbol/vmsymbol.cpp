@@ -48,7 +48,7 @@ SymbolInfo::~SymbolInfo(){
  * グローバルであるのか、ローカルであるのかの中間コードを返す
  * @throw シンボル種類が不明な場合、エラーとする
  */
-int SymbolInfo::toAssembleCode(){
+int SymbolInfo::toCode(){
 	switch( m_symbolType ){
 		case VariableGlobal : return EMnemonic::MEM_S;
 		case VariableLocal  : return EMnemonic::MEM_L;

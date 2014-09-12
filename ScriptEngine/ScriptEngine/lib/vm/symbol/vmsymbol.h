@@ -28,6 +28,8 @@ public :
 	SymbolInfo( string name , size_t arrayLength , ESymbolType symbolType , bool isReference , int scopeLevel );
 	~SymbolInfo();
 	string DataTypeName();
+	int getSymbolCount();
+	int toCode();
 	int SizeOf();
 
 	string& Name(){
@@ -45,7 +47,6 @@ public :
 	int ScopeLevel(){
 		return m_scopeLevel;
 	}
-	int getSymbolCount();
 	int ArrayLength(){
 		return m_arrayLength;
 	}
@@ -61,14 +62,21 @@ public :
 	void IsReference( bool isReference ){
 		m_isReference = isReference;
 	}	
-	bool isArray(){ return m_isArray; }
-	void isArray( bool isArray ){ m_isArray = isArray; }
-	void setType( Type* t ){ m_type = t; }
-	Type* const getType(){ return m_type; }
-
-	// このシンボルのスコープは静的な領域に存在しているのかどうか
-	bool isGlobal(){ return m_scopeLevel == SCOPE_LEVEL_GLOBAL; }
-	int toAssembleCode();
+	bool isArray(){
+		return m_isArray;
+	}
+	void isArray( bool isArray ){
+		m_isArray = isArray;
+	}
+	void setType( Type* t ){
+		m_type = t;
+	}
+	Type* const getType(){
+		return m_type;
+	}
+	bool isGlobal(){
+		return m_scopeLevel == SCOPE_LEVEL_GLOBAL;
+	}
 };
 
 class Symtable {
