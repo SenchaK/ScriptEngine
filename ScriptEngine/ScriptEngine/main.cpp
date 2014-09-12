@@ -26,7 +26,7 @@ void built_int_function_ToString( VMDriver* driver ){
 
 
 void main(){
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 
 	Log* log = new ConsoleLog();
 	VMBuiltIn* built_in = new VMBuiltIn();

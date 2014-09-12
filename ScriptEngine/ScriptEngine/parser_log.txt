@@ -2,24 +2,26 @@ func main
 00000000:  mov R0 , 100
 00000012:  mov L[0] , R0
 00000026:  mov R0 , L[0]
-00000040:  mov R0 , L[0]
-00000054:  not R0
-00000057:  mov L[1] , R0
-00000071:  mov R0 , L[1]
-00000085:  mov R0 , L[0]
-00000099:   jz [00000174]
-00000104:  mov R0 , Hello World:
-00000121:  mov R1 , L[1]
-00000135: push R1
-00000138:   st 1
-00000140: call 1(built in function)
-00000145:  mov R1 , R0
-00000150:   ld 1
-00000152:  add R0 , R1
-00000157: push R0
-00000160:   st 0
-00000162: call 0(built in function)
-00000167:  mov R0 , R0
-00000172:   ld 0
-00000174:  end
+00000040:  mov R0 , 100
+00000052:  add L[1] , R0
+00000066:  mov R0 , L[1]
+00000080:  mov R0 , 120
+00000092:  add L[0] , R0
+00000106:  mov R0 , L[0]
+00000120:  mov R0 , L[0]
+00000134:   jz [00000209]
+00000139:  mov R0 , Hello World:
+00000156:  mov R1 , L[1]
+00000170: push R1
+00000173:   st 1
+00000175: call 1(built in function)
+00000180:  mov R1 , R0
+00000185:   ld 1
+00000187:  add R0 , R1
+00000192: push R0
+00000195:   st 0
+00000197: call 0(built in function)
+00000202:  mov R0 , R0
+00000207:   ld 0
+00000209:  end
 
