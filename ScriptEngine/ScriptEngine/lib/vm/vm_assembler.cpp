@@ -505,6 +505,6 @@ Memory& VMDriver::popMemory(){
 
 
 
-} // Assembly
+} // namespace Assembly
 } // namespace VM
-} // Sencha
+} // namespace Sencha

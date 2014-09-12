@@ -2,9 +2,9 @@
 #include "vm_define.h"
 #include "vm_memory.h"
 
-namespace Sencha{
-namespace VM{
-namespace Assembly{
+namespace Sencha {
+namespace VM {
+namespace Assembly {
 
 /*
  * ドライバで使用するレジスタ・ストア領域
@@ -51,6 +51,6 @@ public :
 	void setMemory( int addres , Memory value );
 };
 
-} // Assembly
-} // VM
-} // Sencha
+} // namespace Assembly
+} // namespace VM
+} // namespace Sencha

@@ -13,8 +13,8 @@
 #define SCOPE_LEVEL_GLOBAL ( 0 )
 
 
-namespace Sencha{
-namespace VM{
+namespace Sencha {
+namespace VM {
 
 // トークンコンテナ
 // トークナイザーに管理されるトークン要素はこれを継承する必要がある

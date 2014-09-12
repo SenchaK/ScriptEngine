@@ -48,6 +48,6 @@ void VMR::setMemory( int addres , Memory value ){
 
 
 
-} // Assembly
+} // namespace Assembly
 } // namespace VM
-} // Sencha
+} // namespace Sencha

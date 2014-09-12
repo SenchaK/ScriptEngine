@@ -99,5 +99,5 @@ typedef shared_ptr<Symtable> CSymtable;
 
 
 } // namespace Assembly
-} // VM
+} // namespace VM
 } // namespace Sencha

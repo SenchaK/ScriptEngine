@@ -18,6 +18,6 @@ void Memory::setMemory( const Memory& m ){
 }
 
 
-} // Assembly
+} // namespace Assembly
 } // namespace VM
-} // Sencha
+} // namespace Sencha

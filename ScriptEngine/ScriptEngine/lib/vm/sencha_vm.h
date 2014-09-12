@@ -75,10 +75,10 @@
 	*******************************************************************************************************************
  */
 namespace Sencha {
-namespace VM{
+namespace VM {
 namespace Assembly {
 	void VMAssembleTextFileLog( IAssembleReader* reader , const char* fileName );
 	void VMAssembleConsoleLog( IAssembleReader* reader );
-}
-}
-}
+} // namespace Assembly
+} // namespace VM
+} // namespace Sencha

@@ -7,9 +7,9 @@
 
 
 
-namespace Sencha{
+namespace Sencha {
 namespace VM {
-namespace Assembly{
+namespace Assembly {
 using namespace std;
 
 /* **************************************************

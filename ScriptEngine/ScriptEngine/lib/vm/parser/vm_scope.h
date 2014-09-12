@@ -119,6 +119,6 @@ public :
 };
 
 
-} // Assembly
-} // VM
-} // Sencha
+} // namespace Assembly
+} // namespace VM
+} // namespace Sencha
