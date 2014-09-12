@@ -49,6 +49,8 @@ protected :
 	void push( AsmInfo* assembly );
 	void end( AsmInfo* assembly );
 	void ret( AsmInfo* assembly );
+	void not( AsmInfo* assembly );
+	void minus( AsmInfo* assembly );
 };
 
 

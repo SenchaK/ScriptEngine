@@ -143,6 +143,12 @@ void VMDriver::execute(){
 			case EMnemonic::CmpNEq :
 				_cmp( content );
 				break;
+			case EMnemonic::Not :
+				_not();
+				break;
+			case EMnemonic::Minus :
+				_minus();
+				break;
 			case EMnemonic::LogOr :
 			case EMnemonic::LogAnd :
 				_log( content );
@@ -350,6 +356,27 @@ void VMDriver::_log( int logType ){
 }
 
 /*
+ * 否定演算
+ */
+void VMDriver::_not(){
+	bool result = false;
+	Memory& src = this->createOrGetMemory();
+	if( src.value == 0 ){
+		result = true;
+	}
+	setMemory( src , Memory( result , "" ) );
+}
+
+/*
+ * 符号反転
+ */
+void VMDriver::_minus(){
+	Memory& src = this->createOrGetMemory();
+	setMemory( src , Memory( src.value * -1 , "" ) );
+}
+
+
+/*
  * jmp命令
  * 指定のアドレスにプログラムカウンタを移動させる。
  */
@@ -463,6 +490,7 @@ void VMDriver::_ret(){
 	this->R->setMemory( 0 , m );
 }
 
+
 /*
  * end命令
  * 関数終了時に呼ばれ、コールスタックを1つ前の状態に戻す。
@@ -501,6 +529,13 @@ void VMDriver::executeFunction( string funcName ){
 Memory& VMDriver::popMemory(){
 	this->_pop();
 	return this->getLocal( m_localAddr + m_push );
+}
+
+/*
+ * 戻り値セット
+ */
+void VMDriver::Return( Memory& m ){
+	this->R->setMemory( 0 , m );
 }
 
 

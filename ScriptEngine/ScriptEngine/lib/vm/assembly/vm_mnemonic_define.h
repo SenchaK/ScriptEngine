@@ -45,6 +45,7 @@ public :
 		LogOr  ,
 		LogAnd ,
 		Not    ,
+		Minus  ,
 		Inc    ,
 		Dec    ,
 

@@ -21,7 +21,7 @@ void built_int_function_ToString( VMDriver* driver ){
 	Memory& m = driver->popMemory();
 	static char buf[512];
 	sprintf_s<512>( buf , "%.f" , m.value );
-	driver->getR()->setMemory( 0 , Memory( 0 , buf ) );
+	driver->Return( Memory( 0 , buf ) );
 }
 
 
@@ -30,7 +30,7 @@ void main(){
 
 	Log* log = new ConsoleLog();
 	VMBuiltIn* built_in = new VMBuiltIn();
-	built_in->entryFunction( new VMBuiltInFunction( "Log" , built_in_function_Log ) );
+	built_in->entryFunction( new VMBuiltInFunction( "Log"      , built_in_function_Log       ) );
 	built_in->entryFunction( new VMBuiltInFunction( "ToString" , built_int_function_ToString ) );
 
 	Lexer* lexer = new Lexer( CStream( new FileStream( "sample/FizzBuzz.txt" ) ) );

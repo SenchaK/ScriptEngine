@@ -490,9 +490,13 @@ Parser::expression6::expression6( expression* exp , Parser* parser ) : Parser::e
 	}
 	else if( this->NextTokenIf( Token::Type::Not ) ){
 		this->Next();
-		expression4(exp,parser);
-		expression3(exp,parser);
+		expression6(exp,parser);
 		exp->WriteNot();
+	}
+	else if( this->NextTokenIf( Token::Type::Sub ) ){
+		this->Next();
+		expression6(exp,parser);
+		exp->WriteMinus();
 	}
 }
 

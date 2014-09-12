@@ -674,7 +674,14 @@ private :
 		void WriteNot(){
 			this->m_parser->m_writer->write( EMnemonic::Not );
 			this->WritePopR();
+			this->R++;
 		}
+		void WriteMinus(){
+			this->m_parser->m_writer->write( EMnemonic::Minus );
+			this->WritePopR();
+			this->R++;
+		}
+
 		expression( Parser* parser );
 		expression( Parser* parser , expression* e );
 

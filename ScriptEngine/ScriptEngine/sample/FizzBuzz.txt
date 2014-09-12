@@ -1,4 +1,8 @@
 function main(){
-	Log( "Hello World!!" );
+	$value1 = 100;
+	$value2 = !$value1;
+	if( $value1 ){
+		Log( "Hello World:"+ToString($value2) );
+	}
 }
 

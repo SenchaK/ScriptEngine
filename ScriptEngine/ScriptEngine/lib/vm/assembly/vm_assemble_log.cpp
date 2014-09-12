@@ -53,6 +53,8 @@ void VMAssembleLog::execAssemble( AsmInfo* assembly ){
 		case EMnemonic::Push        : this->push     ( assembly );         break;
 		case EMnemonic::EndFunc     : this->end      ( assembly );         break;
 		case EMnemonic::RET         : this->ret      ( assembly );         break;
+		case EMnemonic::Not         : this->not      ( assembly );         break;
+		case EMnemonic::Minus       : this->minus    ( assembly );         break;
 		default :
 			printf( "未登録のニーモニック ... %d\n" , mnemonic );
 			break;
@@ -159,6 +161,17 @@ void VMAssembleLog::ret( AsmInfo* assembly ){
 	this->print( "\n" );
 }
 
+void VMAssembleLog::not( AsmInfo* assembly ){
+	this->print( "%5s " , "not" );
+	this->writeVarChain( assembly );
+	this->print( "\n" );
+}
+
+void VMAssembleLog::minus( AsmInfo* assembly ){
+	this->print( "%5s " , "min" );
+	this->writeVarChain( assembly );
+	this->print( "\n" );
+}
 
 
 } // namespace Assembly

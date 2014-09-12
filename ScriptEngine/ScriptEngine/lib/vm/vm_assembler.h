@@ -52,6 +52,8 @@ private :
 	void _dec();
 	void _cmp( int cmpType );
 	void _log( int logType );
+	void _not();
+	void _minus();
 	void _jumpzero();
 	void _jumpnotzero();
 	void _jmp();
@@ -84,8 +86,8 @@ public :
 	VMDriver( IAssembleReader* reader , VMBuiltIn* built_in );
 	virtual ~VMDriver();
 	void executeFunction( string funcName );
+	void Return( Memory& m );
 	Memory& popMemory();
-	VMR* getR(){ return this->R; }
 public :
 };
 
