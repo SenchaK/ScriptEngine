@@ -17,7 +17,7 @@ void built_in_function_Log( VMDriver* driver ){
 	string message = driver->popMemory().value_string;
 	std::cout << message << std::endl;
 }
-void built_int_function_ToString( VMDriver* driver ){
+void built_in_function_ToString( VMDriver* driver ){
 	Memory& m = driver->popMemory();
 	static char buf[512];
 	sprintf_s<512>( buf , "%.f" , m.value );
@@ -30,8 +30,8 @@ void main(){
 
 	Log* log = new ConsoleLog();
 	VMBuiltIn* built_in = new VMBuiltIn();
-	built_in->entryFunction( new VMBuiltInFunction( "Log"      , built_in_function_Log       ) );
-	built_in->entryFunction( new VMBuiltInFunction( "ToString" , built_int_function_ToString ) );
+	built_in->entryFunction( new VMBuiltInFunction( "Log"      , built_in_function_Log      ) );
+	built_in->entryFunction( new VMBuiltInFunction( "ToString" , built_in_function_ToString ) );
 
 	Lexer* lexer = new Lexer( CStream( new FileStream( "sample/FizzBuzz.txt" ) ) );
 	Parser* parser = new Parser( lexer , built_in , log );
