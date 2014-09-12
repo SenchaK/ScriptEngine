@@ -74,6 +74,10 @@ VMAssembleInput::VMAssembleInput( CStream stream ){
 	}
 }
 
+VMAssembleInput::~VMAssembleInput(){
+	delete this->m_asm;
+}
+
 } // Assembly
 } // VM
 } // Sencha

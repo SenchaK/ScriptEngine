@@ -66,6 +66,7 @@ enum ESymbolType {
 // 内部コードを取得する機能を提供する
 class IAssembleReader {
 public :
+	virtual ~IAssembleReader(){}
 	// インデックス指定でアセンブリを取得
 	virtual AsmInfo* getAssembly( int index ) = 0;
 	// 名前指定でアセンブリを取得

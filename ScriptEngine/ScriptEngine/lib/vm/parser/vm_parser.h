@@ -810,7 +810,7 @@ public :
 	Parser( ITokenizer* tokenizer , VMBuiltIn* built_in , Log* logger );
 	Parser( ITokenizer* tokenizer , VMBuiltIn* built_in );
 	Parser( ITokenizer* tokenizer );
-	~Parser();
+	virtual ~Parser();
 	virtual AsmInfo* getAssembly( int index ){
 		if( this->m_asm ) return this->m_asm->indexAt( index );
 		return NULL;

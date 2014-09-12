@@ -36,6 +36,7 @@ private :
 	VMAssembleCollection* m_asm;
 public  :
 	VMAssembleInput( CStream stream );
+	virtual ~VMAssembleInput();
 	virtual AsmInfo* getAssembly( int index ){
 		if( this->m_asm ) return this->m_asm->indexAt( index );
 		return NULL;
