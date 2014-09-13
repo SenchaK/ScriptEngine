@@ -43,6 +43,16 @@ void VMR::setMemory( int addres , Memory value ){
 	this->R[addres].setMemory( value );
 }
 
+void VMR::getMemoryInfo( Memory* p , int* addr , int* location ){
+	for( size_t i = 0 ; i < R_MAX ; i++ ){
+		Memory* m = &this->R[i];
+		if( p == m ){
+			*addr = m->address;
+			*location = m->location;
+		}
+	}
+}
+
 // ***********************************************************************
 
 

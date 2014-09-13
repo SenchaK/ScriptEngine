@@ -73,6 +73,15 @@ public :
 	virtual AsmInfo* getAssembly( std::string index ) = 0;
 };
 
+struct addressinfoS{
+	union{
+		struct{
+			unsigned int address  : 24;
+			unsigned int location :  8;
+		}info;
+		unsigned int data;
+	} address;
+};
 
 } // namespace Assembly
 } // namespace VM

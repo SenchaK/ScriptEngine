@@ -140,6 +140,10 @@ Parser::parse_array::parse_array( Parser* parser , SymbolInfo* symbol ) : Parser
  */
 Parser::parse_function::parse_function( Parser* parser ) : Parser::interpreter( parser ){
 	this->funcName = this->getTokenString();
+	// todo:: ダサい
+	if( this->m_parser->m_currentScope->isStructScope() ){
+		this->funcName = this->m_parser->m_currentScope->ScopeName() + "." + this->funcName;	
+	}
 	this->TransactFunction();
 	this->GoToFunction( funcName );
 	this->ErrorCheckNextToken( Token::Type::Lparen );
@@ -185,7 +189,7 @@ void Parser::parse_function::This(){
 	string symbolName = "this";
 	this->NotifyStructMethodScope();
 	SymbolInfo* thisSymbol = this->addSymbol( symbolName );
-	Type* t = this->getType();
+	Type* t = (Type*)this->m_parser->m_currentScope->getParentScope(); // todo:: ダサい
 	thisSymbol->setType( t );
 	thisSymbol->Location( VariableLocal );
 	thisSymbol->IsReference( true );
@@ -534,7 +538,10 @@ void Parser::expression_variable::exp(){
 		SymbolInfo* symbol = this->getSymbolInScopeOrType( this->type , symbolName );
 		if( !symbol ){
 			if( this->type ){
-				throw VMError( new ERROR_INFO_C2065( symbolName ) );
+				this->checkMemberFunc( symbolName );
+				return;
+			}
+			if( this->NextTokenIf( Token::Type::Lparen ) ){
 			}
 			symbol = this->addSymbol( symbolName );
 			this->Log( "シンボル生成 : %s [addr %d]\n" , symbol->Name().c_str() , symbol->Addr() );
@@ -549,10 +556,6 @@ void Parser::expression_variable::exp(){
 			this->Next();
 			this->bracket( symbolName );
 		}
-		else if( this->NextTokenIf( Token::Type::Lparen ) ){
-			this->Next();
-			this->memberFunc( symbolName );
-		}
 		else if( this->NextTokenIf( Token::Type::As ) ){
 			this->Next();
 			parse_as( this->m_parser , current );
@@ -561,6 +564,19 @@ void Parser::expression_variable::exp(){
 			expression0( this->expr , this->m_parser , this->var );
 			this->expr->ExprPushData( this->var );
 		}
+	}
+}
+
+void Parser::expression_variable::checkMemberFunc( const string& symbolName ){
+	// todo:: ダサい
+	string funcName = this->type->ScopeName() + "." + symbolName;
+	Scope* scope = this->type->findScope( funcName );
+	if( !scope ){
+		throw VMError( new ERROR_INFO_C2065( symbolName ) );
+	}
+	if( this->NextTokenIf( Token::Type::Lparen ) ){
+		this->Next();
+		this->memberFunc( funcName );
 	}
 }
 
@@ -577,9 +593,12 @@ void Parser::expression_variable::bracket( const string& symbolName ){
 }
 
 void Parser::expression_variable::memberFunc( string& symbolName ){
-	if( !this->isExistSymbolInType( symbolName ) ){ throw VMError( new ERROR_INFO_C2065( symbolName ) ); }
-	varinfo inst( this->getThis() );
-	this->expr->PushThis( inst );
+	// todo:: ダサい
+	this->m_parser->m_writer->write( EMnemonic::MovPtr );
+	this->expr->WriteR();
+	this->expr->WriteData( this->var );
+	this->expr->R++;
+	this->expr->PushPtr();
 	while( !this->NextTokenIf( Token::Type::Rparen ) ){
 		expression4( this->expr , m_parser );
 		if( this->NextTokenIf( Token::Type::Comma ) ){

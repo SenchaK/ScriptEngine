@@ -9,10 +9,15 @@ using namespace std;
 
 class Memory {
 public :
+	double value;
+	int address;
+	int location;
+
 	Memory( double v , string s );
 	Memory();
-	void setMemory( const Memory& m );
-	double value;
+	virtual void setMemory( const Memory& m );
+	virtual void setMemory( int address , int location );
+
 	string value_string;
 
 	Memory& operator+( Memory& src ){
@@ -84,6 +89,14 @@ public :
 	}
 };
 typedef shared_ptr<Memory> CMemory;
+
+/*
+ * レジスタ用メモリ
+ * setMemory使用時に通常のメモリはポインタ型である場合は参照先アドレスに値を書き込むが、
+ * レジスタの場合はデータ及びアドレスコピーしか行わないようにする。
+ */
+class RMemory : public Memory {
+};
 
 } // namespace Assembly
 } // namespace VM

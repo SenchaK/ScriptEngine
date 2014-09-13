@@ -1,9 +1,75 @@
+func VEC2.hoge
+00000000:       mov R0 , Hello World!!
+00000018:      push R0
+00000021:        st 0
+00000023:      call 0(built in function)
+00000028:       mov R0 , R0
+00000033:        ld 0
+00000035:       mov R0 , 320
+00000047:       mov L&[0][0] , R0
+00000067:       mov R0 , L&[0][0]
+00000087:       mov R0 , L&[0][1]
+00000107:       mov R1 , 240
+00000119:       mul R0 , R1
+00000124:       mov L&[0][1] , R0
+00000144:       mov R0 , L&[0][1]
+00000164:       end
+
+func VEC2.init
+00000000:       mov R0 , L[1]
+00000014:       mov R0 , L[2]
+00000028:       mov R0 , L[1]
+00000042:       mov L&[0][0] , R0
+00000062:       mov R0 , L&[0][0]
+00000082:       mov R0 , L[2]
+00000096:       mov L&[0][1] , R0
+00000116:       mov R0 , L&[0][1]
+00000136:   mov ptr R0 , L&[0]
+00000150:  push_ptr R0
+00000153:        st 0
+00000155:      call 0
+00000160:       mov R0 , R0
+00000165:        ld 0
+00000167:       end
+
 func main
-00000000:  mov R0 , Hello World!!
-00000018: push R0
-00000021:   st 0
-00000023: call 0(built in function)
-00000028:  mov R0 , R0
-00000033:   ld 0
-00000035:  end
+00000000:       mov R0 , 0
+00000012:       mov L[0][0] , R0
+00000032:       mov R0 , L[0][0]
+00000052:       mov R0 , 0
+00000064:       mov L[0][1] , R0
+00000084:       mov R0 , L[0][1]
+00000104:   mov ptr R0 , L[0]
+00000118:  push_ptr R0
+00000121:       mov R0 , 0
+00000133:      push R0
+00000136:       mov R0 , 3
+00000148:      push R0
+00000151:        st 0
+00000153:      call 1
+00000158:       mov R0 , R0
+00000163:        ld 0
+00000165:       mov R0 , L[0][0]
+00000185:      push R0
+00000188:        st 0
+00000190:      call 1(built in function)
+00000195:       mov R0 , R0
+00000200:        ld 0
+00000202:      push R0
+00000205:        st 0
+00000207:      call 0(built in function)
+00000212:       mov R0 , R0
+00000217:        ld 0
+00000219:       mov R0 , L[0][1]
+00000239:      push R0
+00000242:        st 0
+00000244:      call 1(built in function)
+00000249:       mov R0 , R0
+00000254:        ld 0
+00000256:      push R0
+00000259:        st 0
+00000261:      call 0(built in function)
+00000266:       mov R0 , R0
+00000271:        ld 0
+00000273:       end
 

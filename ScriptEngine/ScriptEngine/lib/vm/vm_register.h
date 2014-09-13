@@ -49,6 +49,7 @@ public :
 	void load( int count );
 	Memory& getMemory( int addres );
 	void setMemory( int addres , Memory value );
+	void getMemoryInfo( Memory* p , int* addr , int* location );
 };
 
 } // namespace Assembly

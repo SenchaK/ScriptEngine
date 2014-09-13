@@ -18,6 +18,7 @@ public :
 		/*
 		 * l‘¥‰‰Z
 		 */
+		MovPtr ,
 		Mov ,
 		Add , 
 		Sub ,
@@ -29,6 +30,7 @@ public :
 		 * ŠÖ”ŒÄ‚Ño‚µ
 		 */
 		Push ,
+		PushPtr ,
 		Pop ,
 		Call , 
 		EndFunc ,

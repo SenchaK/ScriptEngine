@@ -16,6 +16,12 @@ void Memory::setMemory( const Memory& m ){
 	this->value = m.value;
 	this->value_string = m.value_string;
 }
+void Memory::setMemory( int address , int location ){
+	this->value = 0;
+	this->value_string = "";
+	this->address = address;
+	this->location = location;
+}
 
 
 } // namespace Assembly

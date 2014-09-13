@@ -596,6 +596,11 @@ private :
 			this->WritePopR();
 		}
 
+		void PushPtr(){
+			this->m_parser->m_writer->write( EMnemonic::PushPtr );
+			this->WritePopR();
+		}
+
 		void CallFunction( string& funcName ){
 			this->m_parser->m_writer->write( EMnemonic::ST );
 			this->m_parser->m_writer->write( R );
@@ -782,6 +787,7 @@ private :
 		expression_variable( expression* exp , Parser* parser , var_chain& var , Type* t );
 	private :
 		void exp();
+		void checkMemberFunc( const string& symbolName );
 		void bracket( const string& symbolName );
 		void dot( const string& symbolName );
 		void memberFunc( string& symbolName );

@@ -5,6 +5,7 @@
 namespace Sencha{
 namespace VM {
 namespace Assembly{
+#define MNEMONIC_FMT "%10s"
 static const char* Location( int location ){
 	if( location == EMnemonic::MEM_S ) return "S";
 	if( location == EMnemonic::MEM_L ) return "L";
@@ -30,31 +31,33 @@ void VMAssembleLog::execAssemble( AsmInfo* assembly ){
 		this->print( "%08d:" , this->m_pc );
 		int mnemonic = assembly->moveU8( this->m_pc );
 		switch( mnemonic ){
-		case EMnemonic::Mov         : this->writeCalc( "mov" , assembly ); break;
-		case EMnemonic::Add         : this->writeCalc( "add" , assembly ); break;
-		case EMnemonic::Sub         : this->writeCalc( "sub" , assembly ); break;
-		case EMnemonic::Mul         : this->writeCalc( "mul" , assembly ); break;
-		case EMnemonic::Div         : this->writeCalc( "div" , assembly ); break;
-		case EMnemonic::Rem         : this->writeCalc( "rem" , assembly ); break;
-		case EMnemonic::CmpEq       : this->writeCalc( "eq"  , assembly ); break;
-		case EMnemonic::CmpNEq      : this->writeCalc( "neq" , assembly ); break;
-		case EMnemonic::CmpGeq      : this->writeCalc( "geq" , assembly ); break;
-		case EMnemonic::CmpG        : this->writeCalc( "g"   , assembly ); break;
-		case EMnemonic::CmpLeq      : this->writeCalc( "leq" , assembly ); break;
-		case EMnemonic::CmpL        : this->writeCalc( "l"   , assembly ); break;
-		case EMnemonic::LogAnd      : this->writeCalc( "and" , assembly ); break;
-		case EMnemonic::LogOr       : this->writeCalc( "or"  , assembly ); break;
-		case EMnemonic::Jmp         : this->writeJmp ( "jmp" , assembly ); break;
-		case EMnemonic::JumpZero    : this->writeJmp ( "jz"  , assembly ); break;
-		case EMnemonic::JumpNotZero : this->writeJmp ( "jnz" , assembly ); break;
-		case EMnemonic::ST          : this->st       ( assembly );         break;
-		case EMnemonic::Call        : this->call     ( assembly );         break;
-		case EMnemonic::LD          : this->ld       ( assembly );         break;
-		case EMnemonic::Push        : this->push     ( assembly );         break;
-		case EMnemonic::EndFunc     : this->end      ( assembly );         break;
-		case EMnemonic::RET         : this->ret      ( assembly );         break;
-		case EMnemonic::Not         : this->not      ( assembly );         break;
-		case EMnemonic::Minus       : this->minus    ( assembly );         break;
+		case EMnemonic::Mov         : this->writeCalc( "mov"     , assembly ); break;
+		case EMnemonic::MovPtr      : this->writeCalc( "mov ptr" , assembly ); break;
+		case EMnemonic::Add         : this->writeCalc( "add"     , assembly ); break;
+		case EMnemonic::Sub         : this->writeCalc( "sub"     , assembly ); break;
+		case EMnemonic::Mul         : this->writeCalc( "mul"     , assembly ); break;
+		case EMnemonic::Div         : this->writeCalc( "div"     , assembly ); break;
+		case EMnemonic::Rem         : this->writeCalc( "rem"     , assembly ); break;
+		case EMnemonic::CmpEq       : this->writeCalc( "eq"      , assembly ); break;
+		case EMnemonic::CmpNEq      : this->writeCalc( "neq"     , assembly ); break;
+		case EMnemonic::CmpGeq      : this->writeCalc( "geq"     , assembly ); break;
+		case EMnemonic::CmpG        : this->writeCalc( "g"       , assembly ); break;
+		case EMnemonic::CmpLeq      : this->writeCalc( "leq"     , assembly ); break;
+		case EMnemonic::CmpL        : this->writeCalc( "l"       , assembly ); break;
+		case EMnemonic::LogAnd      : this->writeCalc( "and"     , assembly ); break;
+		case EMnemonic::LogOr       : this->writeCalc( "or"      , assembly ); break;
+		case EMnemonic::Jmp         : this->writeJmp ( "jmp"     , assembly ); break;
+		case EMnemonic::JumpZero    : this->writeJmp ( "jz"      , assembly ); break;
+		case EMnemonic::JumpNotZero : this->writeJmp ( "jnz"     , assembly ); break;
+		case EMnemonic::ST          : this->st       ( assembly );             break;
+		case EMnemonic::Call        : this->call     ( assembly );             break;
+		case EMnemonic::LD          : this->ld       ( assembly );             break;
+		case EMnemonic::Push        : this->push     ( assembly );             break;
+		case EMnemonic::PushPtr     : this->push_ptr ( assembly );             break;
+		case EMnemonic::EndFunc     : this->end      ( assembly );             break;
+		case EMnemonic::RET         : this->ret      ( assembly );             break;
+		case EMnemonic::Not         : this->not      ( assembly );             break;
+		case EMnemonic::Minus       : this->minus    ( assembly );             break;
 		default :
 			printf( "未登録のニーモニック ... %d\n" , mnemonic );
 			break;
@@ -64,7 +67,7 @@ void VMAssembleLog::execAssemble( AsmInfo* assembly ){
 }
 
 void VMAssembleLog::writeCalc( const char* name , AsmInfo* assembly ){
-	this->print( "%5s " , name );
+	this->print( MNEMONIC_FMT " " , name );
 	this->writeVarChain( assembly );
 	this->print( " , " );
 	this->writeVarChain( assembly );
@@ -72,7 +75,7 @@ void VMAssembleLog::writeCalc( const char* name , AsmInfo* assembly ){
 }
 
 void VMAssembleLog::writeJmp( const char* name , AsmInfo* assembly ){
-	this->print( "%5s [%08d]\n" , name , assembly->moveU32( this->m_pc ) );
+	this->print( MNEMONIC_FMT " [%08d]\n" , name , assembly->moveU32( this->m_pc ) );
 }
 
 void VMAssembleLog::writeVarChain( AsmInfo* assembly ){
@@ -130,7 +133,7 @@ void VMAssembleLog::call( AsmInfo* assembly ){
 	} func;
 	func.int_value = assembly->moveU32( this->m_pc );
 
-	this->print( "%5s %d" , "call" , func.info.address );
+	this->print( MNEMONIC_FMT " %d" , "call" , func.info.address );
 	if( func.info.type == 1 ){
 		this->print( "(built in function)" );
 	}
@@ -138,37 +141,43 @@ void VMAssembleLog::call( AsmInfo* assembly ){
 }
 
 void VMAssembleLog::st( AsmInfo* assembly ){
-	this->print( "%5s %d\n" , "st" , assembly->moveU8( this->m_pc ) );
+	this->print( MNEMONIC_FMT " %d\n" , "st" , assembly->moveU8( this->m_pc ) );
 }
 
 void VMAssembleLog::ld( AsmInfo* assembly ){
-	this->print( "%5s %d\n" , "ld" , assembly->moveU8( this->m_pc ) );
+	this->print( MNEMONIC_FMT " %d\n" , "ld" , assembly->moveU8( this->m_pc ) );
 }
 
 void VMAssembleLog::push( AsmInfo* assembly ){
-	this->print( "%5s " , "push" );
+	this->print( MNEMONIC_FMT " " , "push" );
+	this->writeVarChain( assembly );
+	this->print( "\n" );
+}
+
+void VMAssembleLog::push_ptr( AsmInfo* assembly ){
+	this->print( MNEMONIC_FMT " " , "push_ptr" );
 	this->writeVarChain( assembly );
 	this->print( "\n" );
 }
 
 void VMAssembleLog::end( AsmInfo* assembly ){
-	this->print( "%5s\n" , "end" );
+	this->print( MNEMONIC_FMT "\n" , "end" );
 }
 
 void VMAssembleLog::ret( AsmInfo* assembly ){
-	this->print( "%5s " , "ret" );
+	this->print( MNEMONIC_FMT " " , "ret" );
 	this->writeVarChain( assembly );
 	this->print( "\n" );
 }
 
 void VMAssembleLog::not( AsmInfo* assembly ){
-	this->print( "%5s " , "not" );
+	this->print( MNEMONIC_FMT " " , "not" );
 	this->writeVarChain( assembly );
 	this->print( "\n" );
 }
 
 void VMAssembleLog::minus( AsmInfo* assembly ){
-	this->print( "%5s " , "min" );
+	this->print( MNEMONIC_FMT " " , "min" );
 	this->writeVarChain( assembly );
 	this->print( "\n" );
 }

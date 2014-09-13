@@ -42,6 +42,7 @@ private :
 	void callSubroutine( int addres );
 	void startCoroutine( int addres );
 	void updateCoroutine();
+	void _mov_ptr();
 	void _mov();
 	void _add();
 	void _sub();
@@ -58,6 +59,7 @@ private :
 	void _jumpnotzero();
 	void _jmp();
 	void _push();
+	void _push_ptr();
 	void _pop();
 	void _call();
 	void _st();
@@ -69,13 +71,16 @@ private :
 	unsigned char getByte( int funcAddr , int pc );
 	AsmInfo* currentAssembly();
 	Memory& createOrGetMemory();
+	Memory& getRefMemory( int location , int address , size_t i , size_t size );
 	Memory& getLocal( int addres );
 	Memory& getStatic( int addres );
 	Memory& getMemory( int location , int address );
 	void setLocal( int addres , Memory& m );
 	void setStatic( int addres , Memory& m );
 	void setMemory( Memory& src , Memory& value );
+	void setMemory( Memory& src , int addr , int location );
 private :
+	void getMemoryInfo( Memory* p , int* addr , int* location );
 	AsmInfo* findFunction( string name );
 	int getFunctionAddr( string name );	
 	void getFunction( string func );

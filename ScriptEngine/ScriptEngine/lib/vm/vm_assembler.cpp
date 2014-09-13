@@ -41,6 +41,28 @@ void VMDriver::initialize( IAssembleReader* reader , VMBuiltIn* built_in , size_
 	this->R = new VMR();
 }
 
+void VMDriver::getMemoryInfo( Memory* p , int* addr , int* location ){
+	*addr = 0;
+	*location = 0;
+
+	for( size_t i = 0 ; i < m_stacksize ; i++ ){
+		Memory* m = &this->m_local[i];
+		if( m == p ){
+			*addr = i;
+			*location = EMnemonic::MEM_L;
+			return;
+		}
+	}
+	for( size_t i = 0 ; i < m_staticsize ; i++ ){
+		Memory* m = &this->m_static[i];
+		if( m == p ){
+			*addr = i;
+			*location = EMnemonic::MEM_S;
+			return;
+		}
+	}
+}
+
 Memory& VMDriver::getLocal( int addres ){
 	assert( addres >= 0 && addres < (int)m_stacksize );
 	return m_local[addres];
@@ -60,6 +82,10 @@ void VMDriver::setStatic( int addres , Memory& m ){
 }
 void VMDriver::setMemory( Memory& src , Memory& value ){
 	src.setMemory( value );
+}
+
+void VMDriver::setMemory( Memory& src , int addr , int location ){
+	src.setMemory( addr , location );
 }
 
 Memory& VMDriver::getMemory( int location , int address ){
@@ -92,6 +118,9 @@ void VMDriver::execute(){
 		unsigned char content = this->getByte( m_funcAddr , m_pc );
 		m_pc++;
 		switch( content ){
+			case EMnemonic::MovPtr :
+				_mov_ptr();
+				break;
 			case EMnemonic::Mov :
 				_mov();
 				break;
@@ -118,6 +147,9 @@ void VMDriver::execute(){
 				break;
 			case EMnemonic::Push :
 				_push();
+				break;
+			case EMnemonic::PushPtr :
+				_push_ptr();
 				break;
 			case EMnemonic::Pop :
 				_pop();
@@ -223,21 +255,60 @@ Memory& VMDriver::createOrGetMemory(){
 	if( isVariable ){
 		for( size_t i = 0 ; i < size ; i++ ){
 			int isArray = this->currentAssembly()->moveU8( this->m_pc );
-			int ifRef = this->currentAssembly()->moveU8( this->m_pc );
-			if( ifRef ){
-			}
+			int isRef = this->currentAssembly()->moveU8( this->m_pc );
+			int addr = this->currentAssembly()->moveU32( this->m_pc );
 
-			int addr = 0;
-			addr += this->currentAssembly()->moveU32( this->m_pc );
 			if( isArray ){
 				int sizeOf = this->currentAssembly()->moveU32( this->m_pc );
 				int RIndex = this->currentAssembly()->moveU32( this->m_pc );
 				addr += sizeOf * ((int)R->getMemory( RIndex ).value);
 			}
+			if( isRef ){
+				Memory& m = this->getMemory( location , addr );
+				return this->getRefMemory( m.location , m.address , ++i , size );
+			}
 			address += addr;
 		}
 	}
 	return this->getMemory( location , address );
+}
+
+Memory& VMDriver::getRefMemory( int location , int address , size_t i , size_t size ){
+	for( ; i < size ; i++ ){
+		int isArray = this->currentAssembly()->moveU8( this->m_pc );
+		int isRef = this->currentAssembly()->moveU8( this->m_pc );
+		int addr = this->currentAssembly()->moveU32( this->m_pc );
+		if( isArray ){
+			int sizeOf = this->currentAssembly()->moveU32( this->m_pc );
+			int RIndex = this->currentAssembly()->moveU32( this->m_pc );
+			addr += sizeOf * ((int)R->getMemory( RIndex ).value);
+		}
+		if( isRef ){
+			Memory& m = this->getMemory( location , addr );
+			location = m.location;
+			addr     = m.address;
+			return this->getRefMemory( location , addr , i , size );
+		}
+		address += addr;
+	}
+
+	switch( location ){
+		case EMnemonic::MEM_L : return this->getLocal( address );
+		case EMnemonic::MEM_S : return this->getStatic( address );
+	}
+	printf( "unknown location %d \n" , location );
+	abort();
+	return R->getMemory(0);
+}
+
+
+void VMDriver::_mov_ptr(){
+	Memory& src = this->createOrGetMemory();
+	Memory& dest = this->createOrGetMemory();
+	int addr = 0;
+	int location = 0;
+	this->getMemoryInfo( &dest , &addr , &location );
+	this->setMemory( src , addr , location );
 }
 
 /*
@@ -246,6 +317,9 @@ Memory& VMDriver::createOrGetMemory(){
 void VMDriver::_mov(){
 	Memory& src = this->createOrGetMemory();
 	Memory& dest = this->createOrGetMemory();
+	int addr = 0;
+	int location = 0;
+	getMemoryInfo( &src , &addr , &location );
 	this->setMemory( src , dest );
 }
 
@@ -419,6 +493,16 @@ void VMDriver::_push(){
 	Memory& set = getLocal( stackFrame + m_push + m_localAddr );
 	m_push++;
 	setMemory( set , m );
+}
+
+void VMDriver::_push_ptr(){
+	size_t stackFrame = currentAssembly()->stackFrame();
+	Memory& m = this->createOrGetMemory();
+	Memory& set = getLocal( stackFrame + m_push + m_localAddr );
+	m_push++;
+	int addr = m.address;
+	int location = m.location;
+	this->setMemory( set , addr , location );
 }
 
 /*
