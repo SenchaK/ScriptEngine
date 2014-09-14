@@ -64,7 +64,7 @@ void SenchaVM::compile_from_o_file( const char* objectFileName ){
 	assert( !this->m_reader );
 	assert( !this->m_driver );
 	this->m_reader = new VMAssembleInput( CStream( new FileStream( objectFileName ) ) );
-	this->m_driver = new VMDriver( this->m_reader , this->m_built_in );
+	this->m_driver = new Subroutine( this->m_reader , this->m_built_in );
 }
 
 void SenchaVM::create_o_file( const char* objectFileName ){
@@ -89,6 +89,11 @@ void SenchaVM::define_function( string mappingName , void (*function)(VMDriver*)
 void SenchaVM::execute_function( string funcName ){
 	assert( this->m_driver );
 	this->m_driver->executeFunction( funcName );
+}
+
+void SenchaVM::execute(){
+	assert( this->m_driver );
+	this->m_driver->execute();
 }
 
 

@@ -21,6 +21,21 @@ void built_in_function_ToString( VMDriver* driver ){
 	driver->Return( Memory( 0 , buf ) );
 }
 
+/*
+ * ƒRƒ‹[ƒ`ƒ“‚ð‘–‚ç‚¹‚é
+ */
+void built_in_function_Invoke( VMDriver* driver ){
+	Memory& m = driver->popMemory();
+	driver->Invoke( m.value_string );
+}
+
+/*
+ * ˆêŽž’âŽ~
+ */
+void build_in_function_Yield( VMDriver* driver ){
+	Memory& sleeptime = driver->popMemory();
+	driver->Sleep( (int)sleeptime.value );
+}
 
 /*
  * ‘g‚Ýž‚ÝŠÖ”“o˜^
@@ -28,6 +43,8 @@ void built_in_function_ToString( VMDriver* driver ){
 void built_in_function_standard( SenchaVM* vm ){
 	vm->define_function  ( "Log"      , built_in_function_Log      );
 	vm->define_function  ( "ToString" , built_in_function_ToString );
+	vm->define_function  ( "Invoke"   , built_in_function_Invoke   );
+	vm->define_function  ( "Yield"    , build_in_function_Yield    );
 }
 
 } // namespace Sencha

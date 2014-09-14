@@ -4,6 +4,7 @@
 #include "assembly\vm_assembly_info.h"
 #include "assembly\vm_mnemonic_define.h"
 #include <stack>
+#include <list>
 
 
 
@@ -17,15 +18,28 @@ using namespace std;
  * ************************************************** */
 class VMDriver;
 class VMR;
+class Subroutine;
+class Coroutine;
 typedef shared_ptr<VMDriver> CVMDriver;
 
+
 class VMDriver {
+	friend class Coroutine;
+	friend class Subroutine;
+	friend class Coroutine;
 private :
 	enum {
-		CALL_STACK_SIZE = 1024 , 
+		CALL_STACK_SIZE = 1024 ,
+	};
+	enum STATE {
+		STATE_IDLE  , 
+		STATE_RUN   ,
+		STATE_SLEEP ,
 	};
 
+	STATE m_state;
 	VMCallStack* m_callStack;
+	int m_sleepcount;
 	int m_callStackIndex;
 	int m_pc;
 	int m_push;
@@ -86,17 +100,40 @@ private :
 	int getFunctionAddr( string name );	
 	void getFunction( string func );
 	void vmsetup();
-	void execute();
 	void initialize( IAssembleReader* reader , VMBuiltIn* built_in , size_t stacksize , size_t staticsize );
 public :
+	VMDriver();
 	VMDriver( IAssembleReader* reader , VMBuiltIn* built_in );
 	virtual ~VMDriver();
 	void executeFunction( string funcName );
 	void Return( Memory& m );
+	virtual void Invoke( string& funcName );
+	virtual void Sleep( int sleepTime );
 	Memory& popMemory();
+	void execute();
 public :
 };
 
+
+class Subroutine : public VMDriver {
+private :
+	enum {
+		MAX_COROUTINE =  32 ,
+		STACK_SIZE    = 256 , 
+	};
+	Coroutine* m_coroutine;
+	list<Coroutine*> m_activeList;
+	list<Coroutine*> m_freeList;
+public :
+	Subroutine( IAssembleReader* reader , VMBuiltIn* built_in );
+	~Subroutine();
+	virtual void Invoke( string& funcName );
+};
+
+class Coroutine : public VMDriver {
+private :
+public  :
+};
 
 
 } // namespace Assembly

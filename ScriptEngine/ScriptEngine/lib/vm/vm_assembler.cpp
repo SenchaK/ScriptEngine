@@ -5,20 +5,43 @@
 namespace Sencha{
 namespace VM {
 namespace Assembly{
+
+/*
+ * class Subroutine
+ */
+Subroutine::Subroutine( IAssembleReader* reader , VMBuiltIn* built_in ) : VMDriver( reader , built_in ){
+	this->m_coroutine = new Coroutine[MAX_COROUTINE];
+	for( int i = 0 ; i < MAX_COROUTINE ; i++ ){
+		this->m_coroutine[i].initialize( reader , built_in , STACK_SIZE , 0 );
+		this->m_freeList.push_back( &this->m_coroutine[i] );
+	}
+}
+
+Subroutine::~Subroutine(){
+	delete[] this->m_coroutine;
+}
+
+// virtual
+void Subroutine::Invoke( string& funcName ){
+	Coroutine* c = this->m_freeList.back();
+	m_freeList.pop_back();
+	assert( c );
+	this->m_activeList.push_back( c );
+	c->executeFunction( funcName );
+}
+
+
+
+
 AsmInfo* VMDriver::currentAssembly(){
 	return this->m_reader->getAssembly( m_funcAddr );
 }
 
 VMDriver::VMDriver( IAssembleReader* reader , VMBuiltIn* built_in ){
-	this->m_funcAddr = 0;
-	this->m_pc = 0;
-	this->m_stacksize = 0;
-	this->m_staticsize = 0;
-	this->m_localAddr = 0;
-	this->m_callStackIndex = 0;
-	this->m_push = 0;
-	this->m_base = 0;
 	this->initialize( reader , built_in , 2048 , 1024 );
+}
+
+VMDriver::VMDriver(){
 }
 
 VMDriver::~VMDriver(){
@@ -32,6 +55,16 @@ void VMDriver::initialize( IAssembleReader* reader , VMBuiltIn* built_in , size_
 	assert( stacksize > 0 );
 	assert( staticsize > 0 );
 	assert( reader );
+	this->m_state = STATE_IDLE;
+	this->m_sleepcount = 0;
+	this->m_funcAddr = 0;
+	this->m_pc = 0;
+	this->m_stacksize = 0;
+	this->m_staticsize = 0;
+	this->m_localAddr = 0;
+	this->m_callStackIndex = 0;
+	this->m_push = 0;
+	this->m_base = 0;
 	this->m_reader = reader;
 	this->m_built_in = built_in;
 	this->m_stacksize = stacksize;
@@ -107,6 +140,17 @@ unsigned char VMDriver::getByte( int funcAddr , int pc ){
 }
 
 bool VMDriver::isActive(){
+	if( this->m_state == STATE_IDLE ){
+		return false;
+	}
+	if( this->m_state == STATE_SLEEP ){
+		this->m_sleepcount--;
+		if( this->m_sleepcount <= 0 ){
+			this->m_state = STATE_RUN;
+			return true;
+		}
+		return false;
+	}
 	if( !this->currentAssembly() ) return false;
 	if( this->currentAssembly()->hasMore( this->m_pc ) ) return true;
 	if( this->m_funcAddr >= 0 ) return true;
@@ -114,6 +158,11 @@ bool VMDriver::isActive(){
 }
 
 void VMDriver::execute(){
+	if( this->m_state == STATE_IDLE ){
+		printf( "Error: state is idle. \n");
+		return;
+	}
+
 	assert( this->currentAssembly() );
 	while( this->isActive() ){
 		unsigned char content = this->getByte( m_funcAddr , m_pc );
@@ -220,8 +269,9 @@ void VMDriver::getFunction( string func ){
 }
 
 void VMDriver::vmsetup(){
-	m_callStackIndex = 0;
-	m_pc = 0;
+	this->m_state = STATE_RUN;
+	this->m_callStackIndex = 0;
+	this->m_pc = 0;
 }
 
 /*
@@ -586,6 +636,7 @@ void VMDriver::_ret(){
 void VMDriver::_endFunc(){
 	m_callStackIndex--;
 	if( m_callStackIndex < 0 ){
+		m_state = STATE_IDLE;
 		m_funcAddr = -1;
 		return;
 	}
@@ -604,6 +655,10 @@ void VMDriver::_endFunc(){
  * 関数を呼び出し実行する
  */
 void VMDriver::executeFunction( string funcName ){
+	if( this->m_state == STATE_SLEEP ){
+		this->execute();
+		return;
+	}
 	this->getFunction( funcName );
 	this->vmsetup();
 	this->execute();
@@ -625,7 +680,19 @@ void VMDriver::Return( Memory& m ){
 	this->R->setMemory( 0 , m );
 }
 
+/*
+ * コルーチンを走らせる
+ */ 
+void VMDriver::Invoke( string& funcName ){
+}
 
+/*
+ * 一時処理停止ステートに変更
+ */ 
+void VMDriver::Sleep( int sleepTime ){
+	this->m_state = STATE_SLEEP;
+	this->m_sleepcount = sleepTime + 1;
+}
 
 } // namespace Assembly
 } // namespace VM

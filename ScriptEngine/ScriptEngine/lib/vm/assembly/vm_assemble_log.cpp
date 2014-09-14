@@ -156,7 +156,7 @@ void VMAssembleLog::push( AsmInfo* assembly ){
 }
 
 void VMAssembleLog::push_ptr( AsmInfo* assembly ){
-	this->print( MNEMONIC_FMT " " , "push_ptr" );
+	this->print( MNEMONIC_FMT " " , "push ptr" );
 	this->writeVarChain( assembly );
 	this->print( "\n" );
 }
