@@ -1,20 +1,22 @@
-class VEC2{
+class Vector2 {
 	$x;
 	$y;
-	$z;
 	
-	function init( $_x , $_y , $_z ){
+	function init( $_x , $_y ){
 		%this.x = $_x;
 		%this.y = $_y;
-		%this.z = $_z;
-		Log( "init!!" );
 	}
 }
 
 
 function main(){
-	$value as VEC2;
-	$value.init( 320 , 240 , 160 );
-	Log( "("+ToString($value.x)+","+ToString($value.y)+","+ToString($value.z)+")" );
+	$value as Vector2;
+	$value.init( 320 , 240 );
+	
+	for( $i = 0 ; $i < 100 ; $i+=1 ){
+		$value.x += 5;
+		$value.y += 10;
+		Log( "("+ToString($value.x)+","+ToString($value.y)+")" );
+	}
 }
 

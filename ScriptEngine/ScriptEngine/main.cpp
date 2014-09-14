@@ -1,4 +1,5 @@
 #include "lib\vm\sencha_vm.h"
+#include "built_in\built_in_function_standard.h"
 #include <crtdbg.h>
 
 
@@ -9,16 +10,7 @@ using namespace Sencha::Util;
 
 
 
-void built_in_function_Log( VMDriver* driver ){
-	string message = driver->popMemory().value_string;
-	std::cout << message << std::endl;
-}
-void built_in_function_ToString( VMDriver* driver ){
-	Memory& m = driver->popMemory();
-	static char buf[512];
-	sprintf_s<512>( buf , "%.f" , m.value );
-	driver->Return( Memory( 0 , buf ) );
-}
+
 
 
 void main(){
@@ -26,8 +18,7 @@ void main(){
 
 	SenchaVM* vm = new SenchaVM();
 	vm->log_init( new ConsoleLog() );
-	vm->define_function  ( "Log"      , built_in_function_Log      );
-	vm->define_function  ( "ToString" , built_in_function_ToString );
+	built_in_function_standard( vm );
 	vm->compile_from_file( "sample/FizzBuzz.snc" );
 	vm->create_text_file_log( "parser_log.txt" );
 	vm->execute_function ( "main" );

@@ -74,6 +74,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="built_in\built_in_function_standard.cpp" />
     <ClCompile Include="lib\util\logger.cpp" />
     <ClCompile Include="lib\util\binary.cpp" />
     <ClCompile Include="lib\util\stream.cpp" />
@@ -93,6 +94,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="built_in\built_in_function_standard.h" />
     <ClInclude Include="lib\util\logger.h" />
     <ClInclude Include="lib\util\binary.h" />
     <ClInclude Include="lib\util\stream.h" />
