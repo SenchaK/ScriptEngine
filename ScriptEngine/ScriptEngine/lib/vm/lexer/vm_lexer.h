@@ -71,7 +71,7 @@ public :
 			YIELD           , // "yield"
 			Return          , // "return"
 			Struct          , // "struct"
-
+			Class           , // "class"
 			As              , // as
 			Array           , // array
 			Namespace       , // "namespace"

@@ -80,6 +80,16 @@ SymbolInfo* const Scope::getSymbol( int index ){
 	return m_symtable->getSymbol( index );
 }
 
+/*
+ * 構造体スコープである場合は型名.関数名の形式に変換する。
+ */ 
+string Scope::toFullName( const string& funcName ){
+	if( this->isStructScope() ){
+		return this->m_scopeName + "." + funcName;
+	}
+	return funcName;
+}
+
 Scope::Scope( string scopeName , int scopeLevel ){
 	m_scopeName = scopeName;
 	m_parent = NULL;

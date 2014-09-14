@@ -177,6 +177,9 @@ private :
 		interpreter( Parser* parser ){
 			m_parser = parser;
 		}
+		string getFullName( string& funcName ){
+			return this->m_parser->m_currentScope->toFullName( funcName );
+		}
 		bool NextTokenIf( int tokenType ){
 			return m_parser->getToken(1).type == tokenType;
 		}
@@ -551,10 +554,13 @@ private :
 			}
 			MovR( var );
 		}
-		void PushThis( varinfo _this ){
-			_this.Ref();
-			this->MovR( _this );
-			this->Push();
+
+		void PushThis( var_chain& var ){
+			this->m_parser->m_writer->write( EMnemonic::MovPtr );
+			this->WriteR();
+			this->WriteData( var );
+			this->R++;
+			this->PushPtr();
 		}
 
 		void Assign( var_chain& src , int opetype ){

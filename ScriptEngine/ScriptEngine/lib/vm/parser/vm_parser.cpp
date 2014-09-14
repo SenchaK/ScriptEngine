@@ -140,10 +140,7 @@ Parser::parse_array::parse_array( Parser* parser , SymbolInfo* symbol ) : Parser
  */
 Parser::parse_function::parse_function( Parser* parser ) : Parser::interpreter( parser ){
 	this->funcName = this->getTokenString();
-	// todo:: ダサい
-	if( this->m_parser->m_currentScope->isStructScope() ){
-		this->funcName = this->m_parser->m_currentScope->ScopeName() + "." + this->funcName;	
-	}
+	this->funcName = this->getFullName( this->funcName );
 	this->TransactFunction();
 	this->GoToFunction( funcName );
 	this->ErrorCheckNextToken( Token::Type::Lparen );
@@ -568,8 +565,7 @@ void Parser::expression_variable::exp(){
 }
 
 void Parser::expression_variable::checkMemberFunc( const string& symbolName ){
-	// todo:: ダサい
-	string funcName = this->type->ScopeName() + "." + symbolName;
+	string funcName = this->type->toFullName( symbolName );
 	Scope* scope = this->type->findScope( funcName );
 	if( !scope ){
 		throw VMError( new ERROR_INFO_C2065( symbolName ) );
@@ -593,12 +589,7 @@ void Parser::expression_variable::bracket( const string& symbolName ){
 }
 
 void Parser::expression_variable::memberFunc( string& symbolName ){
-	// todo:: ダサい
-	this->m_parser->m_writer->write( EMnemonic::MovPtr );
-	this->expr->WriteR();
-	this->expr->WriteData( this->var );
-	this->expr->R++;
-	this->expr->PushPtr();
+	this->expr->PushThis( this->var );
 	while( !this->NextTokenIf( Token::Type::Rparen ) ){
 		expression4( this->expr , m_parser );
 		if( this->NextTokenIf( Token::Type::Comma ) ){
@@ -705,6 +696,7 @@ void Parser::parse( Args* args ){
 		parse_return( this );
 		break;
 	case Token::Type::Struct :
+	case Token::Type::Class :
 		this->nextToken();
 		parse_struct( this );
 		break;

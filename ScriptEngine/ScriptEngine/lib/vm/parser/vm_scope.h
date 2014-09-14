@@ -54,6 +54,7 @@ public :
 	SymbolInfo* const addSymbol( string symbolName );
 	SymbolInfo* const getSymbol( string name );
 	SymbolInfo* const getSymbol( int index );
+	string toFullName( const string& funcName );
 
 	// このスコープが管理するシンボルリストを返す
 	const vector<SymbolInfo*>& getSymbols(){
