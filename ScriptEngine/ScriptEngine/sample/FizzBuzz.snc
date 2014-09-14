@@ -8,17 +8,7 @@ class Vector2 {
 	}
 }
 
-
 function main(){
 	Log( "**PROGRAM START!!" );
-	$value as Vector2;
-	$value.init( 320 , 240 );
-	
-	for( $i = 0 ; $i < 5 ; $i+=1 ){
-		$value.x += 5;
-		$value.y += 10;
-		Log( ToString($i) + ":("+ToString($value.x)+","+ToString($value.y)+")" );
-		Yield(1);
-	}
 }
 

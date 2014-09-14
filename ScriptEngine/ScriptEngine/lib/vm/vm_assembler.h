@@ -109,6 +109,7 @@ public :
 	void Return( Memory& m );
 	virtual void Invoke( string& funcName );
 	virtual void Sleep( int sleepTime );
+	virtual void OnUpdate(){}
 	Memory& popMemory();
 	void execute();
 public :
@@ -128,6 +129,7 @@ public :
 	Subroutine( IAssembleReader* reader , VMBuiltIn* built_in );
 	~Subroutine();
 	virtual void Invoke( string& funcName );
+	virtual void OnUpdate();
 };
 
 class Coroutine : public VMDriver {

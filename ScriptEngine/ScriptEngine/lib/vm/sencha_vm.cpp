@@ -47,7 +47,7 @@ void SenchaVM::compile_from_text( string text ){
 	assert( !this->m_driver );
 	this->m_lexer = new Lexer( CStream( new TextStream( text ) ) );
 	this->m_reader = new Parser( this->m_lexer , this->m_built_in , this->m_log );
-	this->m_driver = new VMDriver( this->m_reader , this->m_built_in );
+	this->m_driver = new Subroutine( this->m_reader , this->m_built_in );
 }
 
 void SenchaVM::compile_from_file( const char* fileName ){
@@ -56,7 +56,7 @@ void SenchaVM::compile_from_file( const char* fileName ){
 	assert( !this->m_driver );
 	this->m_lexer = new Lexer( CStream( new FileStream( fileName ) ) );
 	this->m_reader = new Parser( this->m_lexer , this->m_built_in , this->m_log );
-	this->m_driver = new VMDriver( this->m_reader , this->m_built_in );
+	this->m_driver = new Subroutine( this->m_reader , this->m_built_in );
 }
 
 void SenchaVM::compile_from_o_file( const char* objectFileName ){
@@ -94,6 +94,11 @@ void SenchaVM::execute_function( string funcName ){
 void SenchaVM::execute(){
 	assert( this->m_driver );
 	this->m_driver->execute();
+}
+
+void SenchaVM::on_update(){
+	assert( this->m_driver );
+	this->m_driver->OnUpdate();
 }
 
 

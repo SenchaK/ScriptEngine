@@ -12,7 +12,7 @@ namespace Assembly{
 Subroutine::Subroutine( IAssembleReader* reader , VMBuiltIn* built_in ) : VMDriver( reader , built_in ){
 	this->m_coroutine = new Coroutine[MAX_COROUTINE];
 	for( int i = 0 ; i < MAX_COROUTINE ; i++ ){
-		this->m_coroutine[i].initialize( reader , built_in , STACK_SIZE , 0 );
+		this->m_coroutine[i].initialize( reader , built_in , 2048 , 1024 );
 		this->m_freeList.push_back( &this->m_coroutine[i] );
 	}
 }
@@ -28,7 +28,29 @@ void Subroutine::Invoke( string& funcName ){
 	assert( c );
 	this->m_activeList.push_back( c );
 	c->executeFunction( funcName );
+	if( c->m_state == STATE_IDLE ){
+		this->m_activeList.remove( c );
+		this->m_freeList.push_back( c );
+	}
 }
+
+// virtual
+void Subroutine::OnUpdate(){
+	list<Coroutine*>::iterator iter = this->m_activeList.begin();
+	while( iter != this->m_activeList.end() ){
+		Coroutine* c = *iter;
+		c->execute();
+		if( c->m_state == STATE_IDLE ){
+			iter++;
+			this->m_activeList.remove( c );
+			this->m_freeList.push_back( c );
+		printf( "func end : active %d , free %d\n" , this->m_activeList.size() , this->m_freeList.size() );
+			continue;
+		}
+		iter++;
+	}
+}
+
 
 
 

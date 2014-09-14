@@ -106,6 +106,7 @@ public :
 	void define_function( string mappingName , void (*function)(VMDriver*) );
 	void execute_function( string funcName );
 	void execute();
+	void on_update();
 };
 
 } // namespace VM
