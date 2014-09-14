@@ -10,98 +10,6 @@ stack frame 3
 00000116:       mov R0 , L&[0][1]
 00000136:       end
 
-func coroutine
-stack frame 1
-00000000:       mov R0 , 0
-00000012:       mov L[0] , R0
-00000026:       mov R0 , L[0]
-00000040:       mov R0 , **COROUTINE START!!
-00000064:      push R0
-00000067:        st 0
-00000069:      call 0(built in function)
-00000074:       mov R0 , R0
-00000079:        ld 0
-00000081:       mov R0 , 1
-00000093:      push R0
-00000096:        st 0
-00000098:      call 3(built in function)
-00000103:       mov R0 , R0
-00000108:        ld 0
-00000110:       mov R0 , 100
-00000122:       add L[0] , R0
-00000136:       mov R0 , L[0]
-00000150:       mov R0 , **COROUTINE:
-00000167:       mov R1 , L[0]
-00000181:      push R1
-00000184:        st 1
-00000186:      call 1(built in function)
-00000191:       mov R1 , R0
-00000196:        ld 1
-00000198:       add R0 , R1
-00000203:      push R0
-00000206:        st 0
-00000208:      call 0(built in function)
-00000213:       mov R0 , R0
-00000218:        ld 0
-00000220:       end
-
-func coroutine2
-stack frame 1
-00000000:       mov R0 , 0
-00000012:       mov L[0] , R0
-00000026:       mov R0 , L[0]
-00000040:       mov R0 , **COROUTINE2 START!!
-00000065:      push R0
-00000068:        st 0
-00000070:      call 0(built in function)
-00000075:       mov R0 , R0
-00000080:        ld 0
-00000082:       mov R0 , 1
-00000094:      push R0
-00000097:        st 0
-00000099:      call 3(built in function)
-00000104:       mov R0 , R0
-00000109:        ld 0
-00000111:       mov R0 , 300
-00000123:       add L[0] , R0
-00000137:       mov R0 , L[0]
-00000151:       mov R0 , **COROUTINE2:
-00000169:       mov R1 , L[0]
-00000183:      push R1
-00000186:        st 1
-00000188:      call 1(built in function)
-00000193:       mov R1 , R0
-00000198:        ld 1
-00000200:       add R0 , R1
-00000205:      push R0
-00000208:        st 0
-00000210:      call 0(built in function)
-00000215:       mov R0 , R0
-00000220:        ld 0
-00000222:       mov R0 , 1
-00000234:      push R0
-00000237:        st 0
-00000239:      call 3(built in function)
-00000244:       mov R0 , R0
-00000249:        ld 0
-00000251:       mov R0 , 300
-00000263:       add L[0] , R0
-00000277:       mov R0 , L[0]
-00000291:       mov R0 , **COROUTINE2:
-00000309:       mov R1 , L[0]
-00000323:      push R1
-00000326:        st 1
-00000328:      call 1(built in function)
-00000333:       mov R1 , R0
-00000338:        ld 1
-00000340:       add R0 , R1
-00000345:      push R0
-00000348:        st 0
-00000350:      call 0(built in function)
-00000355:       mov R0 , R0
-00000360:        ld 0
-00000362:       end
-
 func main
 stack frame 0
 00000000:       mov R0 , **PROGRAM START!!
@@ -110,17 +18,5 @@ stack frame 0
 00000027:      call 0(built in function)
 00000032:       mov R0 , R0
 00000037:        ld 0
-00000039:       mov R0 , coroutine
-00000053:      push R0
-00000056:        st 0
-00000058:      call 2(built in function)
-00000063:       mov R0 , R0
-00000068:        ld 0
-00000070:       mov R0 , coroutine2
-00000085:      push R0
-00000088:        st 0
-00000090:      call 2(built in function)
-00000095:       mov R0 , R0
-00000100:        ld 0
-00000102:       end
+00000039:       end
 
