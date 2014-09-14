@@ -1,16 +1,21 @@
 struct VEC2{
 	$x;
 	$y;
-	function hoge(){
-		Log( "Hello World!!" );
-		%this.x = 320;
-		%this.y = %this.y * 240;
+	
+	function getValue(){
+		return 2;
 	}
-
+	
+	function hoge( $j ){
+		Log( "Hello World!!" );
+		%this.x = %this.x + 320 * $j;
+		%this.y = %this.y * 240 * $j;
+	}
+	
 	function init( $_x , $_y ){
 		%this.x = $_x;
 		%this.y = $_y;
-		%this.hoge();
+		%this.hoge( %this.getValue() );
 	}
 }
 
@@ -19,7 +24,7 @@ function main(){
 	$value as VEC2;
 	$value.x = 0;
 	$value.y = 0;
-	$value.init( 0 , 3 );
+	$value.init( 450 , 3 );
 	Log( ToString( $value.x ) );
 	Log( ToString( $value.y ) );
 }

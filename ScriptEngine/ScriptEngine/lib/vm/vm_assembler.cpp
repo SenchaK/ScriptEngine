@@ -17,6 +17,7 @@ VMDriver::VMDriver( IAssembleReader* reader , VMBuiltIn* built_in ){
 	this->m_localAddr = 0;
 	this->m_callStackIndex = 0;
 	this->m_push = 0;
+	this->m_base = 0;
 	this->initialize( reader , built_in , 2048 , 1024 );
 }
 
@@ -92,7 +93,7 @@ Memory& VMDriver::getMemory( int location , int address ){
 	static Memory Null;
 	switch( location ){
 	case EMnemonic::MEM_L :
-		return this->getLocal( m_localAddr + address );
+		return this->getLocal( address + this->m_localAddr + this->m_base );
 	case EMnemonic::MEM_S :
 		return this->getStatic( address );
 	}
@@ -522,7 +523,8 @@ void VMDriver::_pop(){
  * ‚Æ‚È‚é
  */
 void VMDriver::_call(){
-	assert( m_callStackIndex >= 0 && m_callStackIndex < CALL_STACK_SIZE );
+	assert( this->m_callStackIndex >= 0 );
+	assert( this->m_callStackIndex < CALL_STACK_SIZE );
 	struct funcinfoS{
 		unsigned int address : 24;
 		unsigned int type    :  8;
@@ -532,17 +534,18 @@ void VMDriver::_call(){
 		int int_value;
 	} func;
 	func.int_value = currentAssembly()->moveU32( this->m_pc );
-	m_callStack[m_callStackIndex].funcAddr = m_funcAddr;
-	m_callStack[m_callStackIndex].prog     = m_pc;
-	m_callStackIndex++;
-	this->m_localAddr += currentAssembly()->stackFrame();
+	this->m_callStack[m_callStackIndex].funcAddr = this->m_funcAddr;
+	this->m_callStack[m_callStackIndex].prog     = this->m_pc;
+	this->m_callStackIndex++;
+	this->m_localAddr += this->currentAssembly()->stackFrame();
 	if( func.info.type == 1 ){
 		assert( this->m_built_in );
 		this->m_built_in->indexAt( func.info.address )->exec( this );
 		this->_endFunc();
 		return;
 	}
-	this->m_push = 0;
+	this->m_push -= this->m_reader->getAssembly( func.info.address )->Args();
+	this->m_base = this->m_push;
 	this->m_funcAddr = func.info.address;
 	this->m_pc = 0;
 }

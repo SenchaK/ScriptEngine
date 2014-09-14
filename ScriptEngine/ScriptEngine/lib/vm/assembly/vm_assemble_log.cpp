@@ -27,6 +27,7 @@ void VMAssembleLog::execAssemble( AsmInfo* assembly ){
 	
 	this->m_pc = 0;
 	this->print( "func %s\n" , assembly->name().c_str() );
+	this->print( "stack frame %d\n" , assembly->stackFrame() );
 	while( assembly->hasMore( this->m_pc ) ){
 		this->print( "%08d:" , this->m_pc );
 		int mnemonic = assembly->moveU8( this->m_pc );

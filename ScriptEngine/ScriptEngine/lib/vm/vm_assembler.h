@@ -29,6 +29,7 @@ private :
 	int m_callStackIndex;
 	int m_pc;
 	int m_push;
+	int m_base;
 	int m_funcAddr;
 	size_t m_localAddr;
 	size_t m_stacksize;
