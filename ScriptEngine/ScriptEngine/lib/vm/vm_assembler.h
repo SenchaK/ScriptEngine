@@ -88,19 +88,22 @@ private :
 	Memory& createOrGetMemory();
 	Memory& getRefMemory( int location , int address , size_t i , size_t size );
 	Memory& getLocal( int addres );
-	Memory& getStatic( int addres );
 	Memory& getMemory( int location , int address );
 	void setLocal( int addres , Memory& m );
-	void setStatic( int addres , Memory& m );
 	void setMemory( Memory& src , Memory& value );
 	void setMemory( Memory& src , int addr , int location );
 private :
 	void getMemoryInfo( Memory* p , int* addr , int* location );
+	void getLocalInfo( Memory* p , int* addr , int* location );
 	AsmInfo* findFunction( string name );
 	int getFunctionAddr( string name );	
 	void getFunction( string func );
 	void vmsetup();
 	void initialize( IAssembleReader* reader , VMBuiltIn* built_in , size_t stacksize , size_t staticsize );
+protected :
+	virtual Memory& getStatic( int addres );
+	virtual void setStatic( int addres , Memory& m );
+	virtual void getStaticInfo( Memory* p , int* addr , int* location );
 public :
 	VMDriver();
 	VMDriver( IAssembleReader* reader , VMBuiltIn* built_in );
@@ -116,6 +119,10 @@ public :
 };
 
 
+/*
+ * サブルーチン部
+ * コルーチンを持ち、必要に応じて稼働させる
+ */
 class Subroutine : public VMDriver {
 private :
 	enum {
@@ -132,9 +139,21 @@ public :
 	virtual void OnUpdate();
 };
 
+/*
+ * コルーチン
+ * 静的領域は親となるドライバのほうを優先するように作る
+ */
 class Coroutine : public VMDriver {
+	friend class Subroutine;
 private :
+	VMDriver* m_parent;
+	void initialize( IAssembleReader* reader , VMBuiltIn* built_in , size_t stacksize , VMDriver* parent );
+protected :
+	virtual Memory& getStatic( int addres );
+	virtual void setStatic( int addres , Memory& m );
+	virtual void getStaticInfo( Memory* p , int* addr , int* location );
 public  :
+	Coroutine();
 };
 
 

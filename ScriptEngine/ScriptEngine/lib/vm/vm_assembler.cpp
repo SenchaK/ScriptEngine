@@ -6,13 +6,14 @@ namespace Sencha{
 namespace VM {
 namespace Assembly{
 
-/*
+/* ***********************************************************************************************
  * class Subroutine
- */
+ * サブルーチンはコルーチンを持つ。
+ * *********************************************************************************************** */
 Subroutine::Subroutine( IAssembleReader* reader , VMBuiltIn* built_in ) : VMDriver( reader , built_in ){
 	this->m_coroutine = new Coroutine[MAX_COROUTINE];
 	for( int i = 0 ; i < MAX_COROUTINE ; i++ ){
-		this->m_coroutine[i].initialize( reader , built_in , 2048 , 1024 );
+		this->m_coroutine[i].initialize( reader , built_in , 512 , this );
 		this->m_freeList.push_back( &this->m_coroutine[i] );
 	}
 }
@@ -23,6 +24,7 @@ Subroutine::~Subroutine(){
 
 // virtual
 void Subroutine::Invoke( string& funcName ){
+	assert( this->m_freeList.size() > 0 );
 	Coroutine* c = this->m_freeList.back();
 	m_freeList.pop_back();
 	assert( c );
@@ -44,17 +46,44 @@ void Subroutine::OnUpdate(){
 			iter++;
 			this->m_activeList.remove( c );
 			this->m_freeList.push_back( c );
-		printf( "func end : active %d , free %d\n" , this->m_activeList.size() , this->m_freeList.size() );
 			continue;
 		}
 		iter++;
 	}
 }
 
+/* ***********************************************************************************************
+ * class Coroutine
+ * コルーチンは静的領域を持たない。
+ * 管理する側のstatic領域を見るようにする。
+ * *********************************************************************************************** */
+Coroutine::Coroutine(){
+}
+
+void Coroutine::initialize( IAssembleReader* reader , VMBuiltIn* built_in , size_t stacksize , VMDriver* parent ){
+	VMDriver::initialize( reader , built_in , stacksize , 0 );
+	this->m_parent = parent;
+}
+
+// virtual
+Memory& Coroutine::getStatic( int addres ){
+	this->m_parent->getStatic( addres );
+}
+
+// virtual
+void Coroutine::setStatic( int addres , Memory& m ){
+	this->m_parent->setStatic( addres , m );
+}
+
+// virtual
+void Coroutine::getStaticInfo( Memory* p , int* addr , int* location ){
+	this->m_parent->getStaticInfo( p , addr , location );
+}
 
 
-
-
+/* ***********************************************************************************************
+ * class VMDriver
+ * *********************************************************************************************** */
 AsmInfo* VMDriver::currentAssembly(){
 	return this->m_reader->getAssembly( m_funcAddr );
 }
@@ -97,18 +126,8 @@ void VMDriver::initialize( IAssembleReader* reader , VMBuiltIn* built_in , size_
 	this->R = new VMR();
 }
 
-void VMDriver::getMemoryInfo( Memory* p , int* addr , int* location ){
-	*addr = 0;
-	*location = 0;
-
-	for( size_t i = 0 ; i < m_stacksize ; i++ ){
-		Memory* m = &this->m_local[i];
-		if( m == p ){
-			*addr = i;
-			*location = EMnemonic::MEM_L;
-			return;
-		}
-	}
+// protected virtual
+void VMDriver::getStaticInfo( Memory* p , int* addr , int* location ){
 	for( size_t i = 0 ; i < m_staticsize ; i++ ){
 		Memory* m = &this->m_static[i];
 		if( m == p ){
@@ -119,23 +138,47 @@ void VMDriver::getMemoryInfo( Memory* p , int* addr , int* location ){
 	}
 }
 
-Memory& VMDriver::getLocal( int addres ){
-	assert( addres >= 0 && addres < (int)m_stacksize );
-	return m_local[addres];
-}
+// protected virtual
 Memory& VMDriver::getStatic( int addres ){
 	assert( addres >= 0 && addres < (int)m_staticsize );
 	return m_static[addres];
 }
+
+// protected virtual
+void VMDriver::setStatic( int addres , Memory& m ){
+	assert( addres >= 0 && addres < (int)m_staticsize );
+	m_static[addres].setMemory( m );
+}
+
+void VMDriver::getLocalInfo( Memory* p , int* addr , int* location ){
+	for( size_t i = 0 ; i < m_stacksize ; i++ ){
+		Memory* m = &this->m_local[i];
+		if( m == p ){
+			*addr = i;
+			*location = EMnemonic::MEM_L;
+			return;
+		}
+	}
+}
+
+void VMDriver::getMemoryInfo( Memory* p , int* addr , int* location ){
+	*addr = 0;
+	*location = 0;
+	this->getLocalInfo( p , addr , location );
+	this->getStaticInfo( p , addr , location );
+}
+
+Memory& VMDriver::getLocal( int addres ){
+	assert( addres >= 0 && addres < (int)m_stacksize );
+	return m_local[addres];
+}
+
 void VMDriver::setLocal( int addres , Memory& m ){
 	assert( addres >= 0 && addres < (int)m_stacksize );
 	Memory& src = m_local[addres];
 	src.setMemory( m );
 }
-void VMDriver::setStatic( int addres , Memory& m ){
-	assert( addres >= 0 && addres < (int)m_staticsize );
-	m_static[addres].setMemory( m );
-}
+
 void VMDriver::setMemory( Memory& src , Memory& value ){
 	src.setMemory( value );
 }

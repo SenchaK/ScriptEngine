@@ -90,6 +90,7 @@ public :
 };
 typedef shared_ptr<Memory> CMemory;
 
+
 /*
  * レジスタ用メモリ
  * setMemory使用時に通常のメモリはポインタ型である場合は参照先アドレスに値を書き込むが、

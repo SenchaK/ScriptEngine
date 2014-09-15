@@ -2,16 +2,10 @@
 #include "built_in\built_in_function_standard.h"
 #include <crtdbg.h>
 
-
 using namespace Sencha;
 using namespace Sencha::VM;
 using namespace Sencha::VM::Assembly;
 using namespace Sencha::Util;
-
-
-
-
-
 
 void main(){
 	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );

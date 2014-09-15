@@ -6,9 +6,18 @@ class Vector2 {
 		%this.x = $_x;
 		%this.y = $_y;
 	}
+	function mul( $value ){
+		%this.x *= $value;
+		%this.y *= $value;
+	}
 }
+
 
 function main(){
 	Log( "**PROGRAM START!!" );
+	$value as Vector2;
+	$value.init( 320 , 640 );
+	Log( "x:"+ToString( $value.x ) );
+	Log( "y:"+ToString( $value.y ) );
 }
 
