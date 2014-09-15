@@ -16,5 +16,6 @@ void main(){
 	vm->compile_from_file( "sample/FizzBuzz.snc" );
 	vm->create_text_file_log( "parser_log.txt" );
 	vm->execute_function ( "main" );
+	vm->on_update();
 	delete vm;
 }

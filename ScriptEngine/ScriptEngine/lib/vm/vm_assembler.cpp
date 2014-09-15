@@ -67,7 +67,7 @@ void Coroutine::initialize( IAssembleReader* reader , VMBuiltIn* built_in , size
 
 // virtual
 Memory& Coroutine::getStatic( int addres ){
-	this->m_parent->getStatic( addres );
+	return this->m_parent->getStatic( addres );
 }
 
 // virtual
@@ -104,7 +104,6 @@ VMDriver::~VMDriver(){
 
 void VMDriver::initialize( IAssembleReader* reader , VMBuiltIn* built_in , size_t stacksize , size_t staticsize ){
 	assert( stacksize > 0 );
-	assert( staticsize > 0 );
 	assert( reader );
 	this->m_state = STATE_IDLE;
 	this->m_sleepcount = 0;
