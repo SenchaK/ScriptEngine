@@ -1,4 +1,19 @@
 function main(){
-	Log( "**PROGRAM START!!" );
+	$i = 1;
+	while( $i <= 100 ){
+		if( $i % 3 == 0 && $i % 5 == 0 ){
+			Log( "FizzBuzz" );
+		}
+		else if( $i % 3 == 0 ){
+			Log( "Fizz" );
+		}
+		else if( $i % 5 == 0 ){
+			Log( "Buzz" );
+		}
+		else{
+			Log( ToString( $i ) );
+		}
+		$i += 1;
+	}
 }
 
