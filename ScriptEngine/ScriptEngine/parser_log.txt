@@ -1,71 +1,87 @@
-func CoroutineA
-stack frame 0
-00000000:       mov R0 , 240
-00000012:       mov S[0] , R0
-00000026:       mov R0 , S[0]
-00000040:       end
-
-func CoroutineB
-stack frame 0
-00000000:       mov R0 , 2
-00000012:       mul S[0] , R0
-00000026:       mov R0 , S[0]
-00000040:       mov R0 , value:
-00000051:       mov R1 , S[0]
-00000065:      push R1
-00000068:        st 1
-00000070:      call 1(built in function)
-00000075:       mov R1 , R0
-00000080:        ld 1
-00000082:       add R0 , R1
-00000087:      push R0
-00000090:        st 0
-00000092:      call 0(built in function)
-00000097:       mov R0 , R0
-00000102:        ld 0
-00000104:       mov R0 , 1
-00000116:      push R0
-00000119:        st 0
-00000121:      call 3(built in function)
-00000126:       mov R0 , R0
-00000131:        ld 0
-00000133:       mov R0 , 2
-00000145:       mul S[0] , R0
-00000159:       mov R0 , S[0]
-00000173:       mov R0 , value:
-00000184:       mov R1 , S[0]
-00000198:      push R1
-00000201:        st 1
-00000203:      call 1(built in function)
-00000208:       mov R1 , R0
-00000213:        ld 1
-00000215:       add R0 , R1
-00000220:      push R0
-00000223:        st 0
-00000225:      call 0(built in function)
-00000230:       mov R0 , R0
-00000235:        ld 0
-00000237:       end
+func FizzBuzz.fizzbuzz
+stack frame 3
+00000000:       mov R0 , L[1]
+00000014:       mov R0 , L[2]
+00000028:       mov R0 , L[1]
+00000042:       mov L&[0][0] , R0
+00000062:       mov R0 , L&[0][0]
+00000082:       mov R0 , L&[0][0]
+00000102:       mov R1 , L[2]
+00000116:         l R0 , R1
+00000121:        jz [00000570]
+00000126:       mov R0 , L&[0][0]
+00000146:       mov R1 , 3
+00000158:       rem R0 , R1
+00000163:       mov R1 , 0
+00000175:        eq R0 , R1
+00000180:       mov R1 , L&[0][0]
+00000200:       mov R2 , 5
+00000212:       rem R1 , R2
+00000217:       mov R2 , 0
+00000229:        eq R1 , R2
+00000234:       and R0 , R1
+00000239:        jz [00000279]
+00000244:       mov R0 , FizzBuzz
+00000257:      push R0
+00000260:        st 0
+00000262:      call 0(built in function)
+00000267:       mov R0 , R0
+00000272:        ld 0
+00000274:       jmp [00000513]
+00000279:       mov R0 , L&[0][0]
+00000299:       mov R1 , 3
+00000311:       rem R0 , R1
+00000316:       mov R1 , 0
+00000328:        eq R0 , R1
+00000333:        jz [00000369]
+00000338:       mov R0 , Fizz
+00000347:      push R0
+00000350:        st 0
+00000352:      call 0(built in function)
+00000357:       mov R0 , R0
+00000362:        ld 0
+00000364:       jmp [00000513]
+00000369:       mov R0 , L&[0][0]
+00000389:       mov R1 , 5
+00000401:       rem R0 , R1
+00000406:       mov R1 , 0
+00000418:        eq R0 , R1
+00000423:        jz [00000459]
+00000428:       mov R0 , Buzz
+00000437:      push R0
+00000440:        st 0
+00000442:      call 0(built in function)
+00000447:       mov R0 , R0
+00000452:        ld 0
+00000454:       jmp [00000513]
+00000459:       mov R0 , L&[0][0]
+00000479:      push R0
+00000482:        st 0
+00000484:      call 1(built in function)
+00000489:       mov R0 , R0
+00000494:        ld 0
+00000496:      push R0
+00000499:        st 0
+00000501:      call 0(built in function)
+00000506:       mov R0 , R0
+00000511:        ld 0
+00000513:       mov R0 , 1
+00000525:       add L&[0][0] , R0
+00000545:       mov R0 , L&[0][0]
+00000565:       jmp [00000082]
+00000570:       end
 
 func main
-stack frame 0
-00000000:       mov R0 , **PROGRAM START!!
-00000022:      push R0
-00000025:        st 0
-00000027:      call 0(built in function)
-00000032:       mov R0 , R0
-00000037:        ld 0
-00000039:       mov R0 , CoroutineA
-00000054:      push R0
-00000057:        st 0
-00000059:      call 2(built in function)
-00000064:       mov R0 , R0
-00000069:        ld 0
-00000071:       mov R0 , CoroutineB
-00000086:      push R0
-00000089:        st 0
-00000091:      call 2(built in function)
-00000096:       mov R0 , R0
-00000101:        ld 0
-00000103:       end
+stack frame 1
+00000000:   mov ptr R0 , L[0]
+00000014:  push ptr R0
+00000017:       mov R0 , 1
+00000029:      push R0
+00000032:       mov R0 , 101
+00000044:      push R0
+00000047:        st 0
+00000049:      call 0
+00000054:       mov R0 , R0
+00000059:        ld 0
+00000061:       end
 
