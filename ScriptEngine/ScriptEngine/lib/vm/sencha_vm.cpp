@@ -108,9 +108,11 @@ Package* SenchaVM::insert_package( string packageName ){
 Memory* SenchaVM::L( int addr ){
 	return &this->m_driver->getMemory( EMnemonic::MEM_L , addr );
 }
-int SenchaVM::BaseP(){ return this->m_driver->baseP(); }
+int SenchaVM::BP(){ return this->m_driver->baseP(); }
 int SenchaVM::SP(){ return this->m_driver->sp(); }
-int SenchaVM::Push(){ return this->m_driver->pushCount(); }
+int SenchaVM::PushCount(){ return this->m_driver->pushCount(); }
+void SenchaVM::setBreakPoint( string funcName , int pc ){ this->m_driver->setBreakPoint( funcName , pc ); }
+void SenchaVM::setBreakPoint( int funcAddr , int pc ){ this->m_driver->setBreakPoint( funcAddr , pc ); }
 
 } // namespace VM
 } // namespace Sencha

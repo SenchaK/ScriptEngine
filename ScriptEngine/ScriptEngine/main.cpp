@@ -25,6 +25,6 @@ void main(){
 	printf( "4:%.f\n" , vm->L( 4 )->value );
 	printf( "5:%.f\n" , vm->L( 5 )->value );
 	printf( "6:%.f\n" , vm->L( 6 )->value );
-	printf( "bp:%d , sp:%d , push:%d \n" , vm->BaseP() , vm->SP() , vm->Push() );
+	printf( "bp:%d , sp:%d , push:%d \n" , vm->BP() , vm->SP() , vm->PushCount() );
 	delete vm;
 }

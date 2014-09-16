@@ -109,9 +109,11 @@ public :
 	void on_update();
 	Package* insert_package( string packageName );
 	Memory* L( int addr );
-	int BaseP();
+	int BP();
 	int SP();
-	int Push();
+	int PushCount();
+	void setBreakPoint( string funcName , int pc );
+	void setBreakPoint( int funcAddr , int pc );
 };
 
 } // namespace VM
