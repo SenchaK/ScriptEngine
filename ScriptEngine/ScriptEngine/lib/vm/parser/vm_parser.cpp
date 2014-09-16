@@ -108,7 +108,15 @@ Parser::parse_as::parse_as( Parser* parser , varinfo& var ) : Parser::interprete
 		this->Next();
 		Type* t = this->getType();
 		((SymbolInfo*)var)->setType( t );
+		this->checkArray( var );
 	}
+	else if( this->NextTokenIf( Token::Type::Array ) ){
+		this->Next();
+		this->checkArray( var );
+	}
+}
+
+void Parser::parse_as::checkArray( varinfo& var ){
 	if( this->NextTokenIf( Token::Type::Lbracket ) ){
 		this->Next();
 		if( this->NextTokenIf( Token::Type::Digit ) ){

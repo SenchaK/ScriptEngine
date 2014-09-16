@@ -13,7 +13,7 @@ namespace Assembly{
 Subroutine::Subroutine( IAssembleReader* reader , VMBuiltIn* built_in ) : VMDriver( reader , built_in ){
 	this->m_coroutine = new Coroutine[MAX_COROUTINE];
 	for( int i = 0 ; i < MAX_COROUTINE ; i++ ){
-		this->m_coroutine[i].initialize( reader , built_in , 512 , this );
+		this->m_coroutine[i].initialize( reader , built_in , 256 , this );
 		this->m_freeList.push_back( &this->m_coroutine[i] );
 	}
 }
@@ -89,7 +89,7 @@ AsmInfo* VMDriver::currentAssembly(){
 }
 
 VMDriver::VMDriver( IAssembleReader* reader , VMBuiltIn* built_in ){
-	this->initialize( reader , built_in , 2048 , 1024 );
+	this->initialize( reader , built_in , 8000 , 1024 );
 }
 
 VMDriver::VMDriver(){

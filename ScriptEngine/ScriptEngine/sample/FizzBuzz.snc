@@ -1,22 +1,17 @@
-class Vector2 {
-	$x;
-	$y;
-	$z;
-	function init( $_x , $_y , $_z ){
-		%this.x = $_x;
-		%this.y = $_y;
-		%this.z = $_z;
-	}
-}
-
-
+/*
+ * FizzBuzzを出力する
+ * 3と5で割り切れる値のとき ... FizzBuzz
+ * 3で割り切れる値 ... Fizz
+ * 5で割り切れる値 ... Buzz
+ * それ以外 ... 数字を出力
+ */
 function main(){
-	$pos as Vector2[10];
-	for( $i = 0 ; $i < 10 ; $i += 1 ){
-		$pos[$i].init( 50 * $i , 25 * $i , 70 * $i );
-	}
-	for( $i = 0 ; $i < 10 ; $i += 1 ){
-		Log( ToString( $pos[$i].x ) + "," + ToString( $pos[$i].y ) + "," + ToString( $pos[$i].z ) );
+	for( $i = 1 ; $i <= 100 ; $i += 1 ){
+		$s = "";
+		if( $i % 3 == 0 ) $s += "Fizz";
+		if( $i % 5 == 0 ) $s += "Buzz";
+		if( IsEmpty( $s ) ) $s = ToString( $i );
+		Log( $s );
 	}
 }
 

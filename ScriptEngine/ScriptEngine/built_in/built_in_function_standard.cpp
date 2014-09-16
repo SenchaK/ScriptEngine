@@ -38,6 +38,18 @@ static void build_in_function_Yield( VMDriver* driver ){
 }
 
 /*
+ * 文字が空かチェック
+ */
+static void built_in_function_IsEmpty( VMDriver* driver ){
+	Memory& m = driver->popMemory();
+	if( m.value_string.compare( "" ) == 0 ){
+		driver->Return( Memory( true , "" ) );
+		return;
+	}
+	driver->Return( Memory( false , "" ) );
+}
+
+/*
  * 組み込み関数登録
  */
 void built_in_function_standard( SenchaVM* vm ){
@@ -45,6 +57,7 @@ void built_in_function_standard( SenchaVM* vm ){
 	vm->define_function  ( "ToString" , built_in_function_ToString );
 	vm->define_function  ( "Invoke"   , built_in_function_Invoke   );
 	vm->define_function  ( "Yield"    , build_in_function_Yield    );
+	vm->define_function  ( "IsEmpty"  , built_in_function_IsEmpty  );
 }
 
 } // namespace Sencha

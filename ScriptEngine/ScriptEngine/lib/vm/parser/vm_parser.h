@@ -496,6 +496,7 @@ private :
 	class parse_as : public interpreter {
 	public :
 		parse_as( Parser* parser , varinfo& var );
+		void checkArray( varinfo& var );
 	};
 	// ”z—ñ‰ğÍ
 	class parse_array : public interpreter {

@@ -13,11 +13,9 @@ void main(){
 	SenchaVM* vm = new SenchaVM();
 	vm->log_init( new ConsoleLog() );
 	built_in_function_standard( vm );
-	vm->compile_from_file( "sample/FizzBuzz.snc" );
+	vm->compile_from_file( "sample/Fibonacci.snc" );
 	vm->create_text_file_log( "parser_log.txt" );
 	vm->execute_function ( "main" );
-	vm->on_update();
-
 	printf( "0:%.f\n" , vm->L( 0 )->value );
 	printf( "1:%.f\n" , vm->L( 1 )->value );
 	printf( "2:%.f\n" , vm->L( 2 )->value );
