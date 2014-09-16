@@ -2,13 +2,21 @@
 
 namespace Sencha {
 namespace VM {
+static Log* log = new TextFileLog( "result.log" );
+static void print( const char* formatString , ...){
+	va_list args;
+	va_start( args , formatString );
+	log->print( formatString , args );
+	va_end( args );
+}
 
 /*
  * ƒƒO‚ðo—Í‚·‚é
  */
 static void built_in_function_Log( VMDriver* driver ){
 	string message = driver->popMemory().value_string;
-	std::cout << message << std::endl;
+//	std::cout << message << std::endl;
+	print( "%s\n" , message.c_str() );
 }
 
 /*
