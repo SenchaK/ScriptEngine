@@ -10,15 +10,14 @@ using namespace std;
 class Memory {
 public :
 	double value;
-	int address;
-	int location;
+	signed int address;
+	signed int location;
+	string value_string;
 
 	Memory( double v , string s );
 	Memory();
 	virtual void setMemory( const Memory& m );
 	virtual void setMemory( int address , int location );
-
-	string value_string;
 
 	Memory& operator+( Memory& src ){
 		this->value += src.value;

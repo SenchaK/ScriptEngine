@@ -29,11 +29,28 @@ string SymbolInfo::DataTypeName(){
 	return m_type->ScopeName();
 }
 
-int SymbolInfo::SizeOf(){
+/*
+ * シンボルのデータサイズ取得
+ * 配列の長さも含める
+ */
+int SymbolInfo::MemorySizeOf(){
+	if( this->m_isReference ){
+		return 1;
+	}
 	if( !this->m_type ){
 		return 1 * this->m_arrayLength;
 	}
 	return this->m_type->SizeOf() * this->m_arrayLength;
+}
+
+/*
+ * データ型のサイズ
+ */
+int SymbolInfo::DataTypeSizeOf(){
+	if( !this->m_type ){
+		return 1;
+	}
+	return this->m_type->SizeOf();
 }
 
 /*
@@ -59,17 +76,6 @@ int SymbolInfo::toCode(){
 	std::cout << "不明なシンボルタイプ [m_symbolType:" << m_symbolType << "][name:" << this->m_name << "]" << std::endl;
 	abort();
 	return -1;
-}
-
-/*
- * シンボル数を取得
- * 配列長さとシンボルそのものが持つデータのサイズを考慮して計算する
- */
-int SymbolInfo::getSymbolCount(){
-	if( m_isReference ){
-		return 1;
-	}
-	return this->SizeOf();
 }
 
 
@@ -117,7 +123,7 @@ int Symtable::getSymbolCount( int symbolMask ){
 	int result = 0;
 	for( unsigned int i = 0 ; i < m_symbolList.size() ; i++ ){
 		if( m_symbolList[i]->SymbolType() == symbolMask ){
-			result += m_symbolList[i]->getSymbolCount();
+			result += m_symbolList[i]->MemorySizeOf();
 		}
 	}
 	return result;
@@ -127,7 +133,7 @@ int Symtable::getSymbolCount( int symbolMask ){
 int Symtable::sizeOf(){
 	int size = 0;
 	for( unsigned int i = 0 ; i < m_symbolList.size() ; i++ ){
-		size += m_symbolList[i]->SizeOf();
+		size += m_symbolList[i]->MemorySizeOf();
 	}
 	return size;
 }

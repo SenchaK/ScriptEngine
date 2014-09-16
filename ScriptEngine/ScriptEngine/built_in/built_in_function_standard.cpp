@@ -6,7 +6,7 @@ namespace VM {
 /*
  * ログを出力する
  */
-void built_in_function_Log( VMDriver* driver ){
+static void built_in_function_Log( VMDriver* driver ){
 	string message = driver->popMemory().value_string;
 	std::cout << message << std::endl;
 }
@@ -14,7 +14,7 @@ void built_in_function_Log( VMDriver* driver ){
 /*
  * 文字列変換
  */
-void built_in_function_ToString( VMDriver* driver ){
+static void built_in_function_ToString( VMDriver* driver ){
 	Memory& m = driver->popMemory();
 	static char buf[512];
 	sprintf_s<512>( buf , "%.f" , m.value );
@@ -24,7 +24,7 @@ void built_in_function_ToString( VMDriver* driver ){
 /*
  * コルーチンを走らせる
  */
-void built_in_function_Invoke( VMDriver* driver ){
+static void built_in_function_Invoke( VMDriver* driver ){
 	Memory& m = driver->popMemory();
 	driver->Invoke( m.value_string );
 }
@@ -32,7 +32,7 @@ void built_in_function_Invoke( VMDriver* driver ){
 /*
  * 一時停止
  */
-void build_in_function_Yield( VMDriver* driver ){
+static void build_in_function_Yield( VMDriver* driver ){
 	Memory& sleeptime = driver->popMemory();
 	driver->Sleep( (int)sleeptime.value );
 }

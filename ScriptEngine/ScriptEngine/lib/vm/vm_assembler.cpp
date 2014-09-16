@@ -122,6 +122,7 @@ void VMDriver::initialize( IAssembleReader* reader , VMBuiltIn* built_in , size_
 	this->m_local = new Memory[stacksize];
 	this->m_static = new Memory[staticsize];
 	this->m_callStack = new VMCallStack[CALL_STACK_SIZE];
+	this->m_breakPoint.init( -1 , -1 );
 	this->R = new VMR();
 }
 
@@ -229,6 +230,13 @@ void VMDriver::execute(){
 
 	assert( this->currentAssembly() );
 	while( this->isActive() ){
+		if( this->m_breakPoint.funcAddr == this->currentAssembly()->addr() ){
+			if( this->m_breakPoint.prog == this->m_pc ){
+				printf( "BREAK %s[%d],%d,%s\n" , this->currentAssembly()->name().c_str() , this->m_breakPoint.funcAddr , this->m_breakPoint.prog , EMnemonic::toString( this->getByte( m_funcAddr , m_pc ) ).c_str() );
+				break;
+			}
+		}
+
 		unsigned char content = this->getByte( m_funcAddr , m_pc );
 		m_pc++;
 		switch( content ){
@@ -376,7 +384,8 @@ Memory& VMDriver::createOrGetMemory(){
 			if( isArray ){
 				int sizeOf = this->currentAssembly()->moveU32( this->m_pc );
 				int RIndex = this->currentAssembly()->moveU32( this->m_pc );
-				addr += sizeOf * ((int)R->getMemory( RIndex ).value);
+				int arrayindex = sizeOf * ((int)R->getMemory( RIndex ).value);
+				addr += arrayindex;
 			}
 			if( isRef ){
 				Memory& m = this->getMemory( location , addr );
@@ -432,9 +441,6 @@ void VMDriver::_mov_ptr(){
 void VMDriver::_mov(){
 	Memory& src = this->createOrGetMemory();
 	Memory& dest = this->createOrGetMemory();
-	int addr = 0;
-	int location = 0;
-	getMemoryInfo( &src , &addr , &location );
 	this->setMemory( src , dest );
 }
 

@@ -29,9 +29,9 @@ public :
 	SymbolInfo( string name , size_t arrayLength , ESymbolType symbolType , bool isReference , int scopeLevel );
 	~SymbolInfo();
 	string DataTypeName();
-	int getSymbolCount();
 	int toCode();
-	int SizeOf();
+	int MemorySizeOf();
+	int DataTypeSizeOf();
 
 	string& Name(){
 		return m_name;

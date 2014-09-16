@@ -1,29 +1,23 @@
-class FizzBuzz {
-	$value;
-	
-	function fizzbuzz( $start , $end ){
-		%this.value = $start;
-		while( %this.value < $end ){
-			if( %this.value % 3 == 0 && %this.value % 5 == 0 ){
-				Log( "FizzBuzz" );
-			}
-			else if( %this.value % 3 == 0 ){
-				Log( "Fizz" );
-			}
-			else if( %this.value % 5 == 0 ){
-				Log( "Buzz" );
-			}
-			else{
-				Log( ToString( %this.value ) );
-			}
-			%this.value += 1;
-		}
+class Vector2 {
+	$x;
+	$y;
+	$z;
+	function init( $_x , $_y , $_z ){
+		%this.x = $_x;
+		%this.y = $_y;
+		%this.z = $_z;
 	}
 }
 
 
 function main(){
-	$fb as FizzBuzz;
-	$fb.fizzbuzz( 1 , 101 );
+	$pos as Vector2[10];
+	for( $i = 0 ; $i < 10 ; $i += 1 ){
+		$pos[$i].init( 50 * $i , 25 * $i , 70 * $i );
+	}
+	for( $i = 0 ; $i < 10 ; $i += 1 ){
+		Log( ToString( $pos[$i].x ) + "," + ToString( $pos[$i].y ) + "," + ToString( $pos[$i].z ) );
+	}
 }
+
 

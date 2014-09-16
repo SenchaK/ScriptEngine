@@ -101,7 +101,16 @@ void SenchaVM::on_update(){
 	this->m_driver->OnUpdate();
 }
 
+Package* SenchaVM::insert_package( string packageName ){
+	return this->m_built_in->insertPackage(packageName);
+}
 
+Memory* SenchaVM::L( int addr ){
+	return &this->m_driver->getMemory( EMnemonic::MEM_L , addr );
+}
+int SenchaVM::BaseP(){ return this->m_driver->baseP(); }
+int SenchaVM::SP(){ return this->m_driver->sp(); }
+int SenchaVM::Push(){ return this->m_driver->pushCount(); }
 
 } // namespace VM
 } // namespace Sencha

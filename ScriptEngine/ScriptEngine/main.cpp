@@ -17,5 +17,14 @@ void main(){
 	vm->create_text_file_log( "parser_log.txt" );
 	vm->execute_function ( "main" );
 	vm->on_update();
+
+	printf( "0:%.f\n" , vm->L( 0 )->value );
+	printf( "1:%.f\n" , vm->L( 1 )->value );
+	printf( "2:%.f\n" , vm->L( 2 )->value );
+	printf( "3:%.f\n" , vm->L( 3 )->value );
+	printf( "4:%.f\n" , vm->L( 4 )->value );
+	printf( "5:%.f\n" , vm->L( 5 )->value );
+	printf( "6:%.f\n" , vm->L( 6 )->value );
+	printf( "bp:%d , sp:%d , push:%d \n" , vm->BaseP() , vm->SP() , vm->Push() );
 	delete vm;
 }

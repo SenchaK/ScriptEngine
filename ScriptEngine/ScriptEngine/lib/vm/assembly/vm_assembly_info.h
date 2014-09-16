@@ -7,7 +7,7 @@ namespace VM {
 namespace Assembly{
 typedef Sencha::Util::byte vmbyte;
 class VMDriver;
-
+class Package;
 
 class AsmInfo {
 private :
@@ -106,6 +106,10 @@ struct VMCallStack {
 		funcAddr = 0;
 		prog = 0;
 	}
+	void init( int _funcAddr , int _prog ){
+		this->funcAddr = _funcAddr;
+		this->prog = _prog;
+	}
 };
 
 
@@ -115,35 +119,14 @@ struct VMCallStack {
 class VMBuiltIn {
 private :
 	vector<VMBuiltInFunction*> built_in_function;
+	vector<Package*> packages;
 public :
-	void entryFunction( VMBuiltInFunction* func ){
-		this->built_in_function.push_back( func );
-	}
-
-	void clear(){
-		for( size_t i = 0 ; i < this->built_in_function.size() ; i++ ){
-			delete this->built_in_function[i];
-		}
-		this->built_in_function.clear();
-	}
-
-	VMBuiltInFunction* indexAt( size_t index ){
-		if( index >= this->built_in_function.size() ) return NULL;
-		return this->built_in_function[index];
-	}
-
-	int find( string& funcName ){
-		for( size_t i = 0 ; i < this->built_in_function.size() ; i++ ){
-			if( this->built_in_function[i]->equal( funcName ) ){
-				return i;
-			}
-		}
-		return -1;
-	}
-
-	virtual ~VMBuiltIn(){
-		this->clear();
-	}
+	void entryFunction( VMBuiltInFunction* func );
+	Package* insertPackage( string packageName );
+	void clear();
+	VMBuiltInFunction* indexAt( size_t index );
+	int find( string& funcName );
+	virtual ~VMBuiltIn();
 };
 
 class VMAssembleCollection {

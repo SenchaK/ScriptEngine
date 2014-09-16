@@ -35,10 +35,12 @@ private :
 		STATE_IDLE  , 
 		STATE_RUN   ,
 		STATE_SLEEP ,
+		STATE_BREAK ,
 	};
 
 	STATE m_state;
 	VMCallStack* m_callStack;
+	VMCallStack m_breakPoint;
 	int m_sleepcount;
 	int m_callStackIndex;
 	int m_pc;
@@ -88,7 +90,6 @@ private :
 	Memory& createOrGetMemory();
 	Memory& getRefMemory( int location , int address , size_t i , size_t size );
 	Memory& getLocal( int addres );
-	Memory& getMemory( int location , int address );
 	void setLocal( int addres , Memory& m );
 	void setMemory( Memory& src , Memory& value );
 	void setMemory( Memory& src , int addr , int location );
@@ -114,7 +115,11 @@ public :
 	virtual void Sleep( int sleepTime );
 	virtual void OnUpdate(){}
 	Memory& popMemory();
+	Memory& getMemory( int location , int address );
 	void execute();
+	int baseP(){ return this->m_base; }
+	int sp(){ return this->m_localAddr; }
+	int pushCount(){ return this->m_push; }
 public :
 };
 

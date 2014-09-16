@@ -109,6 +109,20 @@ Parser::parse_as::parse_as( Parser* parser , varinfo& var ) : Parser::interprete
 		Type* t = this->getType();
 		((SymbolInfo*)var)->setType( t );
 	}
+	if( this->NextTokenIf( Token::Type::Lbracket ) ){
+		this->Next();
+		if( this->NextTokenIf( Token::Type::Digit ) ){
+			this->Next();
+			int arrayLength = this->getTokenInt();
+			if( this->NextTokenIf( Token::Type::Rbracket ) ){
+				this->Next();
+				if( this->NextTokenIf( Token::Type::Semicolon ) ){
+					this->Next();
+					((SymbolInfo*)var)->ArrayLength( arrayLength );
+				}
+			}
+		}
+	}
 }
 
 /*
@@ -538,8 +552,6 @@ void Parser::expression_variable::exp(){
 				this->checkMemberFunc( symbolName );
 				return;
 			}
-			if( this->NextTokenIf( Token::Type::Lparen ) ){
-			}
 			symbol = this->addSymbol( symbolName );
 			this->Log( "ƒVƒ“ƒ{ƒ‹¶¬ : %s [addr %d]\n" , symbol->Name().c_str() , symbol->Addr() );
 		}
@@ -609,7 +621,7 @@ Parser::expression_bracket::expression_bracket( expression* exp , Parser* parser
 	if( this->NextTokenIf( Token::Type::Dot ) ){
 		this->Next();
 		SymbolInfo* instSymbol = this->getSymbolInScopeOrType( type , ((SymbolInfo*)current)->Name() );
-		expression_variable( exp , this->m_parser , var , type );
+		expression_variable( exp , this->m_parser , var , instSymbol->getType() );
 	}
 	else {
 		expression0( exp , m_parser , var );

@@ -17,6 +17,7 @@ typedef shared_ptr<Scope>    CScope;
 
 class MethodInfo;
 class Type;
+class VMDriver;
 
 // スコープ管理クラス
 class Scope{
@@ -97,7 +98,7 @@ public :
 	}
 	bool hasContainSymbol( string name );
 	Scope( string scopeName , int scopeLevel );
-	~Scope();
+	virtual ~Scope();
 };
 
 // 構造体などの型情報の場合
@@ -117,6 +118,16 @@ class MethodInfo : public Scope {
 public :
 	MethodInfo( string scopeName , int scopeLevel ) : Scope( scopeName , scopeLevel ){
 	}
+};
+
+// 名前空間スコープ
+class Package : public Scope {
+private :
+	VMBuiltIn* m_built_in;
+public :
+	Package( string scopeName , int scopeLevel );
+	virtual ~Package();
+	void insertMethod( string methodName , void(*function)(VMDriver*) );
 };
 
 

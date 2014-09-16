@@ -45,6 +45,8 @@ string EMnemonic::toString( int mnemonic ){
 	MATCH(MEM_S)
 	MATCH(RET)
 	MATCH(MEM_THIS_P)
+	MATCH(ST)
+	MATCH(LD)
 	}
 #undef MATCH
 	return "unknown";

@@ -1,4 +1,5 @@
 #include "vm_assembly_info.h"
+#include "../parser/vm_scope.h"
 
 namespace Sencha{
 namespace VM {
@@ -43,6 +44,47 @@ string AsmInfo::moveString( int& pc ){
 	return result;
 }
 
+
+// class VMBuiltIn
+void VMBuiltIn::entryFunction( VMBuiltInFunction* func ){
+	this->built_in_function.push_back( func );
+}
+
+void VMBuiltIn::clear(){
+	for( size_t i = 0 ; i < this->built_in_function.size() ; i++ ){
+		delete this->built_in_function[i];
+	}
+	this->built_in_function.clear();
+	for( size_t i = 0 ; i < this->packages.size() ; i++ ){
+		delete this->packages[i];
+	}
+	this->packages.clear();
+}
+
+VMBuiltInFunction* VMBuiltIn::indexAt( size_t index ){
+	if( index >= this->built_in_function.size() ) return NULL;
+	return this->built_in_function[index];
+}
+
+Package* VMBuiltIn::insertPackage( string packageName ){
+	Package* package = new Package( packageName , SCOPE_LEVEL_GLOBAL );
+	this->packages.push_back( package );
+	return package;
+}
+
+int VMBuiltIn::find( string& funcName ){
+	for( size_t i = 0 ; i < this->built_in_function.size() ; i++ ){
+		if( this->built_in_function[i]->equal( funcName ) ){
+			return i;
+		}
+	}
+	return -1;
+}
+
+// virtual
+VMBuiltIn::~VMBuiltIn(){
+	this->clear();
+}
 
 } // namespace Assembly
 } // namespace VM

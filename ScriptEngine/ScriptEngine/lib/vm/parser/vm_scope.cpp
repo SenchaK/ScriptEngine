@@ -14,6 +14,9 @@ namespace Sencha {
 namespace VM {
 namespace Assembly {
 
+// *****************************************************************************************
+// class Scope
+// *****************************************************************************************
 Scope* Scope::getTopParent(){
 	if( m_parent ){
 		return m_parent->getTopParent();
@@ -37,8 +40,6 @@ Scope* const Scope::findScope( string scopeName ){
 }
 
 Scope* Scope::findScopeFromTop( string scopeName ){
-	//printf( "findScopeFromTop\n" );
-
 	Scope* parent = getTopParent();
 	if( parent ){
 		return parent->findScope( scopeName );
@@ -46,11 +47,6 @@ Scope* Scope::findScopeFromTop( string scopeName ){
 	return NULL;
 }
 
-// class Scope{
-// Scope*    m_child; 
-// Scope*    m_parent;
-// CSymtable m_symtable;
-// int       m_scopeLevel;
 bool Scope::hasContainSymbol( string name ){
 	if( m_parent ){
 		if( m_parent->hasContainSymbol( name ) ){
@@ -171,6 +167,7 @@ SymbolInfo* const Scope::_addSymbol( string symbolName ){
 		break;
 	case Struct :
 		topAddr = this->getAllSymbolCount( VariableField );
+		printf( "Field:%s,%d\n" , symbolName.c_str() , topAddr );
 		//printf( "VariableField %s[%d]\n" , symbolName.c_str() , topAddr );
 		break;
 	}
@@ -252,6 +249,26 @@ const vector<SymbolInfo*>& Scope::getChildren(){
 int Type::SizeOf(){
 	return this->m_symtable->sizeOf();
 }
+
+
+// *****************************************************************************************
+// class Package
+// *****************************************************************************************
+Package::Package( string scopeName , int scopeLevel ) : Scope( scopeName , scopeLevel ){
+	this->m_built_in = new VMBuiltIn();
+}
+
+// virtual 
+Package::~Package(){
+	delete this->m_built_in;
+}
+
+void Package::insertMethod( string methodName , void(*function)(VMDriver*) ){
+	this->m_built_in->entryFunction( new VMBuiltInFunction( methodName , function ) );
+	this->goToFunctionScope( methodName );
+}
+
+
 
 } // namespace Assembly
 } // namespace VM

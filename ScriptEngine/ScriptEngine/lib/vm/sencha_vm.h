@@ -107,6 +107,11 @@ public :
 	void execute_function( string funcName );
 	void execute();
 	void on_update();
+	Package* insert_package( string packageName );
+	Memory* L( int addr );
+	int BaseP();
+	int SP();
+	int Push();
 };
 
 } // namespace VM

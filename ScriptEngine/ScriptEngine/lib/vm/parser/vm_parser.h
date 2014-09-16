@@ -298,6 +298,7 @@ private :
 		void EntryAssembly( AsmInfo* funcAssembly ){ 
 			this->m_parser->m_asm->entryAssembly( funcAssembly );
 		}
+
 		int GetFunctionAddres( string& funcName ){
 			return this->m_parser->m_asm->find( funcName );
 		}
@@ -640,7 +641,7 @@ private :
 					this->m_parser->m_writer->write( src.IsRef() );
 					this->m_parser->m_writer->writeInt32( ((SymbolInfo*)src)->Addr() );
 					if( src.IsArray() ){
-						this->m_parser->m_writer->writeInt32( ((SymbolInfo*)src)->SizeOf() );
+						this->m_parser->m_writer->writeInt32( ((SymbolInfo*)src)->DataTypeSizeOf() );
 						this->m_parser->m_writer->writeInt32( src.Index() );
 					}
 				}
@@ -655,7 +656,7 @@ private :
 				this->m_parser->m_writer->write( src[i].IsRef() );
 				this->m_parser->m_writer->writeInt32( ((SymbolInfo*)src[i])->Addr() );
 				if( src[i].IsArray() ){
-					this->m_parser->m_writer->writeInt32( ((SymbolInfo*)src[i])->SizeOf() );
+					this->m_parser->m_writer->writeInt32( ((SymbolInfo*)src[i])->DataTypeSizeOf() );
 					this->m_parser->m_writer->writeInt32( src[i].Index() );
 				}
 			}
