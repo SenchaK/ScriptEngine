@@ -101,6 +101,7 @@ private :
 	void getFunction( string func );
 	void vmsetup();
 	void initialize( IAssembleReader* reader , VMBuiltIn* built_in , size_t stacksize , size_t staticsize );
+	bool isBreak();
 protected :
 	virtual Memory& getStatic( int addres );
 	virtual void setStatic( int addres , Memory& m );
@@ -120,6 +121,8 @@ public :
 	int baseP(){ return this->m_base; }
 	int sp(){ return this->m_localAddr; }
 	int pushCount(){ return this->m_push; }
+	void setBreakPoint( string funcName , int pc );
+	void setBreakPoint( int funcAddress , int pc );
 public :
 };
 

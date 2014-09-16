@@ -216,9 +216,25 @@ bool VMDriver::isActive(){
 		}
 		return false;
 	}
-	if( !this->currentAssembly() ) return false;
-	if( this->currentAssembly()->hasMore( this->m_pc ) ) return true;
-	if( this->m_funcAddr >= 0 ) return true;
+	if( !this->currentAssembly() ){
+		return false;
+	}
+	if( this->currentAssembly()->hasMore( this->m_pc ) ){
+		return true;
+	}
+	if( this->m_funcAddr >= 0 ){
+		return true;
+	}
+	return false;
+}
+
+bool VMDriver::isBreak(){
+	if( this->m_breakPoint.funcAddr == this->currentAssembly()->addr() ){
+		if( this->m_breakPoint.prog == this->m_pc ){
+			printf( "BREAK %s[%d],%d,%s\n" , this->currentAssembly()->name().c_str() , this->m_breakPoint.funcAddr , this->m_breakPoint.prog , EMnemonic::toString( this->getByte( m_funcAddr , m_pc ) ).c_str() );
+			return true;
+		}
+	}
 	return false;
 }
 
@@ -230,13 +246,9 @@ void VMDriver::execute(){
 
 	assert( this->currentAssembly() );
 	while( this->isActive() ){
-		if( this->m_breakPoint.funcAddr == this->currentAssembly()->addr() ){
-			if( this->m_breakPoint.prog == this->m_pc ){
-				printf( "BREAK %s[%d],%d,%s\n" , this->currentAssembly()->name().c_str() , this->m_breakPoint.funcAddr , this->m_breakPoint.prog , EMnemonic::toString( this->getByte( m_funcAddr , m_pc ) ).c_str() );
-				break;
-			}
+		if( this->isBreak() ){
+			break;
 		}
-
 		unsigned char content = this->getByte( m_funcAddr , m_pc );
 		m_pc++;
 		switch( content ){
@@ -762,6 +774,21 @@ void VMDriver::Invoke( string& funcName ){
 void VMDriver::Sleep( int sleepTime ){
 	this->m_state = STATE_SLEEP;
 	this->m_sleepcount = sleepTime + 1;
+}
+
+/*
+ * 関数名指定してその関数アドレスの指定プログラムカウンタに達したら処理を中断させるブレークポイントを貼る
+ */
+void VMDriver::setBreakPoint( string funcName , int pc ){
+	int funcAddr = this->getFunctionAddr( funcName );
+	this->m_breakPoint.init( funcAddr , pc );
+}
+
+/*
+ * 関数名指定してその関数アドレスの指定プログラムカウンタに達したら処理を中断させるブレークポイントを貼る
+ */
+void VMDriver::setBreakPoint( int funcAddress , int pc ){
+	this->m_breakPoint.init( funcAddress , pc );
 }
 
 } // namespace Assembly
