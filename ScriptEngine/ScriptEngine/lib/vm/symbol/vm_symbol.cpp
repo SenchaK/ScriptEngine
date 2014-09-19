@@ -16,7 +16,6 @@ SymbolInfo::SymbolInfo( string name , size_t arrayLength , ESymbolType symbolTyp
 	m_symbolType = symbolType;
 	m_isReference = isReference;
 	m_scopeLevel = scopeLevel;
-	m_dataTypeId = 0;
 	if( m_scopeLevel == SCOPE_LEVEL_GLOBAL ){
 		m_symbolType = VariableGlobal;
 	}

@@ -23,7 +23,6 @@ private :
 	bool m_isArray;
 	ESymbolType m_symbolType;
 	bool m_isReference;
-	unsigned short m_dataTypeId;
 	Type* m_type;
 public :
 	SymbolInfo( string name , size_t arrayLength , ESymbolType symbolType , bool isReference , int scopeLevel );
