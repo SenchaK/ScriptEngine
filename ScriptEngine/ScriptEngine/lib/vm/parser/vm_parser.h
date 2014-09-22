@@ -226,12 +226,12 @@ private :
 		 * @param pos ... ジャンプ命令の移動先アドレス設定地点(s32型)
 		 */
 		void WriteJmpPos( int pos ){
-			this->m_parser->m_writer->writeInt32( this->m_parser->m_writer->count() , pos );
+			this->m_parser->m_writer->writeInt32( (signed long)this->m_parser->m_writer->count() , pos );
 		}
 
 		int WriteJmpCommand( int cmd , int jmp ){
 			this->m_parser->m_writer->write( cmd );
-			int pos = this->m_parser->m_writer->count();
+			int pos = (signed int)this->m_parser->m_writer->count();
 			this->m_parser->m_writer->writeInt32( jmp );
 			return pos;
 		}
@@ -254,7 +254,7 @@ private :
 			return this->WriteJ(0);
 		}
 		int GetWritePos(){
-			return this->m_parser->m_writer->count();
+			return (signed long)this->m_parser->m_writer->count();
 		}
 		int GetFuncAddres( string& funcName ){
 			return this->m_parser->getFuncAddres( funcName );

@@ -1,4 +1,6 @@
 #include "stream.h"
+#include "exception\exception.h"
+#include <sys\stat.h>
 
 #ifdef UTIL_DEBUG
 	#define UTIL_ASSERT assert
@@ -16,41 +18,43 @@ namespace Util {
 // *******************************************************************************
 // class Stream
 // *******************************************************************************
-/*virtual*/ 
+/* virtual */ 
 int Stream::getByte( int position ){
-	UTIL_ASSERT( 0 && "実装されていないメソッドが呼ばれました" );
-	return 0;
+	throw NotImplementException( "実装されていないメソッドが呼ばれました int Stream::getByte( int position )" );
 }
-/*virtual*/ 
-void Stream::write( vector<byte> contents , int startIndex , int size ){
-	UTIL_ASSERT( 0 && "実装されていないメソッドが呼ばれました" );
+/* virtual */ 
+void Stream::write( vector<byte>& contents , int startIndex , int size ){
+	throw NotImplementException( "実装されていないメソッドが呼ばれました void Stream::write( vector<byte> contents , int startIndex , int size )" );
 }
-/*virtual*/
-void Stream::writePos( vector<byte> contents , int position , int size ){
-	UTIL_ASSERT( 0 && "実装されていないメソッドが呼ばれました" );
+/* virtual */
+void Stream::writePos( vector<byte>& contents , int position , int size ){
+	throw NotImplementException( "実装されていないメソッドが呼ばれました void Stream::writePos( vector<byte> contents , int position , int size )" );
 }
-/*virtual*/ 
+/* virtual */ 
 void Stream::write( byte value ){
-	UTIL_ASSERT( 0 && "実装されていないメソッドが呼ばれました" );
+	throw NotImplementException( "実装されていないメソッドが呼ばれました void Stream::write( byte value )" );
 }
-/*virtual*/ 
-int Stream::position(){
-	UTIL_ASSERT( 0 && "実装されていないメソッドが呼ばれました" );
-	return 0;
+/* virtual */ 
+fpos_t Stream::position(){
+	throw NotImplementException( "実装されていないメソッドが呼ばれました int Stream::position()" );
 }
-/*virtual*/ 
-void Stream::position( int pos ){
-	UTIL_ASSERT( 0 && "実装されていないメソッドが呼ばれました" );
+/* virtual */ 
+void Stream::position( fpos_t pos ){
+	throw NotImplementException( "実装されていないメソッドが呼ばれました void Stream::position( int pos )" );
 }
-/*virtual*/ 
+/* virtual */ 
 void Stream::clear(){
-	UTIL_ASSERT( 0 && "実装されていないメソッドが呼ばれました" );
+	throw NotImplementException( "実装されていないメソッドが呼ばれました void Stream::clear()" );
 }
-/*virtual*/
-int Stream::count(){
-	UTIL_ASSERT( 0 && "実装されていないメソッドが呼ばれました" );
-	return 0;
+/* virtual */
+fpos_t Stream::count(){
+	throw NotImplementException( "実装されていないメソッドが呼ばれました int Stream::count()" );
 }
+/* virtual */
+void Stream::close(){
+	throw NotImplementException( "実装されていないメソッドが呼ばれました void Stream::close()" );
+}
+
 // *******************************************************************************
 
 
@@ -58,23 +62,62 @@ int Stream::count(){
 // *******************************************************************************
 // class FileStream
 // *******************************************************************************
-FileStream* BinaryFileOpen( string fileName ){ return new FileStream( fileName , "rb" ); }
-FileStream* TextFileOpen( string fileName )  { return new FileStream( fileName ); }
+static const char* GetFileMode( FileStream::Mode mode ){
+	switch( mode ){
+		case FileStream::Write       : return "w";
+		case FileStream::Read        : return "r"; 
+		case FileStream::WriteBinary : return "wb";
+		case FileStream::ReadBinary  : return "rb";
+	}
+	throw Exception( "不明なファイルモード" );
+}
+
+FileStream* BinaryFileOpen( string fileName ){
+	return new FileStream( fileName , FileStream::ReadBinary );
+}
+
+FileStream* TextFileOpen( string fileName ){
+	return new FileStream( fileName );
+}
 
 FileStream::FileStream( string fileName ){
-	m_fp = fopen( fileName.c_str() , "r" );
-}
-FileStream::FileStream( string fileName , const char* mode ){
-	m_fp = fopen( fileName.c_str() , mode );
+	this->sizeinit( fileName );
+	this->m_fp = fopen( fileName.c_str() , GetFileMode( FileStream::Read ) );
 }
 
-/*override*/
+FileStream::FileStream( string fileName , FileStream::Mode mode ){
+	this->sizeinit( fileName );
+	this->m_fp = fopen( fileName.c_str() , GetFileMode( mode ) );
+}
+
+void FileStream::sizeinit( string& fileName ){
+	fpos_t fsize;
+	FILE *fp = fopen( fileName.c_str() , GetFileMode( FileStream::ReadBinary ) );
+	if( fp ){
+		fseek( fp , 0 , SEEK_END ); 
+		fgetpos( fp , &fsize ); 
+		fclose( fp );
+	}
+	this->m_filesize = fsize;
+}
+
+/* override */
 int FileStream::getByte(){
 	if( !m_fp )        return EOF;
 	if( feof( m_fp ) ) return EOF;
 	return fgetc( m_fp );
 }
-/*override*/
+
+/* override */
+int FileStream::getByte( int p ){
+	fpos_t current = this->position();
+	this->position( p );
+	int c = this->getByte();
+	this->position( current );
+	return c;
+}
+
+/* override */
 bool FileStream::hasNext(){
 	if( !m_fp ){
 		return false;
@@ -86,16 +129,38 @@ bool FileStream::hasNext(){
 	return true;
 }
 
-FileStream::~FileStream(){
-	UTIL_PRINT( "FileStream Finish\n" );
-	this->close();
+/* override */
+fpos_t FileStream::position(){
+	if( !this->m_fp ){
+		return 0;
+	}
+	fpos_t pos;
+	fgetpos( this->m_fp , &pos );
+	return pos;
 }
 
+/* override */
+void FileStream::position( fpos_t pos ){
+	fpos_t p = pos;
+	fsetpos( this->m_fp , &p );
+}
+
+/* override */
+fpos_t FileStream::count(){
+	return this->m_filesize;
+}
+
+/* override */
 void FileStream::close(){
 	if( m_fp ){
 		fclose( m_fp );
 		m_fp = NULL;
 	}
+}
+
+FileStream::~FileStream(){
+	UTIL_PRINT( "FileStream Finish\n" );
+	this->close();
 }
 // *******************************************************************************
 
@@ -141,7 +206,9 @@ BinaryStream::BinaryStream( vector<byte>& binaryData ){
 int BinaryStream::getByte(){
 	if( m_index < 0 )                    return EOF;
 	if( m_index >= m_binaryData.size() ) return EOF;
-	return m_binaryData[m_index++];
+	unsigned int index = (unsigned int)m_index;
+	m_index++;
+	return m_binaryData[index];
 }
 int BinaryStream::getByte( int position ){
 	if( position < 0 )                         return EOF;
@@ -156,19 +223,19 @@ bool BinaryStream::hasNext(){
 void BinaryStream::write( byte value ){
 	m_binaryData.push_back( value );
 }
-int BinaryStream::position(){
+fpos_t BinaryStream::position(){
 	return m_index;
 }
-void BinaryStream::position( int pos ){
+void BinaryStream::position( fpos_t pos ){
 	m_index = pos;
 }
-void BinaryStream::write( vector<byte> contents , int startIndex , int size ){
+void BinaryStream::write( vector<byte>& contents , int startIndex , int size ){
 	assert( startIndex >= 0 && startIndex < (int)contents.size() );
 	for( int i = startIndex ; i < startIndex + size ; i++ ){
 		m_binaryData.push_back( contents[i] );
 	}
 }
-void BinaryStream::writePos( vector<byte> contents , int position , int size ){
+void BinaryStream::writePos( vector<byte>& contents , int position , int size ){
 	UTIL_ASSERT( position >= 0 && ( position + size ) <= (int)m_binaryData.size() );
 	for( int pos = position ; pos < position + size ; pos++ ){
 		int index = pos - position;
@@ -179,7 +246,7 @@ void BinaryStream::clear(){
 	m_binaryData.clear();
 	m_index = 0;
 }
-int BinaryStream::count(){
+fpos_t BinaryStream::count(){
 	return (int)m_binaryData.size();
 }
 BinaryStream::~BinaryStream(){
@@ -234,7 +301,7 @@ int BinaryReader::getByte( int position ){
 void BinaryReader::position( int pos ){
 	m_stream->position( pos );
 }
-int BinaryReader::position(){
+fpos_t BinaryReader::position(){
 	return m_stream->position();
 }
 signed int BinaryReader::ToInt32(){
@@ -348,7 +415,7 @@ CStream BinaryWriter::getStream(){
 void BinaryWriter::clear(){
 	m_stream->clear();
 }
-int BinaryWriter::count(){
+fpos_t BinaryWriter::count(){
 	return m_stream->count();
 }
 void BinaryWriter::append( BinaryWriter& w ){

@@ -17,16 +17,56 @@ typedef unsigned char byte;
 // 書き込み機能も提供されているが実装は任意
 class Stream {
 public :
+	virtual ~Stream(){
+	}
+
+	/*
+	 * 1バイトを読み込み、1バイト進める
+	 */
 	virtual int getByte() = 0;
+	/*
+	 * 次に進めるのか？
+	 */
 	virtual bool hasNext() = 0;
+	/*
+	 * 指定の位置の1バイトを取得する
+	 */
 	virtual int getByte( int position );
-	virtual void write( vector<byte> contents , int startIndex , int size );
-	virtual void writePos( vector<byte> contents , int position , int size );
+	/*
+	 * バイト配列の位置を指定して書き込み
+	 */
+	virtual void write( vector<byte>& contents , int startIndex , int size );
+	/*
+	 * 指定のストリーム位置に指定のデータを書き込む
+	 */
+	virtual void writePos( vector<byte>& contents , int position , int size );
+	/* 
+	 * データを書き込む
+	 */
 	virtual void write( byte value );
-	virtual int position();
-	virtual int count();
-	virtual void position( int pos );
+	/*
+	 * 位置取得
+	 */
+	virtual fpos_t position();
+
+	/*
+	 * データサイズ
+	 */
+	virtual fpos_t count();
+
+	/*
+	 * 現在の位置をセット
+	 */
+	virtual void position( fpos_t pos );
+	/*
+	 * データ消去
+	 */
 	virtual void clear();
+
+	/*
+	 * ストリーム閉じる
+	 */
+	virtual void close();
 };
 typedef std::shared_ptr<Stream> CStream;
 
@@ -34,15 +74,29 @@ typedef std::shared_ptr<Stream> CStream;
  
 //ファイルストリーム 
 class FileStream : public Stream {
+public :
+	enum Mode {
+		Write       ,
+		Read        ,
+		ReadBinary  , 
+		WriteBinary ,
+	};
 private :
 	FILE* m_fp;
+	fpos_t m_filesize;
+private :
+	void sizeinit( string& fileName );
 public :
 	FileStream( string fileName );
-	FileStream( string fileName , const char* mode );
-	~FileStream();
+	FileStream( string fileName , FileStream::Mode mode );
+	virtual ~FileStream();
 	virtual int getByte() override;
+	virtual int getByte( int position ) override;
+	virtual long long count() override;
+	virtual fpos_t position() override;
+	virtual void position( fpos_t pos ) override;
 	virtual bool hasNext() override;
-	void close();
+	virtual void close() override;
 };
 FileStream* BinaryFileOpen( string fileName );
 FileStream* TextFileOpen( string fileName );
@@ -55,7 +109,7 @@ private :
 	size_t m_index;
 public  :
 	TextStream( string text );
-	~TextStream();
+	virtual ~TextStream();
 	virtual int getByte() override;
 	virtual bool hasNext() override;
 };
@@ -65,7 +119,7 @@ public  :
 class BinaryStream : public Stream {
 private :
 	vector<byte> m_binaryData;
-	size_t m_index;
+	fpos_t m_index;
 public  :
 	BinaryStream();
 	BinaryStream( vector<byte>& binaryData );
@@ -73,13 +127,13 @@ public  :
 	virtual int getByte( int position ) override;
 	virtual bool hasNext() override;
 	virtual void write( byte value ) override;
-	virtual int position() override;
-	virtual void position( int pos ) override;
-	virtual void write( vector<byte> contents , int startIndex , int size ) override;
-	virtual void writePos( vector<byte> contents , int position , int size ) override;
+	virtual fpos_t position() override;
+	virtual void position( fpos_t pos ) override;
+	virtual void write( vector<byte>& contents , int startIndex , int size ) override;
+	virtual void writePos( vector<byte>& contents , int position , int size ) override;
 	virtual void clear();
-	virtual int count() override;
-	~BinaryStream();
+	virtual fpos_t count() override;
+	virtual ~BinaryStream();
 };
 
 
@@ -104,7 +158,7 @@ public  :
 	int getByte();
 	int getByte( int position );
 	void position( int pos );
-	int position();
+	fpos_t position();
 	signed int ToInt32();
 	signed short int ToInt16();
 	unsigned int ToUInt32();
@@ -135,7 +189,7 @@ public  :
 	void writeString( string value );
 	void clear();
 	void append( BinaryWriter& w );
-	int count();
+	fpos_t count();
 	CStream getStream();
 };
 

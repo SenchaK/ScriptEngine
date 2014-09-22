@@ -13,14 +13,22 @@ SenchaVM::SenchaVM(){
 	this->m_built_in = new VMBuiltIn();
 }
 
+/*
+ * デストラクタ
+ * 全てのメモリを解放
+ */
 SenchaVM::~SenchaVM(){
 	if( this->m_lexer )   { delete this->m_lexer   ; this->m_lexer    = NULL; }
 	if( this->m_reader )  { delete this->m_reader  ; this->m_reader   = NULL; }
 	if( this->m_driver )  { delete this->m_driver  ; this->m_driver   = NULL; }
 	if( this->m_log )     { delete this->m_log     ; this->m_log      = NULL; }
 	if( this->m_built_in ){ delete this->m_built_in; this->m_built_in = NULL; }
+	this->execFinalize();
 }
 
+/*
+ * エンジン部分を動かすのに必要なものだけ開放
+ */
 void SenchaVM::clear(){
 	if( this->m_lexer ) { delete this->m_lexer ; this->m_lexer  = NULL; }
 	if( this->m_reader ){ delete this->m_reader; this->m_reader = NULL; }
@@ -28,11 +36,23 @@ void SenchaVM::clear(){
 	if( this->m_log )   { delete this->m_log   ; this->m_log    = NULL; }
 }
 
+/*
+ *
+ */
 void SenchaVM::log_init( Log* logger ){
 	if( this->m_log ){
 		delete this->m_log;
 	}
 	this->m_log = logger;
+}
+
+/*
+ * デストラクタ時にのみ呼ばれる
+ */
+void SenchaVM::execFinalize(){
+	for( list<event_handler>::iterator iter = this->m_event.begin() ; iter != this->m_event.end() ; iter++ ){
+		iter->finalize();
+	}
 }
 
 void SenchaVM::cleanup(){
@@ -108,11 +128,29 @@ Package* SenchaVM::insert_package( string packageName ){
 Memory* SenchaVM::L( int addr ){
 	return &this->m_driver->getMemory( EMnemonic::MEM_L , addr );
 }
-int SenchaVM::BP(){ return this->m_driver->baseP(); }
-int SenchaVM::SP(){ return this->m_driver->sp(); }
-int SenchaVM::PushCount(){ return this->m_driver->pushCount(); }
-void SenchaVM::setBreakPoint( string funcName , int pc ){ this->m_driver->setBreakPoint( funcName , pc ); }
-void SenchaVM::setBreakPoint( int funcAddr , int pc ){ this->m_driver->setBreakPoint( funcAddr , pc ); }
+
+void SenchaVM::add_event( event_handler evt ){
+	assert( evt.init );
+	assert( evt.finalize );
+	evt.init();
+	m_event.push_back( evt );
+}
+
+int SenchaVM::BP(){
+	return this->m_driver->baseP();
+}
+int SenchaVM::SP(){
+	return this->m_driver->sp();
+}
+int SenchaVM::PushCount(){
+	return this->m_driver->pushCount();
+}
+void SenchaVM::setBreakPoint( string funcName , int pc ){
+	this->m_driver->setBreakPoint( funcName , pc );
+}
+void SenchaVM::setBreakPoint( int funcAddr , int pc ){
+	this->m_driver->setBreakPoint( funcAddr , pc );
+}
 
 } // namespace VM
 } // namespace Sencha

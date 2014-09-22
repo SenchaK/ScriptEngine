@@ -2,7 +2,16 @@
 
 namespace Sencha {
 namespace VM {
-static Log* log = new TextFileLog( "result.log" );
+/* ************************************************************* *
+ * Field
+ * ************************************************************* */
+static Log* log;
+static event_handler evt;
+
+
+/* ************************************************************* * 
+ * Method
+ * ************************************************************* */
 static void print( const char* formatString , ...){
 	va_list args;
 	va_start( args , formatString );
@@ -58,14 +67,38 @@ static void built_in_function_IsEmpty( VMDriver* driver ){
 }
 
 /*
+ * ‰Šú‰»
+ */
+static void initializer(){
+	if( !log ){
+		log = 
+			new ConsoleLog();
+			//new TextFileLog( "result.log" );
+	}
+}
+
+/*
+ * I—¹ˆ—
+ */
+static void finalizer(){
+	if( log ){
+		delete log;
+		log = NULL;
+	}
+}
+
+/*
  * ‘g‚İ‚İŠÖ”“o˜^
  */
 void built_in_function_standard( SenchaVM* vm ){
-	vm->define_function  ( "Log"      , built_in_function_Log      );
-	vm->define_function  ( "ToString" , built_in_function_ToString );
-	vm->define_function  ( "Invoke"   , built_in_function_Invoke   );
-	vm->define_function  ( "Yield"    , build_in_function_Yield    );
-	vm->define_function  ( "IsEmpty"  , built_in_function_IsEmpty  );
+	evt.init = initializer;
+	evt.finalize = finalizer;
+	vm->define_function( "Log"      , built_in_function_Log      );
+	vm->define_function( "ToString" , built_in_function_ToString );
+	vm->define_function( "Invoke"   , built_in_function_Invoke   );
+	vm->define_function( "Yield"    , build_in_function_Yield    );
+	vm->define_function( "IsEmpty"  , built_in_function_IsEmpty  );
+	vm->add_event( evt );
 }
 
 } // namespace Sencha

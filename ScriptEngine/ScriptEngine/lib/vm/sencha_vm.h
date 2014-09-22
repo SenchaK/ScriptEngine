@@ -78,6 +78,15 @@ namespace Sencha {
 namespace VM {
 using namespace Sencha::VM;
 using namespace Sencha::VM::Assembly;
+/*
+ * イベントハンドリングが必要な場合
+ * 主に組み込み関数登録周りなどで別途メモリ管理が必要になったときの初期化、解放に使用する。
+ */
+struct event_handler{
+	void (*init)();
+	void (*finalize)();
+};
+
 
 /*
  * スクリプトエンジン部分
@@ -90,8 +99,10 @@ private :
 	IAssembleReader* m_reader;
 	VMDriver* m_driver;
 	VMBuiltIn* m_built_in;
+	list<event_handler> m_event;
 private :
 	void clear();
+	void execFinalize();
 public :
 	SenchaVM();
 	~SenchaVM();
@@ -107,6 +118,7 @@ public :
 	void execute_function( string funcName );
 	void execute();
 	void on_update();
+	void add_event( event_handler );
 	Package* insert_package( string packageName );
 	Memory* L( int addr );
 	int BP();
