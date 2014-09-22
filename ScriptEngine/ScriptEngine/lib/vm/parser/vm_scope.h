@@ -28,39 +28,83 @@ protected :
 		Struct         , 
 		StructMethod   ,
 	};
-
 	vector<Scope*> m_child      ; // 子スコープ 
-	Scope*         m_parent     ; // 親スコープ
-	CSymtable      m_symtable   ; // シンボルテーブル
-	int            m_scopeLevel ; // スコープレベル
-	EScopeType     m_scopeType  ; // スコープ種類【関数・グローバル・構造体内部】
-	string         m_scopeName  ; // スコープ名
+	Scope* m_parent             ; // 親スコープ
+	CSymtable m_symtable        ; // シンボルテーブル
+	int m_scopeLevel            ; // スコープレベル
+	EScopeType m_scopeType      ; // スコープ種類【関数・グローバル・構造体内部】
+	string m_scopeName          ; // スコープ名
 private :
 	int getSearchSymbolType();
 	SymbolInfo* const _addSymbol( string symbolName );
-	Scope* getTopParent();
-	
+	Scope* getTopParent();	
 public :
+	// コンストラクタ
+	// 名前とスコープレベルを初期値としてセットする
+	Scope( string scopeName , int scopeLevel );
+
+	// デストラクタ
+	// 管理している子スコープを削除する。
+	virtual ~Scope();
+
+	// このスコープは構造体スコープであると通知
 	void notifyStructMethodScope(){ m_scopeType = StructMethod; }
+
+	// 構造体スコープかどうか
 	bool isStructScope(){ return m_scopeType == Struct; }
+
+	// 構造体メソッドスコープであるかどうか
 	bool isStructMethodScope(){ return m_scopeType == StructMethod; }
+
+	// スコープ名
 	string ScopeName(){ return m_scopeName; }
+
+	// スコープレベル
 	int ScopeLevel(){ return m_scopeLevel; }
+
+	// 一つ上の親スコープを取得
 	Scope* const getParentScope(){ return m_parent; }
+
+	// 一つ前のスコープに戻る
 	Scope* const backToChildScope();
+
+	// 子スコープへ進む
+	// 進めた子スコープの参照を返す
 	Scope* const goToChildScope( string name );
+
+	// 構造体スコープへ進む
+	// 進めた子スコープの参照を返す
 	Type* const goToStructScope( string name );
+
+	// 関数スコープへ進む
+	// 進めた子スコープの参照を返す
 	MethodInfo* const goToFunctionScope( string name );
+
+	// 名前からスコープを探す
 	Scope* const findScope( string scopeName );
+
+	// シンボルを登録
+	// 生成されたシンボルを返す
 	SymbolInfo* const addSymbol( string symbolName );
+
+	// シンボルを名前から検索して取得する
+	// 対象の名前シンボルを返す
 	SymbolInfo* const getSymbol( string name );
+
+	// テーブルインデックスからシンボルを取得
+	// 対象のシンボルを返す
 	SymbolInfo* const getSymbol( int index );
+
+	// スコープのフルネームを取得する。
+	// 親スコープ名.子スコープ名と連結された文字列がフルネームとなる
 	string toFullName( const string& funcName );
 
 	// このスコープが管理するシンボルリストを返す
 	const vector<SymbolInfo*>& getSymbols(){
 		return m_symtable->getSymbols();
 	}
+
+	// 一番上のスコープから対象の名前のスコープを検索する。
 	Scope* findScopeFromTop( string scopeName );
 
 	// 現在のスコープが持つ子スコープの数を取得する
@@ -92,13 +136,8 @@ public :
 	// 現在のスコープの所持するシンボル総数すべての合計値を取得する
 	int getAllSymbolCount( ESymbolType symbolType );
 
-	const vector<SymbolInfo*>& getChildren();
-	const vector<Scope*>& getScopeChildren(){
-		return m_child;
-	}
+	// 対象の名前のシンボルをこのスコープ、もしくは親階層が管理しているかどうか
 	bool hasContainSymbol( string name );
-	Scope( string scopeName , int scopeLevel );
-	virtual ~Scope();
 };
 
 // 構造体などの型情報の場合

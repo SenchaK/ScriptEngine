@@ -11,7 +11,13 @@ public :
 
 class ConsoleLog : public Log {
 public :
-	virtual void print( const char* formatString , va_list args );
+	virtual void print( const char* formatString , va_list args ) override;
+};
+
+class NullLog : public Log {
+public :
+	virtual void print( const char* formatString , va_list args ) override {
+	}
 };
 
 class TextFileLog : public Log {
@@ -20,7 +26,7 @@ private :
 public :
 	TextFileLog( const char* fileName );
 	~TextFileLog();
-	virtual void print( const char* formatString , va_list args );
+	virtual void print( const char* formatString , va_list args ) override;
 };
 typedef std::shared_ptr<Log> CLog;
 

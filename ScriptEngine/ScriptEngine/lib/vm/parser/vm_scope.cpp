@@ -101,7 +101,6 @@ Scope* const Scope::goToChildScope( string name ){
 	newScope->m_scopeType = this->m_scopeType;
 	m_child.push_back( newScope );
 	size_t pos = m_child.size() - 1;
-	//printf( ">> goToChildScope %p , %p\n" , newScope , m_child[m_pos] );
 	return m_child[pos];
 }
 
@@ -111,7 +110,6 @@ Type* const Scope::goToStructScope( string name ){
 	newScope->m_scopeType = Struct;
 	m_child.push_back( newScope );
 	size_t pos = m_child.size() - 1;
-	//printf( ">> goToStructScope %p , %p\n" , newScope , m_child[m_pos] );
 	return newScope;
 }
 
@@ -124,7 +122,6 @@ MethodInfo* const Scope::goToFunctionScope( string name ){
 	}
 	m_child.push_back( newScope );
 	size_t pos = m_child.size() - 1;
-	//printf( ">> goToFunctionScope %s\n" , name.c_str() );
 	return newScope;
 }
 
@@ -133,7 +130,6 @@ Scope* const Scope::backToChildScope(){
 }
 
 Scope::~Scope(){
-	//printf( ">> Destroy %p\n" , this );
 	for( unsigned int i = 0 ; i < m_child.size() ; i++ ){
 		Scope* child = m_child[i];
 		delete child;
@@ -144,10 +140,10 @@ Scope::~Scope(){
 
 int Scope::getSearchSymbolType(){
 	switch( m_scopeType ){
-	case Global       : return VariableGlobal;
-	case Function     : return VariableLocal ;
-	case StructMethod : return VariableLocal ;
-	case Struct       : return VariableField ;	
+		case Global       : return VariableGlobal;
+		case Function     : return VariableLocal ;
+		case StructMethod : return VariableLocal ;
+		case Struct       : return VariableField ;
 	}
 	return 0;
 }
@@ -158,17 +154,13 @@ SymbolInfo* const Scope::_addSymbol( string symbolName ){
 	switch( m_scopeType ){
 	case Global   :
 		topAddr = this->getAllSymbolCount( VariableGlobal );
-		//printf( "VariableGlobal %s[%d]\n" , symbolName.c_str() , topAddr );
 		break;
 	case Function :
 	case StructMethod :
 		topAddr = this->getAllSymbolCount( VariableLocal );
-		//printf( "VariableLocal %s[%d]\n" , symbolName.c_str() , topAddr );
 		break;
 	case Struct :
 		topAddr = this->getAllSymbolCount( VariableField );
-		printf( "Field:%s,%d\n" , symbolName.c_str() , topAddr );
-		//printf( "VariableField %s[%d]\n" , symbolName.c_str() , topAddr );
 		break;
 	}
 	m_symtable->entrySymbol( new SymbolInfo( symbolName , 1 , (ESymbolType)getSearchSymbolType() , false , this->m_scopeLevel ) );
@@ -236,14 +228,6 @@ int Scope::getAllSymbolCount( ESymbolType symbolType ){
 SymbolInfo* const Scope::addSymbol( string symbolName ){
 	return _addSymbol( symbolName );
 }
-
-/* public */
-// シンボルのリンクを解除して新たに作成したシンボルのポインタリストを返す
-// std::listで十分？
-const vector<SymbolInfo*>& Scope::getChildren(){
-	return m_symtable->getSymbols();
-}
-
 
 
 int Type::SizeOf(){
