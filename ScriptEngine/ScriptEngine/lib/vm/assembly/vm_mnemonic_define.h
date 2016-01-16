@@ -14,7 +14,7 @@ using namespace std;
 //	**************************************************
 class EMnemonic {
 public :
-	typedef enum {
+	enum {
 		/*
 		 * Žl‘¥‰‰ŽZ
 		 */

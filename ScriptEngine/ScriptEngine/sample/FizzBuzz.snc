@@ -1,3 +1,15 @@
+function pow( $a , $b ){
+	$value = $a;
+	for( $i = 0 ; $i < $b ; $i += 1 ){
+		$value *= $a;
+	}
+	return $value;
+}
+
+function getValue( $a , $b , $c ){
+	return pow( $a , 3 ) * $b + $c;
+}
+
 /*
  * FizzBuzzを出力する
  * 3と5で割り切れる値のとき ... FizzBuzz
@@ -13,6 +25,8 @@ function main(){
 		if( IsEmpty( $s ) ) $s = ToString( $i );
 		Log( $s );
 	}
+
+	Log( "a=" + ToString( getValue( 10 , 7 , 10 ) ) );
 }
 
 

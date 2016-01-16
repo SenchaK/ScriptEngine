@@ -13,7 +13,7 @@ namespace Assembly {
  */
 class VMR {
 private :
-	typedef enum {
+	enum {
 		R_MAX      =   32 , 
 		STORE_SIZE = 1028 , 
 	};
