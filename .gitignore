@@ -14,3 +14,7 @@
 *.cache
 *.rc
 *.idb
+*.db
+*.sqlite
+*.json
+*.opendb

@@ -1,0 +1,32 @@
+
+/*
+ * 構造体はこのように定義する
+ * メンバへのアクセスには$thisを付ける必要がある。
+ * $this.member
+ */
+struct Vector2{
+	$x;
+	$y;
+	
+	function Func(){
+		return $this.x * $this.x;
+	}
+	
+	function Func2(){
+		return $this.Func() * 3;
+	}
+}
+
+
+function main(){
+	$vect as Vector2; // $var as StructTypeという風に定義する。
+	$vect.x = 100;
+	$vect.y = 200;
+	Log("x:" + ToString($vect.x));
+	Log("y:" + ToString($vect.y));
+	Log("func:" + ToString($vect.Func()));
+	Log("func:" + ToString($vect.Func2()));
+}
+
+
+

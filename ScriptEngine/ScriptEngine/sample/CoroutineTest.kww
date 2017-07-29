@@ -1,0 +1,14 @@
+// コルーチン関数
+// この場合は1フレーム待機してから次の処理となる。
+// 次の処理を走らせるにはvmのon_updateを一回呼ぶ必要がある。
+function Coroutine()
+{
+	Log("Hello");
+	Yield(1);
+	Log("World!!");
+}
+
+
+function main(){
+	Invoke("Coroutine");
+}
