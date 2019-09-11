@@ -23,8 +23,31 @@ function main(){
 	}
 }
 ```  
+
+If you use a array, it can description it as follows.
+```php
+/*
+ * エラトステネスの篩
+ * 素数を求めるアルゴリズム
+ */
+function main(){
+	$buf as array[5000];
+	for( $i = 2 ; $i < 100 ; $i+=1 ){
+		if( $buf[$i] ){
+			continue;
+		}
+		for( $j = 2 ; $j < 50 ; $j += 1 ){
+			if( $i * $j > 100 ){
+				break;
+			}
+			$buf[$i * $j] = 1;
+		}
+		Log( ToString( $i ) );
+	}
+}
+```
   
-If you use a struct, it write as following.
+If you use a struct, it can description it as following.
 ```php
 /*
  * How to decl struct
@@ -74,7 +97,7 @@ function main(){
   
 
   
-This engine can generate assemble code, it is follows.
+This engine can generate assemble code log, it feels like as follows.
 ```
 func main
 stack frame 23
